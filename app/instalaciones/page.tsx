@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Activity, Settings, Save, Trash2, Copy, CheckCircle, AlertCircle, RefreshCcw, Database } from 'lucide-react';
-import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, bulkInsertInstallations } from './actions';
+import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, bulkInsertInstallations, parseExcelForDashboard } from './actions';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,8 +12,12 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function ProcesadorDatosPage() {
-    type TabType = 'generador' | 'historial' | 'configuracion';
-    const [activeTab, setActiveTab] = useState<TabType>('generador');
+    type TabType = 'dashboard' | 'generador' | 'historial' | 'configuracion';
+    const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+
+    // States - Dashboard Feeder
+    const [dashboardData, setDashboardData] = useState('');
+    const [dashboardRaw, setDashboardRaw] = useState<any[]>([]);
 
     // States - Procesar
     const [planificadas, setPlanificadas] = useState('');
@@ -73,14 +77,11 @@ export default function ProcesadorDatosPage() {
 
     const handleGuardarReporte = async () => {
         if (!report) return;
-        if (!confirm('¿Deseas sumar estos valores a la base de datos y archivar este reporte? (Hazlo solo 1 vez al día)')) return;
+        if (!confirm('¿Deseas archivar este reporte y sumar los totales de zonas en la BD? (Hazlo solo 1 vez al día)')) return;
 
         try {
             await saveReport(report);
-            if (report.raw_installations && report.raw_installations.length > 0) {
-                await bulkInsertInstallations(report.raw_installations);
-            }
-            showToast('¡Reporte archivado y registros guardados con éxito!');
+            showToast('¡Reporte archivado con éxito!');
             handleLimpiar();
             loadInitialData();
         } catch (e: any) {
@@ -112,6 +113,32 @@ export default function ProcesadorDatosPage() {
         }
     };
 
+    // HANDLERS DASHBOARD
+    const handleExtraerDashboard = async () => {
+        if (!dashboardData.trim()) return showToast('Pega el excel antes de extraer', 'error');
+        try {
+            const raw = await parseExcelForDashboard(dashboardData);
+            setDashboardRaw(raw);
+            showToast(`Se extrajeron ${raw.length} instalaciones exitosamente`);
+        } catch (e: any) {
+            showToast(e.message, 'error');
+        }
+    };
+
+    const handleCargarDashboard = async () => {
+        if (dashboardRaw.length === 0) return;
+        if (!confirm(`¿Deseas cargar estas ${dashboardRaw.length} instalaciones al Dashboard?`)) return;
+
+        try {
+            await bulkInsertInstallations(dashboardRaw);
+            showToast('¡Instalaciones cargadas al Dashboard exitosamente!');
+            setDashboardData('');
+            setDashboardRaw([]);
+        } catch (e: any) {
+            showToast(e.message || 'Error al cargar al dashboard', 'error');
+        }
+    };
+
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
         const configData = new FormData(e.target as HTMLFormElement);
@@ -135,7 +162,8 @@ export default function ProcesadorDatosPage() {
     };
 
     const tabs = [
-        { id: 'generador', label: 'Procesar', icon: <Zap size={18} /> },
+        { id: 'dashboard', label: 'Alimentar Dashboard', icon: <Database size={18} /> },
+        { id: 'generador', label: 'Generar Reporte', icon: <Zap size={18} /> },
         { id: 'historial', label: 'Historial', icon: <Activity size={18} /> },
         { id: 'configuracion', label: 'Configuración', icon: <Settings size={18} /> }
     ];
@@ -204,6 +232,56 @@ export default function ProcesadorDatosPage() {
                         transition={{ duration: 0.2 }}
                         className="w-full"
                     >
+
+                        {/* --------------------- SECTION: DASHBOARD FEEDER --------------------- */}
+                        {activeTab === 'dashboard' && (
+                            <div className="max-w-4xl mx-auto bg-white/70 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-2xl shadow-black/5 dark:shadow-black/20 rounded-[32px] p-8 md:p-12 mb-8">
+                                <div className="mb-10 pb-6 border-b border-border/50">
+                                    <h3 className="font-bold text-2xl text-zinc-900 dark:text-white flex items-center gap-3">
+                                        <Database className="text-indigo-500" /> Alimentar Dashboard Principal
+                                    </h3>
+                                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-3">
+                                        Pega aquí únicamente las celdas directas desde tu cuadro de Excel (incluyendo los encabezados como CLIENTE, ZONA, PLAN, etc.). El sistema extraerá las instalaciones para sumarlas a las gráficas del dashboard de forma masiva.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <textarea
+                                        value={dashboardData}
+                                        onChange={(e) => setDashboardData(e.target.value)}
+                                        placeholder="FECHA	ZONA	...&#10;02-Feb	VALLE	..."
+                                        className="w-full h-48 bg-zinc-50 dark:bg-black/20 border border-zinc-200/80 dark:border-white/10 rounded-2xl p-5 text-sm font-mono whitespace-pre outline-none focus:ring-2 focus:ring-indigo-500/50 resize-y"
+                                    />
+
+                                    <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                                        <button
+                                            onClick={handleExtraerDashboard}
+                                            className="px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold rounded-xl flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-transform w-full sm:w-auto justify-center"
+                                        >
+                                            <RefreshCcw size={18} /> Mapear Columnas y Extraer
+                                        </button>
+
+                                        {dashboardRaw.length > 0 && (
+                                            <div className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-2 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                                {dashboardRaw.length} instalaciones listas
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {dashboardRaw.length > 0 && (
+                                        <div className="pt-6 mt-6 border-t border-border/30 flex justify-end">
+                                            <button
+                                                onClick={handleCargarDashboard}
+                                                className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg shadow-indigo-600/20 w-full sm:w-auto"
+                                            >
+                                                <Database size={20} />
+                                                Cargar al Dashboard
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* --------------------- SECTION: GENERADOR --------------------- */}
                         {activeTab === 'generador' && (

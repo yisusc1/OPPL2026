@@ -196,6 +196,96 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
     let headerIdx = -1;
     let idx = {
         zona: -1,
+        cliente: -1,
+        powergo: -1
+    };
+
+    for (let i = 0; i < validRows.length; i++) {
+        const rowUpper = validRows[i].map(x => x.toUpperCase());
+        for (let j = 0; j < rowUpper.length; j++) {
+            const h = rowUpper[j];
+            if (h.includes("ZONA")) idx.zona = j;
+            if (h.includes("CLIENTE") || h.includes("NOMBRE")) idx.cliente = j;
+            if (h.includes("POWER") || h.includes("POWER GO")) idx.powergo = j;
+        }
+        if (idx.zona !== -1 || idx.cliente !== -1) {
+            headerIdx = i;
+            break;
+        }
+    }
+
+    const zonasCount = { valle: 0, propatria: 0, la_vega: 0, tejerias: 0, coche: 0 };
+    let powergoCount = 0, totalRealizadas = 0;
+    const startRow = headerIdx !== -1 ? headerIdx + 1 : 0;
+
+    for (let i = startRow; i < validRows.length; i++) {
+        const row = validRows[i];
+        if (row.filter(c => c).length < 2) continue; // Skip empty rows
+
+        totalRealizadas++;
+        let zoneFound = false;
+
+        if (idx.zona !== -1 && idx.zona < row.length) {
+            const mapped = mapZone(row[idx.zona]);
+            if (mapped) {
+                // @ts-ignore
+                zonasCount[mapped]++;
+                zoneFound = true;
+            }
+        }
+
+        if (!zoneFound) {
+            for (const cell of row) {
+                const mapped = mapZone(cell);
+                if (mapped) {
+                    // @ts-ignore
+                    zonasCount[mapped]++;
+                    break;
+                }
+            }
+        }
+
+        if (idx.powergo !== -1 && idx.powergo < row.length) {
+            if (["si", "s", "1", "yes"].includes(normalizeText(row[idx.powergo]))) {
+                powergoCount++;
+            }
+        }
+    }
+
+    const config = await checkMonth(await loadConfigDB());
+    const fPlan = totalRealizadas - (planificadas - reagendas);
+    const fecha = format(new Date(), 'dd/MM/yyyy');
+
+    // Construcción del Layout de texto esperado
+    let txt = `Leyenda de Instalaciones ${fecha}\n\n`;
+    txt += `Planificadas: ${planificadas}\nReagenda: ${reagendas}\nFuera de planificación: ${fPlan}\n`;
+    txt += `Total Realizadas: ${totalRealizadas}\nPowerGo Hoy: ${powergoCount}\n`;
+    txt += `Realizadas en el Valle: ${zonasCount.valle}\nRealizadas en Propatria: ${zonasCount.propatria}\n`;
+    txt += `Realizadas en la Vega: ${zonasCount.la_vega}\nRealizadas en Tejerias: ${zonasCount.tejerias}\n`;
+    txt += `Realizadas en Coche: ${zonasCount.coche}\n`;
+
+    txt += `Total clientes el Valle: ${config.valle + zonasCount.valle}\nTotal Clientes Propatria: ${config.propatria + zonasCount.propatria}\n`;
+    txt += `Total Clientes la Vega: ${config.la_vega + zonasCount.la_vega}\nTotal Clientes Tejerias: ${config.tejerias + zonasCount.tejerias}\n`;
+    txt += `Total Clientes Coche: ${config.coche + zonasCount.coche}\nInstalaciones del mes (${config.mes_actual}): ${config.mes_acumulado + totalRealizadas}`;
+
+    return {
+        reporte_texto: txt,
+        totales: totalRealizadas,
+        zonas: zonasCount
+    };
+}
+
+export async function parseExcelForDashboard(textData: string) {
+    // Parsing excel text exclusively to build raw installations array
+    const rows = textData.split('\n').map(row => row.split('\t').map(c => c.trim()));
+    const validRows = rows.filter(r => r.filter(c => c).length >= 3);
+
+    if (validRows.length === 0) throw new Error("No se encontraron filas válidas");
+
+    // Índices de columnas expandido
+    let headerIdx = -1;
+    let idx = {
+        zona: -1,
         sector: -1,
         powergo: -1,
         cliente: -1,
@@ -235,11 +325,8 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         }
     }
 
-    const zonasCount = { valle: 0, propatria: 0, la_vega: 0, tejerias: 0, coche: 0 };
-    let powergoCount = 0, totalRealizadas = 0;
     const startRow = headerIdx !== -1 ? headerIdx + 1 : 0;
 
-    // Objeto base para inserción
     const raw_installations: any[] = [];
     const currentMonth = MESES[new Date().getMonth()].toUpperCase();
     const currentDate = new Date().toISOString().split('T')[0];
@@ -248,28 +335,20 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         const row = validRows[i];
         if (row.filter(c => c).length < 2) continue; // Skip empty rows
 
-        totalRealizadas++;
-        let zoneFound = false;
         let mappedZoneVal = '';
-
         if (idx.zona !== -1 && idx.zona < row.length) {
             const mapped = mapZone(row[idx.zona]);
             if (mapped) {
-                // @ts-ignore
-                zonasCount[mapped]++;
-                zoneFound = true;
                 mappedZoneVal = mapped.toUpperCase().replace('_', ' ');
             } else {
                 mappedZoneVal = row[idx.zona].toUpperCase();
             }
         }
 
-        if (!zoneFound) {
+        if (!mappedZoneVal) {
             for (const cell of row) {
                 const mapped = mapZone(cell);
                 if (mapped) {
-                    // @ts-ignore
-                    zonasCount[mapped]++;
                     mappedZoneVal = mapped.toUpperCase().replace('_', ' ');
                     break;
                 }
@@ -279,7 +358,6 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         let powerGoVal = "NO";
         if (idx.powergo !== -1 && idx.powergo < row.length) {
             if (["si", "s", "1", "yes"].includes(normalizeText(row[idx.powergo]))) {
-                powergoCount++;
                 powerGoVal = "SI";
             }
         }
@@ -309,28 +387,7 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         });
     }
 
-    const config = await checkMonth(await loadConfigDB());
-    const fPlan = totalRealizadas - (planificadas - reagendas);
-    const fecha = format(new Date(), 'dd/MM/yyyy');
-
-    // Construcción del Layout de texto esperado
-    let txt = `Leyenda de Instalaciones ${fecha}\n\n`;
-    txt += `Planificadas: ${planificadas}\nReagenda: ${reagendas}\nFuera de planificación: ${fPlan}\n`;
-    txt += `Total Realizadas: ${totalRealizadas}\nPowerGo Hoy: ${powergoCount}\n`;
-    txt += `Realizadas en el Valle: ${zonasCount.valle}\nRealizadas en Propatria: ${zonasCount.propatria}\n`;
-    txt += `Realizadas en la Vega: ${zonasCount.la_vega}\nRealizadas en Tejerias: ${zonasCount.tejerias}\n`;
-    txt += `Realizadas en Coche: ${zonasCount.coche}\n`;
-
-    txt += `Total clientes el Valle: ${config.valle + zonasCount.valle}\nTotal Clientes Propatria: ${config.propatria + zonasCount.propatria}\n`;
-    txt += `Total Clientes la Vega: ${config.la_vega + zonasCount.la_vega}\nTotal Clientes Tejerias: ${config.tejerias + zonasCount.tejerias}\n`;
-    txt += `Total Clientes Coche: ${config.coche + zonasCount.coche}\nInstalaciones del mes (${config.mes_actual}): ${config.mes_acumulado + totalRealizadas}`;
-
-    return {
-        reporte_texto: txt,
-        totales: totalRealizadas,
-        zonas: zonasCount,
-        raw_installations
-    };
+    return raw_installations;
 }
 
 export async function insertManualInstallation(data: any) {
