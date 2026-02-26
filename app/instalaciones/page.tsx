@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Activity, Settings, Save, Trash2, Copy, CheckCircle, AlertCircle, RefreshCcw, Database } from 'lucide-react';
-import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory } from './actions';
+import { Zap, Activity, Settings, Save, Trash2, Copy, CheckCircle, AlertCircle, RefreshCcw, Database, PlusCircle } from 'lucide-react';
+import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, insertManualInstallation } from './actions';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,8 +12,8 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function ProcesadorDatosPage() {
-    type TabType = 'generador' | 'historial' | 'configuracion';
-    const [activeTab, setActiveTab] = useState<TabType>('generador');
+    type TabType = 'generador' | 'historial' | 'configuracion' | 'ingreso';
+    const [activeTab, setActiveTab] = useState<TabType>('ingreso');
 
     // States - Procesar
     const [planificadas, setPlanificadas] = useState('');
@@ -25,6 +25,26 @@ export default function ProcesadorDatosPage() {
     const [config, setConfig] = useState<any>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [selectedHistory, setSelectedHistory] = useState<number | null>(null);
+
+    // States - Ingreso Manual
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const INITIAL_FORM = {
+        fecha: new Date().toISOString().split('T')[0],
+        mes: 'ENERO',
+        tecnico_1: '',
+        tecnico_2: '',
+        router: '',
+        nombre_cliente: '',
+        cedula: '',
+        zona: '',
+        sector: '',
+        asesor: '',
+        estatus: 'INSTALACION',
+        plan: '',
+        power_go: 'NO',
+        servicio: 'RESIDENCIAL'
+    };
+    const [formData, setFormData] = useState(INITIAL_FORM);
 
     // Toast
     const [toast, setToast] = useState<{ msg: string, type: 'success' | 'error' } | null>(null);
@@ -111,14 +131,14 @@ export default function ProcesadorDatosPage() {
 
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
+        const configData = new FormData(e.target as HTMLFormElement);
         const newConfig = {
-            valle: parseInt(formData.get('valle') as string),
-            propatria: parseInt(formData.get('propatria') as string),
-            la_vega: parseInt(formData.get('la_vega') as string),
-            tejerias: parseInt(formData.get('tejerias') as string),
-            coche: parseInt(formData.get('coche') as string),
-            mes_acumulado: parseInt(formData.get('mes_acumulado') as string),
+            valle: parseInt(configData.get('valle') as string),
+            propatria: parseInt(configData.get('propatria') as string),
+            la_vega: parseInt(configData.get('la_vega') as string),
+            tejerias: parseInt(configData.get('tejerias') as string),
+            coche: parseInt(configData.get('coche') as string),
+            mes_acumulado: parseInt(configData.get('mes_acumulado') as string),
             mes_actual: config?.mes_actual || 'Febrero'
         };
 
@@ -131,7 +151,27 @@ export default function ProcesadorDatosPage() {
         }
     };
 
+    const handleManualSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            await insertManualInstallation(formData);
+            showToast('Instalación guardada exitosamente y reflejada en el Dashboard');
+            setFormData(INITIAL_FORM); // Reset
+        } catch (error: any) {
+            showToast(error.message || 'Error al guardar la instalación', 'error');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
     const tabs = [
+        { id: 'ingreso', label: 'Ingreso Manual', icon: <PlusCircle size={18} /> },
         { id: 'generador', label: 'Procesar', icon: <Zap size={18} /> },
         { id: 'historial', label: 'Historial', icon: <Activity size={18} /> },
         { id: 'configuracion', label: 'Configuración', icon: <Settings size={18} /> }
@@ -413,6 +453,124 @@ export default function ProcesadorDatosPage() {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* --------------------- SECTION: INGRESO MANUAL --------------------- */}
+                        {activeTab === 'ingreso' && (
+                            <div className="max-w-4xl mx-auto bg-white/70 dark:bg-zinc-900/40 backdrop-blur-2xl border border-zinc-200/50 dark:border-white/10 shadow-2xl shadow-black/5 dark:shadow-black/20 rounded-[32px] p-8 md:p-12">
+                                <div className="mb-10 border-b border-border/50 pb-6">
+                                    <h3 className="font-bold text-2xl text-zinc-900 dark:text-white flex items-center gap-3">
+                                        Ingreso Manual de Instalación
+                                    </h3>
+                                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-2">
+                                        Completa los datos de la instalación o solicitud para registrarla directamente en el sistema. Este registro actualizará los indicadores del Dashboard automáticamente.
+                                    </p>
+                                </div>
+
+                                <form onSubmit={handleManualSubmit} className="space-y-6">
+                                    {/* Fechas y Técnicos */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Fecha</label>
+                                            <input required type="date" name="fecha" value={formData.fecha} onChange={handleFormChange} className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Mes del Reporte</label>
+                                            <select required name="mes" value={formData.mes} onChange={handleFormChange} className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm">
+                                                {["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"].map(m => <option key={m} value={m}>{m}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Técnico 1</label>
+                                            <input required type="text" name="tecnico_1" value={formData.tecnico_1} onChange={handleFormChange} placeholder="Nombre Principal" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Técnico 2 (Opcional)</label>
+                                            <input type="text" name="tecnico_2" value={formData.tecnico_2} onChange={handleFormChange} placeholder="Asistente" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                    </div>
+
+                                    {/* Cliente */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-5 bg-zinc-50/50 dark:bg-white/5 rounded-2xl border border-zinc-100 dark:border-white/5">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Cliente (Nombre o Razón Social)</label>
+                                            <input required type="text" name="nombre_cliente" value={formData.nombre_cliente} onChange={handleFormChange} placeholder="Nombre Completo" className="w-full bg-white dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Cédula o RIF</label>
+                                            <input required type="text" name="cedula" value={formData.cedula} onChange={handleFormChange} placeholder="V- / J-" className="w-full bg-white dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Router (Marca/Serial/SN)</label>
+                                            <input type="text" name="router" value={formData.router} onChange={handleFormChange} placeholder="Opcional" className="w-full bg-white dark:bg-black/40 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm" />
+                                        </div>
+                                    </div>
+
+                                    {/* Ubicación y Plan */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Zona</label>
+                                            <input required type="text" name="zona" value={formData.zona} onChange={handleFormChange} placeholder="Ej. LOS TEQUES" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Sector / Nodo</label>
+                                            <input required type="text" name="sector" value={formData.sector} onChange={handleFormChange} placeholder="Ej. MACARENA" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Servicio</label>
+                                            <select required name="servicio" value={formData.servicio} onChange={handleFormChange} className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm">
+                                                <option value="RESIDENCIAL">Residencial</option>
+                                                <option value="COMERCIAL">Comercial</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Plan Asignado</label>
+                                            <input required type="text" name="plan" value={formData.plan} onChange={handleFormChange} placeholder="Ej. 400 MB" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm uppercase" />
+                                        </div>
+                                    </div>
+
+                                    {/* Administrativo */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-4 border-b border-border/50">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Estatus / Motivo</label>
+                                            <select required name="estatus" value={formData.estatus} onChange={handleFormChange} className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm">
+                                                <option value="INSTALACION">Instalación Nueva</option>
+                                                <option value="MIGRACION">Migración</option>
+                                                <option value="CONVENIO">Convenio</option>
+                                                <option value="EMPLEADO">Empleado</option>
+                                                <option value="MUDANZA">Mudanza</option>
+                                                <option value="ACTUALIZACION">Actualización de Equipo</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Asesor Comercial</label>
+                                            <input required type="text" name="asesor" value={formData.asesor} onChange={handleFormChange} placeholder="Ej. TAQUILLA" className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm uppercase" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300">Aplica Power Go?</label>
+                                            <select required name="power_go" value={formData.power_go} onChange={handleFormChange} className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-indigo-500/50 text-sm">
+                                                <option value="NO">NO</option>
+                                                <option value="SI">SI</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="px-8 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg shadow-indigo-600/20"
+                                        >
+                                            {isSubmitting ? (
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <Save size={20} />
+                                            )}
+                                            Guardar Instalación y Actualizar
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         )}
                     </motion.div>

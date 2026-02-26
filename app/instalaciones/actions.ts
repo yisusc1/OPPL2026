@@ -247,3 +247,21 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         zonas: zonasCount
     };
 }
+
+export async function insertManualInstallation(data: any) {
+    const supabase = await createClient();
+
+    // The data object should match the 'installations' table schema
+    // Fields: fecha, mes, tecnico_1, tecnico_2, router, nombre_cliente, cedula, zona, sector, asesor, estatus, plan, power_go, servicio
+    const { error } = await supabase.from('installations').insert([data]);
+
+    if (error) {
+        throw new Error(error.message || 'Error inserting manual installation');
+    }
+
+    // Revalidate paths to update the dashboard immediately
+    revalidatePath('/dashboard');
+    revalidatePath('/instalaciones');
+
+    return { success: true };
+}
