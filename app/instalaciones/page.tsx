@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Activity, Settings, Save, Trash2, Copy, CheckCircle, AlertCircle, RefreshCcw, Database } from 'lucide-react';
-import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, bulkInsertInstallations, parseExcelForDashboard } from './actions';
+import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, bulkInsertInstallations, parseExcelForDashboard, deleteAllInstallations } from './actions';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -145,6 +145,19 @@ export default function ProcesadorDatosPage() {
         }
     };
 
+    const handleLimpiarBase = async () => {
+        if (!confirm('⚠️ ¿Estás COMPLETAMENTE SEGURO de querer borrar TODAS las instalaciones actuales de la base de datos del Dashboard? Esta acción NO se puede deshacer.')) return;
+
+        try {
+            const res = await deleteAllInstallations();
+            if (res.success) {
+                showToast('¡Base de datos limpiada exitosamente! Lista para recibir el nuevo reporte.', 'success');
+            }
+        } catch (e: any) {
+            showToast(e.message || 'Error al limpiar la base de datos', 'error');
+        }
+    };
+
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
         const configData = new FormData(e.target as HTMLFormElement);
@@ -275,7 +288,14 @@ export default function ProcesadorDatosPage() {
                                     </div>
 
                                     {dashboardRaw.length > 0 && (
-                                        <div className="pt-6 mt-6 border-t border-border/30 flex justify-end">
+                                        <div className="pt-6 mt-6 border-t border-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                            <button
+                                                onClick={handleLimpiarBase}
+                                                className="px-6 py-4 bg-red-500/10 hover:bg-red-500/20 text-red-600 font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition-transform active:scale-[0.98] w-full sm:w-auto"
+                                            >
+                                                <Trash2 size={18} />
+                                                Limpiar BD
+                                            </button>
                                             <button
                                                 onClick={handleCargarDashboard}
                                                 className="px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg shadow-indigo-600/20 w-full sm:w-auto"

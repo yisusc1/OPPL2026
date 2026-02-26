@@ -57,16 +57,39 @@ export interface DashboardMetrics {
 export async function fetchInstallations(): Promise<DashboardMetrics> {
     const supabase = createClient();
     try {
-        const { data, error } = await supabase
-            .from('installations')
-            .select('*');
+        let allData: any[] = [];
+        let from = 0;
+        const limit = 1000;
+        let moreDataAvailable = true;
 
-        if (error) throw error;
+        while (moreDataAvailable) {
+            const { data, error } = await supabase
+                .from('installations')
+                .select('*')
+                .range(from, from + limit - 1);
 
-        if (!data) return calculateAdvancedMetrics([]);
+            if (error) {
+                console.error(`Error fetching installations batch ${from}-${from + limit}:`, error);
+                throw error;
+            }
+
+            if (data && data.length > 0) {
+                allData = [...allData, ...data];
+
+                if (data.length < limit) {
+                    moreDataAvailable = false;
+                } else {
+                    from += limit;
+                }
+            } else {
+                moreDataAvailable = false;
+            }
+        }
+
+        if (allData.length === 0) return calculateAdvancedMetrics([]);
 
         // Format dates if needed (Assuming DB ensures correct format, but good to double check)
-        const formattedData = data.map((item: any) => ({
+        const formattedData = allData.map((item: any) => ({
             ...item,
             // Ensure month is uppercase for consistency
             mes: item.mes?.toUpperCase() || "UNKNOWN",

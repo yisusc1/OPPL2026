@@ -180,6 +180,25 @@ export async function bulkInsertInstallations(dataArray: any[]) {
     return { success: true, count: insertedCount };
 }
 
+export async function deleteAllInstallations() {
+    const supabase = await createClient();
+
+    // First ensure there's at least one row, else standard `.delete()` without `.eq()` error throws sometimes
+    const { data: check } = await supabase.from('installations').select('id').limit(1);
+    if (!check || check.length === 0) return { success: true };
+
+    const { error } = await supabase.from('installations').delete().neq('id', 0); // Delete all rows where id != 0
+
+    if (error) {
+        throw new Error(error.message || 'Error deleting all data');
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/instalaciones');
+
+    return { success: true };
+}
+
 // Logic parsing core
 function normalizeText(name: string): string {
     name = name.toLowerCase();
