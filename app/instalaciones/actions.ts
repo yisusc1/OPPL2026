@@ -222,6 +222,11 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
         const row = validRows[i];
         if (row.filter(c => c).length < 2) continue; // Skip empty rows
 
+        // Evitar contar filas vacías del Excel que solo tienen fecha y equipo pero sin cliente real.
+        if (idx.cliente !== -1 && (!row[idx.cliente] || row[idx.cliente].trim() === '')) {
+            continue;
+        }
+
         totalRealizadas++;
         let zoneFound = false;
 
@@ -338,6 +343,11 @@ export async function parseExcelForDashboard(textData: string) {
     for (let i = startRow; i < validRows.length; i++) {
         const row = validRows[i];
         if (row.filter(c => c).length < 2) continue; // Skip empty rows
+
+        // Requisito indispensable: tener al menos el cliente asginado para considerarla válida
+        if (idx.cliente !== -1 && (!row[idx.cliente] || row[idx.cliente].trim() === '')) {
+            continue;
+        }
 
         let mappedZoneVal = '';
         if (idx.zona !== -1 && idx.zona < row.length) {
