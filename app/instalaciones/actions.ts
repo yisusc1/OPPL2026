@@ -285,6 +285,8 @@ export async function parseExcelForDashboard(textData: string) {
     // Índices de columnas expandido
     let headerIdx = -1;
     let idx = {
+        fecha: -1,
+        mes: -1,
         zona: -1,
         sector: -1,
         powergo: -1,
@@ -303,6 +305,8 @@ export async function parseExcelForDashboard(textData: string) {
         const rowUpper = validRows[i].map(x => x.toUpperCase());
         for (let j = 0; j < rowUpper.length; j++) {
             const h = rowUpper[j];
+            if (h.includes("FECHA")) idx.fecha = j;
+            if (h.includes("MES")) idx.mes = j;
             if (h.includes("ZONA")) idx.zona = j;
             if (h.includes("SECTOR") || h.includes("NODO")) idx.sector = j;
             if (h.includes("POWER") || h.includes("POWER GO")) idx.powergo = j;
@@ -369,9 +373,33 @@ export async function parseExcelForDashboard(textData: string) {
         // Replace MBM with MB as requested by user
         planStr = planStr.replace(/MBM/g, 'MB').trim();
 
+        // Extraer y procesar fecha
+        let rawFecha = getVal(idx.fecha);
+        let finalFecha = currentDate;
+        if (rawFecha) {
+            const parts = rawFecha.split(/[\/\-]/);
+            if (parts.length === 3) {
+                // Si es DD/MM/YYYY
+                if (parts[0].length <= 2 && parts[2].length === 4) {
+                    finalFecha = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+                // Si es YYYY/MM/DD
+                else if (parts[0].length === 4) {
+                    finalFecha = `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+                } else {
+                    finalFecha = rawFecha; // fallback
+                }
+            } else {
+                finalFecha = rawFecha; // fallback
+            }
+        }
+
+        let rawMes = getVal(idx.mes);
+        let finalMes = rawMes ? rawMes.toUpperCase() : currentMonth;
+
         raw_installations.push({
-            fecha: currentDate,
-            mes: currentMonth,
+            fecha: finalFecha,
+            mes: finalMes,
             tecnico_1: getVal(idx.tecnico1, 'Desconocido').toUpperCase(),
             tecnico_2: getVal(idx.tecnico2),
             router: getVal(idx.router),
