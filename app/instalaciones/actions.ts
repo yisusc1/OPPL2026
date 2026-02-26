@@ -152,6 +152,22 @@ export async function saveReport(reportData: any) {
     return { success: true };
 }
 
+export async function bulkInsertInstallations(dataArray: any[]) {
+    if (!dataArray || dataArray.length === 0) return { success: true };
+
+    const supabase = await createClient();
+    const { error } = await supabase.from('installations').insert(dataArray);
+
+    if (error) {
+        throw new Error(error.message || 'Error inserting bulk data');
+    }
+
+    revalidatePath('/dashboard');
+    revalidatePath('/instalaciones');
+
+    return { success: true, count: dataArray.length };
+}
+
 // Logic parsing core
 function normalizeText(name: string): string {
     name = name.toLowerCase();
@@ -176,14 +192,44 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
 
     if (validRows.length === 0) throw new Error("No se encontraron filas válidas");
 
-    let headerIdx = -1, zonaIdx = -1, powergoIdx = -1;
+    // Índices de columnas
+    let headerIdx = -1;
+    let idx = {
+        zona: -1,
+        sector: -1,
+        powergo: -1,
+        cliente: -1,
+        cedula: -1,
+        router: -1,
+        plan: -1,
+        tecnico1: -1,
+        tecnico2: -1,
+        asesor: -1,
+        servicio: -1,
+        estatus: -1
+    };
+
     for (let i = 0; i < validRows.length; i++) {
         const rowUpper = validRows[i].map(x => x.toUpperCase());
         for (let j = 0; j < rowUpper.length; j++) {
-            if (["ZONA", "SECTOR"].includes(rowUpper[j])) zonaIdx = j;
-            if (["POWER GO", "POWERGO"].includes(rowUpper[j])) powergoIdx = j;
+            const h = rowUpper[j];
+            if (h.includes("ZONA")) idx.zona = j;
+            if (h.includes("SECTOR") || h.includes("NODO")) idx.sector = j;
+            if (h.includes("POWER") || h.includes("POWER GO")) idx.powergo = j;
+            if (h.includes("CLIENTE") || h.includes("NOMBRE")) idx.cliente = j;
+            if (h.includes("CEDULA") || h.includes("RIF") || h.includes("C.I")) idx.cedula = j;
+            if (h.includes("ROUTER") || h.includes("EQUIPO") || h.includes("SERIAL")) idx.router = j;
+            if (h.includes("PLAN") || h.includes("VELOCIDAD")) idx.plan = j;
+            // Técnicos (buscamos la principal y la asistente)
+            if (h.includes("TECNICO") || h.includes("TÉCNICO")) {
+                if (idx.tecnico1 === -1) idx.tecnico1 = j;
+                else if (idx.tecnico2 === -1) idx.tecnico2 = j;
+            }
+            if (h.includes("ASESOR") || h.includes("VENDEDOR")) idx.asesor = j;
+            if (h.includes("SERVICIO")) idx.servicio = j;
+            if (h.includes("ESTATUS") || h.includes("ESTADO") || h.includes("MOTIVO")) idx.estatus = j;
         }
-        if (zonaIdx !== -1) {
+        if (idx.zona !== -1 || idx.cliente !== -1) {
             headerIdx = i;
             break;
         }
@@ -193,17 +239,28 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
     let powergoCount = 0, totalRealizadas = 0;
     const startRow = headerIdx !== -1 ? headerIdx + 1 : 0;
 
+    // Objeto base para inserción
+    const raw_installations: any[] = [];
+    const currentMonth = MESES[new Date().getMonth()].toUpperCase();
+    const currentDate = new Date().toISOString().split('T')[0];
+
     for (let i = startRow; i < validRows.length; i++) {
         const row = validRows[i];
+        if (row.filter(c => c).length < 2) continue; // Skip empty rows
+
         totalRealizadas++;
         let zoneFound = false;
+        let mappedZoneVal = '';
 
-        if (zonaIdx !== -1 && zonaIdx < row.length) {
-            const mapped = mapZone(row[zonaIdx]);
+        if (idx.zona !== -1 && idx.zona < row.length) {
+            const mapped = mapZone(row[idx.zona]);
             if (mapped) {
                 // @ts-ignore
                 zonasCount[mapped]++;
                 zoneFound = true;
+                mappedZoneVal = mapped.toUpperCase().replace('_', ' ');
+            } else {
+                mappedZoneVal = row[idx.zona].toUpperCase();
             }
         }
 
@@ -213,16 +270,43 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
                 if (mapped) {
                     // @ts-ignore
                     zonasCount[mapped]++;
+                    mappedZoneVal = mapped.toUpperCase().replace('_', ' ');
                     break;
                 }
             }
         }
 
-        if (powergoIdx !== -1 && powergoIdx < row.length) {
-            if (["si", "s"].includes(normalizeText(row[powergoIdx]))) {
+        let powerGoVal = "NO";
+        if (idx.powergo !== -1 && idx.powergo < row.length) {
+            if (["si", "s", "1", "yes"].includes(normalizeText(row[idx.powergo]))) {
                 powergoCount++;
+                powerGoVal = "SI";
             }
         }
+
+        // Construir registro
+        const getVal = (i: number, def = '') => (i !== -1 && i < row.length && row[i] ? row[i] : def);
+
+        let planStr = getVal(idx.plan).toUpperCase();
+        // Replace MBM with MB as requested by user
+        planStr = planStr.replace(/MBM/g, 'MB').trim();
+
+        raw_installations.push({
+            fecha: currentDate,
+            mes: currentMonth,
+            tecnico_1: getVal(idx.tecnico1, 'Desconocido').toUpperCase(),
+            tecnico_2: getVal(idx.tecnico2),
+            router: getVal(idx.router),
+            nombre_cliente: getVal(idx.cliente, 'Cliente Desconocido').toUpperCase(),
+            cedula: getVal(idx.cedula, 'N/A'),
+            zona: mappedZoneVal || getVal(idx.zona).toUpperCase() || 'DESCONOCIDA',
+            sector: getVal(idx.sector).toUpperCase(),
+            asesor: getVal(idx.asesor).toUpperCase(),
+            estatus: getVal(idx.estatus, 'INSTALACION').toUpperCase(),
+            plan: planStr,
+            power_go: powerGoVal,
+            servicio: getVal(idx.servicio, 'RESIDENCIAL').toUpperCase(),
+        });
     }
 
     const config = await checkMonth(await loadConfigDB());
@@ -244,7 +328,8 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
     return {
         reporte_texto: txt,
         totales: totalRealizadas,
-        zonas: zonasCount
+        zonas: zonasCount,
+        raw_installations
     };
 }
 

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Activity, Settings, Save, Trash2, Copy, CheckCircle, AlertCircle, RefreshCcw, Database, PlusCircle } from 'lucide-react';
-import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, insertManualInstallation } from './actions';
+import { processDataLogic, saveReport, getConfig, updateConfig, getHistory, deleteHistory, insertManualInstallation, bulkInsertInstallations } from './actions';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -97,7 +97,10 @@ export default function ProcesadorDatosPage() {
 
         try {
             await saveReport(report);
-            showToast('¡Reporte archivado con éxito!');
+            if (report.raw_installations && report.raw_installations.length > 0) {
+                await bulkInsertInstallations(report.raw_installations);
+            }
+            showToast('¡Reporte archivado y registros guardados con éxito!');
             handleLimpiar();
             loadInitialData();
         } catch (e: any) {
