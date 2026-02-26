@@ -130,7 +130,13 @@ export default function ProcesadorDatosPage() {
         if (!confirm(`¿Deseas cargar estas ${dashboardRaw.length} instalaciones al Dashboard?`)) return;
 
         try {
-            await bulkInsertInstallations(dashboardRaw);
+            const res = await bulkInsertInstallations(dashboardRaw);
+
+            if (res && res.error) {
+                showToast(res.error, 'error');
+                return;
+            }
+
             showToast('¡Instalaciones cargadas al Dashboard exitosamente!');
             setDashboardData('');
             setDashboardRaw([]);

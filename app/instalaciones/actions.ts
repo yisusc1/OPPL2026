@@ -156,16 +156,28 @@ export async function bulkInsertInstallations(dataArray: any[]) {
     if (!dataArray || dataArray.length === 0) return { success: true };
 
     const supabase = await createClient();
-    const { error } = await supabase.from('installations').insert(dataArray);
 
-    if (error) {
-        throw new Error(error.message || 'Error inserting bulk data');
+    // Process in chunks to prevent PostgREST payload limits or request timeouts
+    const chunkSize = 200;
+    let insertedCount = 0;
+
+    for (let i = 0; i < dataArray.length; i += chunkSize) {
+        const chunk = dataArray.slice(i, i + chunkSize);
+        const { error } = await supabase.from('installations').insert(chunk);
+
+        if (error) {
+            return {
+                success: false,
+                error: `Error en Base de Datos (Fila ${i + 1}-${i + chunk.length}): ${error.message}`
+            };
+        }
+        insertedCount += chunk.length;
     }
 
     revalidatePath('/dashboard');
     revalidatePath('/instalaciones');
 
-    return { success: true, count: dataArray.length };
+    return { success: true, count: insertedCount };
 }
 
 // Logic parsing core
