@@ -104,8 +104,14 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
         const busyIds = new Set(busyReports?.map(r => r.vehiculo_id))
 
+        // Check if user is Mechanic
+        const isMechanic = Array.isArray(profile?.roles) && profile.roles.some((r: string) => r.toLowerCase() === 'mecánico' || r.toLowerCase() === 'mecanico')
+
         const available = allVehicles?.filter(v => {
             if (busyIds.has(v.id)) return false
+
+            // [NEW] Mechanics see all vehicles
+            if (isMechanic) return true
 
             // Filter by department if set
             if (v.department && userDept) {
@@ -141,6 +147,13 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         // @ts-ignore
         setSelectedVehicle(selected)
 
+        // [NEW] Auto-set department from vehicle if available
+        // @ts-ignore
+        if (selected.department) {
+            // @ts-ignore
+            setDepartamento(selected.department)
+        }
+
         const supabase = createClient()
         // Keep legacy logic for lastKm validation just in case
         const { data } = await supabase
@@ -175,9 +188,18 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         setLoading(true)
         try {
             const supabase = createClient()
+
+            // [FIX] Ensure user_id is included so the dashboard can find the active trip
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) {
+                toast.error("Sesión no válida")
+                return
+            }
+
             const { error } = await supabase
                 .from('reportes')
                 .insert({
+                    user_id: user.id, // Link report to current user
                     vehiculo_id: vehiculoId,
                     km_salida: km,
                     conductor,
@@ -209,8 +231,8 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
             if (error) throw error
 
-            // [NEW] Update Vehicle Fuel Level on Checkout via Server Action (handles parsing & permissions)
-            await updateVehicleFuel(vehiculoId, gasolina)
+            // [NEW] Update Vehicle Fuel Level AND Mileage on Checkout
+            await updateVehicleFuel(vehiculoId, gasolina, km)
 
             toast.success("Salida registrada correctamente")
 
@@ -337,17 +359,17 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                 onEscapeKeyDown={(e) => {
                     if (step === 'success') e.preventDefault()
                 }}
-                className="sm:max-w-xl rounded-[32px] border-none shadow-2xl max-h-[90vh] flex flex-col p-0 focus:outline-none bg-zinc-50 overflow-hidden"
+                className="sm:max-w-xl rounded-[32px] border-none shadow-2xl max-h-[90vh] flex flex-col p-0 focus:outline-none bg-zinc-50 dark:bg-zinc-950 overflow-hidden text-foreground"
             >
 
                 {step === 'success' ? (
-                    <div className="p-8 flex flex-col items-center justify-center text-center space-y-6 bg-white h-full min-h-[400px]">
-                        <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-in zoom-in spin-in-3">
+                    <div className="p-8 flex flex-col items-center justify-center text-center space-y-6 bg-white dark:bg-zinc-900 h-full min-h-[400px]">
+                        <div className="h-20 w-20 bg-green-100 dark:bg-green-500/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-500 animate-in zoom-in spin-in-3">
                             <CheckCircle size={40} />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-slate-900">¡Salida Registrada!</h2>
-                            <p className="text-slate-500 text-sm">El vehículo ha sido despachado correctamente.</p>
+                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">¡Salida Registrada!</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">El vehículo ha sido despachado correctamente.</p>
                         </div>
 
                         <div className="w-full space-y-3 pt-4">
@@ -358,16 +380,16 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 <Send size={24} className="mr-2" />
                                 Reportar en WhatsApp
                             </Button>
-                            <Button onClick={onClose} variant="ghost" className="w-full text-slate-400">
+                            <Button onClick={onClose} variant="ghost" className="w-full text-slate-400 dark:text-slate-500">
                                 Cerrar y Volver
                             </Button>
                         </div>
                     </div>
                 ) : (
                     <>
-                        <DialogHeader className="bg-white p-6 pb-4 border-b border-zinc-100">
-                            <DialogTitle className="text-2xl font-bold text-center">Registrar Salida</DialogTitle>
-                            <DialogDescription className="text-center">Complete el formulario de pre-operación</DialogDescription>
+                        <DialogHeader className="bg-white dark:bg-zinc-900 p-6 pb-4 border-b border-zinc-100 dark:border-white/5">
+                            <DialogTitle className="text-2xl font-bold text-center text-zinc-900 dark:text-white">Registrar Salida</DialogTitle>
+                            <DialogDescription className="text-center text-zinc-500 dark:text-zinc-400">Complete el formulario de pre-operación</DialogDescription>
                         </DialogHeader>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
@@ -381,25 +403,25 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                         label="Vehículo Disponible"
                                     />
                                     {lastKm !== null && (
-                                        <p className="text-xs text-zinc-500 text-right">Anterior: {lastKm.toLocaleString()} km</p>
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 text-right">Anterior: {lastKm.toLocaleString()} km</p>
                                     )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Kilometraje Actual</Label>
+                                    <Label className="text-zinc-500 dark:text-zinc-400">Kilometraje Actual</Label>
                                     <Input
                                         type="number"
                                         value={kmSalida}
                                         onChange={e => setKmSalida(e.target.value)}
-                                        className="h-12 rounded-xl bg-white"
+                                        className="h-12 rounded-xl bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white"
                                         placeholder={lastKm ? `> ${lastKm}` : "0"}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Nivel de Gasolina</Label>
+                                    <Label className="text-zinc-500 dark:text-zinc-400">Nivel de Gasolina</Label>
                                     <Select value={gasolina} onValueChange={setGasolina}>
-                                        <SelectTrigger className="h-12 rounded-xl bg-white">
+                                        <SelectTrigger className="h-12 rounded-xl bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -413,19 +435,19 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 </div>
 
                                 <div className="space-y-2 col-span-2">
-                                    <Label>Conductor (Auto-asignado)</Label>
+                                    <Label className="text-zinc-500 dark:text-zinc-400">Conductor (Auto-asignado)</Label>
                                     <Input
                                         value={conductor}
                                         readOnly
-                                        className="h-12 rounded-xl bg-zinc-100 text-zinc-500 border-zinc-200 cursor-not-allowed focus-visible:ring-0"
+                                        className="h-12 rounded-xl bg-zinc-100 dark:bg-white/5 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-white/5 cursor-not-allowed focus-visible:ring-0"
                                         placeholder="Cargando identidad..."
                                     />
                                 </div>
 
                                 <div className="space-y-2 col-span-2">
-                                    <Label>Departamento/Uso</Label>
+                                    <Label className="text-zinc-500 dark:text-zinc-400">Departamento/Uso</Label>
                                     <Select value={departamento} onValueChange={setDepartamento}>
-                                        <SelectTrigger className="h-12 rounded-xl bg-white">
+                                        <SelectTrigger className="h-12 rounded-xl bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white">
                                             <SelectValue placeholder="Seleccione el destino" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -442,21 +464,21 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                             </div>
 
                             {/* Checks section */}
-                            <div className="bg-white p-5 rounded-[24px] border border-zinc-100 shadow-sm space-y-6">
+                            <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-100 dark:border-white/5 shadow-sm space-y-6">
 
                                 {/* TÉCNICO */}
                                 <div>
-                                    <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                    <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
                                         Chequeo Técnico
                                     </h4>
                                     <div className="grid grid-cols-1 gap-3">
-                                        <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                            <Label htmlFor="aceite" className="text-sm font-medium text-zinc-700 cursor-pointer">Nivel de Aceite</Label>
+                                        <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                            <Label htmlFor="aceite" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Nivel de Aceite</Label>
                                             <Switch id="aceite" checked={checks.aceite} onCheckedChange={() => toggleCheck('aceite')} />
                                         </div>
                                         {!isMoto && (
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="agua" className="text-sm font-medium text-zinc-700 cursor-pointer">Agua / Refrigerante</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="agua" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Agua / Refrigerante</Label>
                                                 <Switch id="agua" checked={checks.agua} onCheckedChange={() => toggleCheck('agua')} />
                                             </div>
                                         )}
@@ -466,28 +488,28 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 {/* SEGURIDAD - CARROS */}
                                 {!isMoto && (
                                     <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 pt-4">
+                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
                                             Seguridad y Herramientas
                                         </h4>
                                         <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="gato" className="text-sm font-medium text-zinc-700 cursor-pointer">Gato Hidráulico</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="gato" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Gato Hidráulico</Label>
                                                 <Switch id="gato" checked={checks.gato} onCheckedChange={() => toggleCheck('gato')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="cruz" className="text-sm font-medium text-zinc-700 cursor-pointer">Llave Cruz</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="cruz" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Llave Cruz</Label>
                                                 <Switch id="cruz" checked={checks.cruz} onCheckedChange={() => toggleCheck('cruz')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="triangulo" className="text-sm font-medium text-zinc-700 cursor-pointer">Triángulo</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="triangulo" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Triángulo</Label>
                                                 <Switch id="triangulo" checked={checks.triangulo} onCheckedChange={() => toggleCheck('triangulo')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="caucho" className="text-sm font-medium text-zinc-700 cursor-pointer">Caucho Repuesto</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="caucho" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Caucho Repuesto</Label>
                                                 <Switch id="caucho" checked={checks.caucho} onCheckedChange={() => toggleCheck('caucho')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="carpeta" className="text-sm font-medium text-zinc-700 cursor-pointer">Carpeta / Permisos</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="carpeta" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Carpeta / Permisos</Label>
                                                 <Switch id="carpeta" checked={checks.carpeta} onCheckedChange={() => toggleCheck('carpeta')} />
                                             </div>
                                         </div>
@@ -497,20 +519,20 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 {/* SEGURIDAD - MOTO */}
                                 {isMoto && (
                                     <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 pt-4">
+                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
                                             Seguridad Moto
                                         </h4>
                                         <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="casco" className="text-sm font-medium text-zinc-700 cursor-pointer">Casco</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="casco" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Casco</Label>
                                                 <Switch id="casco" checked={checks.casco} onCheckedChange={() => toggleCheck('casco')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="luces" className="text-sm font-medium text-zinc-700 cursor-pointer">Luces</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="luces" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Luces</Label>
                                                 <Switch id="luces" checked={checks.luces} onCheckedChange={() => toggleCheck('luces')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="herramientas" className="text-sm font-medium text-zinc-700 cursor-pointer">Herramientas Básicas</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="herramientas" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Herramientas Básicas</Label>
                                                 <Switch id="herramientas" checked={checks.herramientas} onCheckedChange={() => toggleCheck('herramientas')} />
                                             </div>
                                         </div>
@@ -520,20 +542,20 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 {/* EQUIPOS - SOLO INSTALACION Y NO MOTO */}
                                 {isInstalacion && !isMoto && (
                                     <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 pt-4">
+                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
                                             Equipos Asignados
                                         </h4>
                                         <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="onu" className="text-sm font-medium text-zinc-700 cursor-pointer">ONU / Router</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="onu" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">ONU / Router</Label>
                                                 <Switch id="onu" checked={checks.onu} onCheckedChange={() => toggleCheck('onu')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="ups" className="text-sm font-medium text-zinc-700 cursor-pointer">Mini-UPS</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="ups" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Mini-UPS</Label>
                                                 <Switch id="ups" checked={checks.ups} onCheckedChange={() => toggleCheck('ups')} />
                                             </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 border border-transparent hover:border-zinc-200 transition-all">
-                                                <Label htmlFor="escalera" className="text-sm font-medium text-zinc-700 cursor-pointer">Escalera</Label>
+                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                <Label htmlFor="escalera" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Escalera</Label>
                                                 <Switch id="escalera" checked={checks.escalera} onCheckedChange={() => toggleCheck('escalera')} />
                                             </div>
                                         </div>
@@ -542,21 +564,21 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                             </div>
 
                             <div className="space-y-2">
-                                <Label>Observaciones / Novedades</Label>
+                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones / Novedades</Label>
                                 <Textarea
                                     value={observaciones}
                                     onChange={e => setObservaciones(e.target.value)}
-                                    className="bg-white py-3 min-h-[80px]"
+                                    className="bg-white dark:bg-white/5 py-3 min-h-[80px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
                                     placeholder="Detalle cualquier novedad encontrada..."
                                 />
                             </div>
                         </div>
 
-                        <DialogFooter className="bg-white p-4 border-t border-zinc-100 flex-col sm:flex-col gap-2">
-                            <Button onClick={handleSubmit} disabled={loading} className="w-full h-12 rounded-xl bg-black text-white hover:bg-zinc-800 text-lg shadow-lg shadow-black/10">
+                        <DialogFooter className="bg-white dark:bg-zinc-900 p-4 border-t border-zinc-100 dark:border-white/5 flex-col sm:flex-col gap-2">
+                            <Button onClick={handleSubmit} disabled={loading} className="w-full h-12 rounded-xl bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 text-lg shadow-lg shadow-black/10">
                                 {loading ? "Registrando..." : "Confirmar Salida"}
                             </Button>
-                            <Button variant="ghost" onClick={onClose} className="w-full rounded-xl">
+                            <Button variant="ghost" onClick={onClose} className="w-full rounded-xl text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/5">
                                 Cancelar
                             </Button>
                         </DialogFooter>

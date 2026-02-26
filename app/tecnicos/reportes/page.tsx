@@ -8,7 +8,7 @@ import { ClientForm } from "@/components/client-form"
 import { CreateClientDialog } from "@/components/create-client-dialog"
 import { EditClientDialog } from "@/components/edit-client-dialog"
 import { SupportReportDialog } from "@/components/support-report-dialog"
-import { Plus, Search, AlertCircle, Home as HomeIcon, Wrench } from "lucide-react"
+import { Plus, Search, AlertCircle, Home as HomeIcon, Wrench, Loader2 } from "lucide-react"
 import { LogoutButton } from "@/components/ui/logout-button"
 import { toast } from "sonner"
 import {
@@ -310,99 +310,106 @@ function ReportsContent() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 pb-20">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-12">
+    <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-32 transition-colors duration-300">
+      <div className="max-w-xl mx-auto px-6 pt-12 sm:pt-20">
+
         {/* HEADER */}
-        <div className="flex justify-between items-end mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Instalaciones</h1>
-            <p className="text-zinc-500 font-medium mt-1">Gestión de fibra óptica</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-white leading-tight">
+              Instalaciones
+            </h1>
+            <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg">
+              Gestión técnica
+            </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
             <a
               href="/tecnicos"
-              className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors rounded-full hover:bg-zinc-100 flex items-center justify-center"
-              title="Ir al inicio"
+              className="w-12 h-12 rounded-full bg-white dark:bg-zinc-900 shadow-lg shadow-zinc-900/5 flex items-center justify-center text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 transition-all hover:scale-110 active:scale-95"
             >
-              <HomeIcon size={24} />
+              <HomeIcon size={22} />
             </a>
             <LogoutButton />
           </div>
         </div>
 
-        {/* SEARCH & ACTIONS */}
-        <div className="mb-8 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-4 top-4 text-zinc-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar cliente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 bg-white border border-zinc-200 rounded-2xl text-lg text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all shadow-sm"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => setSupportDialogOpen(true)}
-              className="w-full h-14 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-all active:scale-[0.98]"
-            >
+        {/* ACTION CARDS */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => setSupportDialogOpen(true)}
+            className="relative group overflow-hidden h-32 rounded-[28px] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-900/5 hover:shadow-2xl hover:shadow-zinc-900/10 transition-all duration-300 active:scale-[0.98] flex flex-col items-center justify-center gap-3"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="h-10 w-10 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
               <Wrench size={20} />
-              <span className="text-sm">Soporte</span>
-            </button>
-            <button
-              onClick={() => setDialogOpen(true)}
-              className="w-full h-14 bg-black text-white font-semibold rounded-2xl flex items-center justify-center gap-2 hover:bg-zinc-800 transition-all active:scale-[0.98]"
-            >
-              <Plus size={24} />
-              <span className="text-sm">Cliente</span>
-            </button>
-          </div>
+            </div>
+            <span className="font-bold text-zinc-700 dark:text-zinc-300 relative">Reportar Soporte</span>
+          </button>
+          <button
+            onClick={() => setDialogOpen(true)}
+            className="relative group overflow-hidden h-32 rounded-[28px] bg-zinc-900 dark:bg-zinc-100 shadow-xl shadow-zinc-900/20 hover:shadow-2xl hover:shadow-zinc-900/30 transition-all duration-300 active:scale-[0.98] flex flex-col items-center justify-center gap-3"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="h-10 w-10 rounded-2xl bg-zinc-800 dark:bg-zinc-200 text-white dark:text-zinc-900 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Plus size={20} />
+            </div>
+            <span className="font-bold text-white dark:text-zinc-900 relative">Nuevo Cliente</span>
+          </button>
         </div>
 
-        {/* SQL INIT WARNING */}
+        {/* SEARCH */}
+        <div className="relative mb-10 group z-10">
+          <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" />
+          </div>
+          <input
+            type="text"
+            placeholder="Buscar cliente, cédula o dirección..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-16 pl-14 pr-6 rounded-[24px] bg-white dark:bg-zinc-900 border-0 shadow-xl shadow-zinc-900/5 ring-1 ring-zinc-100 dark:ring-zinc-800 focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 text-lg font-medium placeholder:text-zinc-400 transition-all"
+          />
+        </div>
+
+        {/* WARNINGS */}
         {showInitInstructions && (
-          <div className="mb-6 p-6 bg-white border border-red-200 rounded-3xl shadow-sm">
+          <div className="mb-8 p-6 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-3xl">
             <div className="flex gap-4 items-start">
-              <AlertCircle className="text-red-600 flex-shrink-0" size={24} />
+              <AlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-1" size={24} />
               <div className="flex-1">
-                <h3 className="font-bold text-lg text-zinc-900 mb-2">Configuración Necesaria</h3>
-                <p className="text-zinc-600 mb-4 text-base">
+                <h3 className="font-bold text-lg text-red-900 dark:text-red-300 mb-1">Configuración Necesaria</h3>
+                <p className="text-red-700 dark:text-red-400 mb-3 text-sm">
                   La base de datos necesita ser inicializada.
                 </p>
-                <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-200 text-xs font-mono overflow-auto max-h-48 mb-4">
-                  <pre>{`-- SQL Script...`}</pre>
-                </div>
                 <button
                   onClick={() => setShowInitInstructions(false)}
-                  className="text-zinc-900 font-semibold underline decoration-zinc-300 underline-offset-4"
+                  className="text-red-900 dark:text-red-200 text-sm font-bold underline decoration-red-300 underline-offset-4"
                 >
-                  Cerrar
+                  Cerrar Aviso
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* CLIENTS LIST (Inset Grouped) */}
-        {loading ? (
-          <div className="text-center py-20">
-            <div className="animate-spin w-8 h-8 border-4 border-zinc-200 border-t-black rounded-full mx-auto mb-4"></div>
-            <p className="text-zinc-400">Cargando...</p>
-          </div>
-        ) : filteredClients.length === 0 ? (
-          <div className="text-center py-20 px-6 bg-white rounded-3xl border border-zinc-200 shadow-sm">
-            <p className="text-zinc-400 text-lg mb-6">No hay clientes visibles</p>
-            <button
-              onClick={() => setDialogOpen(true)}
-              className="text-black font-semibold hover:underline"
-            >
-              Crear el primero
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredClients.map((client) => {
+        {/* LIST */}
+        <div className="space-y-5 animate-in slide-in-from-bottom-4 duration-500">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-zinc-300" />
+              <p className="text-zinc-400 font-medium animate-pulse">Cargando clientes...</p>
+            </div>
+          ) : filteredClients.length === 0 ? (
+            <div className="text-center py-24 px-6 bg-white dark:bg-zinc-900/50 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-zinc-50 dark:bg-zinc-800 text-zinc-300 dark:text-zinc-600 mb-4">
+                <Search size={32} />
+              </div>
+              <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">No se encontraron clientes</h3>
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">Intenta con otra búsqueda o crea un nuevo cliente.</p>
+            </div>
+          ) : (
+            filteredClients.map((client) => {
               const isClosureCompleted = client.cierres && client.cierres.length > 0;
               const isAssignmentCompleted = client.asignaciones && client.asignaciones.length > 0;
               const isReviewCompleted = client.revisiones && client.revisiones.length > 0;
@@ -426,9 +433,13 @@ function ReportsContent() {
                   isReviewCompleted={!!isReviewCompleted}
                 />
               )
-            })}
-          </div>
-        )}
+            })
+          )}
+
+          {/* Empty Spacer for Bottom Handling */}
+          <div className="h-8" />
+        </div>
+
       </div>
       <CreateClientDialog
         isOpen={dialogOpen}

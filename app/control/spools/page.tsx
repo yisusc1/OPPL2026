@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Disc, Plus, ArrowRight, History, Package, ArrowLeft } from "lucide-react"
+import { Disc, Plus, History, Package, ArrowLeft, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { SpoolHistoryDialog } from "@/components/spool-history-dialog"
@@ -21,6 +20,9 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumContent } from "@/components/ui/premium-content"
 
 export default function SpoolManagementPage() {
     const router = useRouter()
@@ -90,149 +92,159 @@ export default function SpoolManagementPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-            <div className="max-w-6xl mx-auto">
-                <Button
-                    onClick={() => router.push("/control")}
-                    variant="ghost"
-                    className="mb-6 pl-0 hover:bg-transparent hover:text-blue-600"
-                >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Panel
-                </Button>
-
-                <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Gestión de Bobinas</h1>
-                        <p className="text-slate-500 mt-1">Asigne y monitoree el consumo de fibra por equipo.</p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                        <Button variant="outline" onClick={() => setIsHistoryOpen(true)} className="gap-2 w-full sm:w-auto justify-center">
-                            <History size={16} />
-                            Historial
+        <PremiumPageLayout title="Gestión de Bobinas" description="Asigne y monitoree el consumo de fibra por equipo.">
+            <div className="space-y-8">
+                {/* HEADER ACTIONS */}
+                <PremiumContent className="p-4 md:p-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <Button
+                            onClick={() => router.push("/control")}
+                            variant="ghost"
+                            className="pl-0 hover:bg-transparent hover:text-primary"
+                        >
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Volver al Panel
                         </Button>
-                        <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 rounded-xl px-6 h-12">
-                                    <Plus className="mr-2 h-4 w-4" />
-                                    Nueva Asignación
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md rounded-2xl w-[95vw]">
-                                <DialogHeader>
-                                    <DialogTitle>Asignar Bobina a Grupo</DialogTitle>
-                                    <DialogDescription>
-                                        Seleccione el equipo y el serial de la bobina para confirmar la asignación.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="space-y-4 py-4">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-700">Seleccionar Grupo</label>
-                                        <Select value={selectedTeam} onValueChange={setSelectedTeam}>
-                                            <SelectTrigger className="rounded-xl border-slate-200 h-11">
-                                                <SelectValue placeholder="Seleccione un equipo..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {teams.map(t => (
-                                                    <SelectItem
-                                                        key={t.id}
-                                                        value={t.id}
-                                                        disabled={t.memberCount === 0}
-                                                    >
-                                                        {t.name} {t.memberCount === 0 ? "(Sin Técnico)" : ""}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-700">Serial de Bobina</label>
-                                        <Input
-                                            placeholder="Ej. BOB-2023-001"
-                                            value={serial}
-                                            onChange={e => setSerial(e.target.value)}
-                                            className="rounded-xl border-slate-200 h-11"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-slate-700">Metraje Inicial (m)</label>
-                                        <Input
-                                            type="number"
-                                            placeholder="1000"
-                                            value={meters}
-                                            onChange={e => setMeters(e.target.value)}
-                                            className="rounded-xl border-slate-200 h-11"
-                                        />
-                                    </div>
-                                    <Button className="w-full bg-blue-600 text-white font-bold rounded-xl h-12 mt-4" onClick={handleAssign} disabled={isSubmitting}>
-                                        {isSubmitting ? "Asignando..." : "Confirmar Asignación"}
-                                    </Button>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {spools.map((spool) => (
-                        <Card key={spool.id} className="relative overflow-hidden border-slate-200 shadow-sm rounded-2xl group hover:shadow-md transition-all">
-                            <div className="absolute top-0 right-0 p-4 opacity-50">
-                                <Disc size={100} className="text-slate-100 -mr-6 -mt-6" />
-                            </div>
-                            <CardHeader>
-                                <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                                        <Package size={20} />
-                                    </div>
-                                    <div>
-                                        <CardTitle className="text-lg font-bold text-slate-900">{spool.team?.name}</CardTitle>
-                                        <p className="text-xs text-slate-500 font-mono">{spool.serial_number}</p>
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">Inicial</span>
-                                        <span className="font-bold text-slate-900">{spool.initial_quantity}m</span>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-slate-500">Actual (Est.)</span>
-                                        <span className={`font-bold ${spool.current_quantity < 300 ? 'text-red-500' : 'text-emerald-600'}`}>
-                                            {spool.current_quantity}m
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${spool.current_quantity < 300 ? 'bg-red-500' : 'bg-emerald-500'}`}
-                                            style={{ width: `${(spool.current_quantity / spool.initial_quantity) * 100}%` }}
-                                        />
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 text-center pt-2">
-                                        Asignado el {new Date(spool.created_at).toLocaleDateString()}
-                                    </p>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700"
-                                        onClick={() => handleReturn(spool.id)}
-                                    >
-                                        Liberar / Terminar
+                        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                            <Button variant="outline" onClick={() => setIsHistoryOpen(true)} className="gap-2 w-full sm:w-auto justify-center h-12 rounded-xl">
+                                <History size={16} />
+                                Historial
+                            </Button>
+                            <Dialog open={isAssignOpen} onOpenChange={setIsAssignOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 rounded-xl px-6 h-12">
+                                        <Plus className="mr-2 h-4 w-4" />
+                                        Nueva Asignación
                                     </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md rounded-2xl w-[95vw] bg-background border-border">
+                                    <DialogHeader>
+                                        <DialogTitle>Asignar Bobina a Grupo</DialogTitle>
+                                        <DialogDescription>
+                                            Seleccione el equipo y el serial de la bobina para confirmar la asignación.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4 py-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Seleccionar Grupo</label>
+                                            <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+                                                <SelectTrigger className="rounded-xl border-input h-11 bg-background">
+                                                    <SelectValue placeholder="Seleccione un equipo..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {teams.map(t => (
+                                                        <SelectItem
+                                                            key={t.id}
+                                                            value={t.id}
+                                                            disabled={t.memberCount === 0}
+                                                        >
+                                                            {t.name} {t.memberCount === 0 ? "(Sin Técnico)" : ""}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Serial de Bobina</label>
+                                            <Input
+                                                placeholder="Ej. BOB-2023-001"
+                                                value={serial}
+                                                onChange={e => setSerial(e.target.value)}
+                                                className="rounded-xl border-input h-11 bg-background"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Metraje Inicial (m)</label>
+                                            <Input
+                                                type="number"
+                                                placeholder="1000"
+                                                value={meters}
+                                                onChange={e => setMeters(e.target.value)}
+                                                className="rounded-xl border-input h-11 bg-background"
+                                            />
+                                        </div>
+                                        <Button className="w-full bg-blue-600 text-white font-bold rounded-xl h-12 mt-4" onClick={handleAssign} disabled={isSubmitting}>
+                                            {isSubmitting ? "Asignando..." : "Confirmar Asignación"}
+                                        </Button>
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </PremiumContent>
+
+                {/* SPOOLS GRID */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {loading ? (
+                        <div className="col-span-full flex justify-center py-20">
+                            <Loader2 className="animate-spin text-primary" size={40} />
+                        </div>
+                    ) : (
+                        spools.map((spool) => (
+                            <PremiumCard key={spool.id} className="relative overflow-hidden group hover:border-primary/30 transition-all p-0">
+                                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                                    <Disc size={120} className="text-foreground -mr-8 -mt-8" />
                                 </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                <div className="p-6 pb-2">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-12 w-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                                            <Package size={24} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-foreground">{spool.team?.name}</h3>
+                                            <p className="text-xs text-muted-foreground font-mono bg-muted px-2 py-0.5 rounded inline-block mt-1">{spool.serial_number}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 pt-2 space-y-4">
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Inicial</span>
+                                            <span className="font-bold text-foreground">{spool.initial_quantity}m</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">Actual (Est.)</span>
+                                            <span className={`font-bold ${spool.current_quantity < 300 ? 'text-red-500' : 'text-emerald-500'}`}>
+                                                {spool.current_quantity}m
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full ${spool.current_quantity < 300 ? 'bg-red-500' : 'bg-emerald-500'}`}
+                                                style={{ width: `${Math.min(100, (spool.current_quantity / spool.initial_quantity) * 100)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Asignado: {new Date(spool.created_at).toLocaleDateString()}
+                                        </p>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-500 hover:text-red-600 hover:bg-red-500/10 h-8 px-3 rounded-lg text-xs font-bold"
+                                            onClick={() => handleReturn(spool.id)}
+                                        >
+                                            Liberar
+                                        </Button>
+                                    </div>
+                                </div>
+                            </PremiumCard>
+                        ))
+                    )}
 
                     {spools.length === 0 && !loading && (
-                        <div className="col-span-full py-20 text-center bg-white rounded-3xl border border-dashed border-slate-300">
-                            <Disc size={48} className="mx-auto text-slate-300 mb-4" />
-                            <h3 className="text-lg font-medium text-slate-900">No hay bobinas asignadas</h3>
-                            <p className="text-slate-500 text-sm">Asigne una nueva bobina a un grupo para comenzar.</p>
+                        <div className="col-span-full py-20 text-center border-2 border-dashed border-muted rounded-3xl bg-muted/5">
+                            <Disc size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
+                            <h3 className="text-lg font-medium text-foreground">No hay bobinas asignadas</h3>
+                            <p className="text-muted-foreground text-sm mt-1">Asigne una nueva bobina a un grupo para comenzar.</p>
                         </div>
                     )}
                 </div>
 
                 <AlertDialog open={!!spoolReleaseId} onOpenChange={(open) => !open && setSpoolReleaseId(null)}>
-                    <AlertDialogContent className="rounded-2xl">
+                    <AlertDialogContent className="rounded-2xl bg-background border-border">
                         <AlertDialogHeader>
                             <AlertDialogTitle>¿Liberar bobina del equipo?</AlertDialogTitle>
                             <AlertDialogDescription>
@@ -240,9 +252,9 @@ export default function SpoolManagementPage() {
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel className="rounded-xl border-slate-200" disabled={actionLoading}>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel className="rounded-xl border-input bg-background text-foreground hover:bg-muted" disabled={actionLoading}>Cancelar</AlertDialogCancel>
                             <AlertDialogAction
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold font-mono"
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold"
                                 onClick={(e) => {
                                     e.preventDefault()
                                     executeReturn()
@@ -260,6 +272,6 @@ export default function SpoolManagementPage() {
                 onClose={() => setIsHistoryOpen(false)}
                 history={history}
             />
-        </div >
+        </PremiumPageLayout>
     )
 }

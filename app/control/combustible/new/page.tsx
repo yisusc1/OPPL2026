@@ -6,11 +6,11 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
-import { CalendarIcon, Upload, Loader2, Save, ArrowLeft, Fuel, Car } from "lucide-react"
+import { CalendarIcon, Upload, Loader2, Save, ArrowLeft, Fuel, Car, Gauge, User, FileText } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { VehicleSelector, Vehicle } from "@/components/vehicle-selector"
+import { VehicleSelector } from "@/components/vehicle-selector"
 import {
     Form,
     FormControl,
@@ -25,8 +25,6 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
@@ -34,6 +32,13 @@ import { createClient } from "@/lib/supabase/client"
 import { createFuelLog, getVehicles, getVehicleDetailsAction } from "../actions"
 import Link from "next/link"
 
+// Imports for Premium Style
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumContent } from "@/components/ui/premium-content"
+import { Suspense } from "react"
+
+// Schema remains the same
 const formSchema = z.object({
     ticket_number: z.string().min(1, "Número de ticket requerido"),
     fuel_date: z.date({
@@ -46,11 +51,6 @@ const formSchema = z.object({
     ticket_url: z.string().optional(),
     notes: z.string().optional()
 })
-
-import { Suspense } from "react"
-
-// ... imports ...
-
 
 function NewFuelLogContent() {
     const router = useRouter()
@@ -99,7 +99,7 @@ function NewFuelLogContent() {
                     setScannedVehicle(details)
                     // Auto-fill form
                     form.setValue("vehicle_id", details.id)
-                    form.setValue("mileage", 0) // Reset or propose? Better 0 as user must input NEW mileage.
+                    form.setValue("mileage", 0) // Reset to 0 force user input
 
                     if (details.driver) {
                         const dName = `${details.driver.first_name} ${details.driver.last_name}`
@@ -170,61 +170,54 @@ function NewFuelLogContent() {
     }
 
     return (
-        <div className="p-4 max-w-3xl mx-auto space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/control/combustible">
-                    <Button variant="ghost" size="icon" className="rounded-full">
-                        <ArrowLeft size={24} />
-                    </Button>
+        <PremiumPageLayout title="Nuevo Registro" description="Carga de combustible">
+            <div className="max-w-3xl mx-auto space-y-6">
+                <Link href="/control/combustible" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+                    <ArrowLeft size={16} className="mr-2" />
+                    Volver al Panel
                 </Link>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Nuevo Registro</h1>
-                    <p className="text-gray-500 text-sm">Carga de combustible</p>
-                </div>
-            </div>
 
-            {/* SCAN SUMMARY CARD */}
-            {scannedVehicle && (
-                <div className="bg-blue-50/50 border border-blue-100 rounded-3xl p-6 shadow-sm">
-                    <div className="flex gap-4 items-start mb-4">
-                        <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm shrink-0">
-                            <Car size={24} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900 leading-tight">{scannedVehicle.modelo}</h2>
-                            <p className="text-gray-500 font-mono text-sm">{scannedVehicle.placa} • {scannedVehicle.codigo}</p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 mb-2">
-                        <div className="bg-white p-3 rounded-2xl shadow-sm">
-                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Conductor</p>
-                            <p className="font-semibold text-gray-900 text-sm truncate">
-                                {scannedVehicle.driver ? `${scannedVehicle.driver.first_name} ${scannedVehicle.driver.last_name}` : 'Sin Asignar'}
-                            </p>
-                        </div>
-                        <div className="bg-white p-3 rounded-2xl shadow-sm">
-                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Km Actual</p>
-                            <p className="font-semibold text-gray-900 text-sm">
-                                {scannedVehicle.kilometraje?.toLocaleString() || 0}
-                            </p>
-                        </div>
-                    </div>
-
-                    {scannedVehicle.last_fuel && (
-                        <div className="bg-white p-3 rounded-2xl shadow-sm">
-                            <p className="text-xs font-bold text-gray-400 uppercase mb-1">Última Carga</p>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-900 font-semibold">{format(new Date(scannedVehicle.last_fuel.fuel_date), "dd/MM/yy HH:mm")}</span>
-                                <span className="text-gray-500">{scannedVehicle.last_fuel.liters}L</span>
+                {/* SCAN SUMMARY CARD */}
+                {scannedVehicle && (
+                    <PremiumCard className="p-6 bg-blue-500/10 border-blue-500/20">
+                        <div className="flex gap-4 items-start mb-4">
+                            <div className="h-12 w-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20 shrink-0">
+                                <Car size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-foreground leading-tight">{scannedVehicle.modelo}</h2>
+                                <p className="text-muted-foreground font-mono text-sm">{scannedVehicle.placa} • {scannedVehicle.codigo}</p>
                             </div>
                         </div>
-                    )}
-                </div>
-            )}
 
-            <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden">
-                <CardContent className="p-6">
+                        <div className="grid grid-cols-2 gap-3 mb-2">
+                            <div className="bg-white/5 p-3 rounded-2xl border border-white/10">
+                                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Conductor</p>
+                                <p className="font-semibold text-foreground text-sm truncate">
+                                    {scannedVehicle.driver ? `${scannedVehicle.driver.first_name} ${scannedVehicle.driver.last_name}` : 'Sin Asignar'}
+                                </p>
+                            </div>
+                            <div className="bg-white/5 p-3 rounded-2xl border border-white/10">
+                                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Km Actual</p>
+                                <p className="font-semibold text-foreground text-sm">
+                                    {scannedVehicle.kilometraje?.toLocaleString() || 0}
+                                </p>
+                            </div>
+                        </div>
+
+                        {scannedVehicle.last_fuel && (
+                            <div className="bg-white/5 p-3 rounded-2xl border border-white/10">
+                                <p className="text-xs font-bold text-muted-foreground uppercase mb-1">Última Carga</p>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-foreground font-semibold">{format(new Date(scannedVehicle.last_fuel.fuel_date), "dd/MM/yy HH:mm")}</span>
+                                    <span className="text-muted-foreground">{scannedVehicle.last_fuel.liters}L</span>
+                                </div>
+                            </div>
+                        )}
+                    </PremiumCard>
+                )}
+
+                <PremiumCard className="p-6">
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
@@ -235,9 +228,12 @@ function NewFuelLogContent() {
                                     name="ticket_number"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>N# Ticket</FormLabel>
+                                            <FormLabel className="text-muted-foreground">N# Ticket</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Ej. A-123456" className="h-12 rounded-xl" {...field} />
+                                                <div className="relative">
+                                                    <FileText className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                                                    <Input placeholder="Ej. A-123456" className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-foreground" {...field} />
+                                                </div>
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -249,14 +245,14 @@ function NewFuelLogContent() {
                                     name="fuel_date"
                                     render={({ field }) => (
                                         <FormItem className="flex flex-col">
-                                            <FormLabel>Fecha y Hora</FormLabel>
+                                            <FormLabel className="text-muted-foreground">Fecha y Hora</FormLabel>
                                             <Popover>
                                                 <PopoverTrigger asChild>
                                                     <FormControl>
                                                         <Button
                                                             variant={"outline"}
                                                             className={cn(
-                                                                "w-full h-12 rounded-xl pl-3 text-left font-normal border-gray-200",
+                                                                "w-full h-12 rounded-xl pl-3 text-left font-normal bg-white/5 border-white/10 text-foreground hover:bg-white/10 hover:text-white",
                                                                 !field.value && "text-muted-foreground"
                                                             )}
                                                         >
@@ -269,17 +265,18 @@ function NewFuelLogContent() {
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
-                                                <PopoverContent className="w-auto p-0" align="start">
+                                                <PopoverContent className="w-auto p-0 border-white/10 bg-zinc-950" align="start">
                                                     <Calendar
                                                         mode="single"
                                                         selected={field.value}
                                                         onSelect={field.onChange}
                                                         initialFocus
+                                                        className="bg-zinc-950 text-white"
                                                     />
-                                                    <div className="p-3 border-t">
+                                                    <div className="p-3 border-t border-white/10">
                                                         <Input
                                                             type="time"
-                                                            className="w-full"
+                                                            className="w-full bg-white/5 border-white/10 text-white"
                                                             onChange={(e) => {
                                                                 const date = field.value || new Date()
                                                                 const [hours, minutes] = e.target.value.split(':')
@@ -325,9 +322,12 @@ function NewFuelLogContent() {
                                         name="driver_name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Conductor</FormLabel>
+                                                <FormLabel className="text-muted-foreground">Conductor</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Nombre del chofer" className="h-12 rounded-xl" {...field} />
+                                                    <div className="relative">
+                                                        <User className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                                                        <Input placeholder="Nombre del chofer" className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-foreground" {...field} />
+                                                    </div>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -343,11 +343,11 @@ function NewFuelLogContent() {
                                     name="liters"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Litros</FormLabel>
+                                            <FormLabel className="text-muted-foreground">Litros</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
-                                                    <Fuel className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
-                                                    <Input type="number" step="0.01" className="pl-10 h-12 rounded-xl font-bold text-lg" {...field} />
+                                                    <Fuel className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                                                    <Input type="number" step="0.01" className="pl-10 h-12 rounded-xl font-bold text-lg bg-white/5 border-white/10 text-foreground" {...field} />
                                                 </div>
                                             </FormControl>
                                             <FormMessage />
@@ -360,11 +360,11 @@ function NewFuelLogContent() {
                                     name="mileage"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Nuevo Kilometraje</FormLabel>
+                                            <FormLabel className="text-muted-foreground">Nuevo Kilometraje</FormLabel>
                                             <FormControl>
                                                 <div className="relative">
-                                                    <div className="absolute left-3 top-3.5 h-5 w-5 flex items-center justify-center text-gray-400 font-bold text-xs">KM</div>
-                                                    <Input type="number" className="pl-10 h-12 rounded-xl font-bold text-lg" {...field} />
+                                                    <Gauge className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                                                    <Input type="number" className="pl-10 h-12 rounded-xl font-bold text-lg bg-white/5 border-white/10 text-foreground" {...field} />
                                                 </div>
                                             </FormControl>
                                             <FormMessage />
@@ -375,10 +375,10 @@ function NewFuelLogContent() {
 
                             {/* Upload Receipt */}
                             <div className="space-y-2">
-                                <FormLabel>Foto del Ticket / Recibo</FormLabel>
-                                <div className="relative border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center gap-4 hover:bg-gray-50 transition-colors bg-gray-50/50">
+                                <FormLabel className="text-muted-foreground">Foto del Ticket / Recibo</FormLabel>
+                                <div className="relative border-2 border-dashed border-white/10 rounded-2xl p-6 flex flex-col items-center gap-4 hover:bg-white/5 transition-colors bg-white/5">
                                     {form.watch("ticket_url") ? (
-                                        <div className="relative w-full max-w-xs aspect-[3/4] rounded-xl overflow-hidden border shadow-sm">
+                                        <div className="relative w-full max-w-xs aspect-[3/4] rounded-xl overflow-hidden border border-white/10 shadow-sm">
                                             <img src={form.getValues("ticket_url")} alt="Ticket" className="object-cover w-full h-full" />
                                             <Button
                                                 type="button"
@@ -392,12 +392,12 @@ function NewFuelLogContent() {
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="h-16 w-16 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                                            <div className="h-16 w-16 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
                                                 <Upload size={28} />
                                             </div>
                                             <div className="text-center">
-                                                <p className="text-base font-semibold text-gray-900">Tomar Foto</p>
-                                                <p className="text-sm text-gray-500">Ticket o Recibo</p>
+                                                <p className="text-base font-semibold text-foreground">Tomar Foto</p>
+                                                <p className="text-sm text-muted-foreground">Ticket o Recibo</p>
                                             </div>
                                             <Input
                                                 type="file"
@@ -409,27 +409,27 @@ function NewFuelLogContent() {
                                             />
                                         </>
                                     )}
-                                    {uploading && <Loader2 className="animate-spin text-blue-600" />}
+                                    {uploading && <Loader2 className="animate-spin text-blue-500" />}
                                 </div>
                             </div>
 
                             <div className="pt-4">
-                                <Button type="submit" size="lg" className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-blue-200" disabled={loading || uploading}>
+                                <Button type="submit" size="lg" className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white" disabled={loading || uploading}>
                                     {loading ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Guardando...</> : <><Save className="mr-2 h-5 w-5" /> Guardar Registro</>}
                                 </Button>
                             </div>
 
                         </form>
                     </Form>
-                </CardContent>
-            </Card>
-        </div>
+                </PremiumCard>
+            </div>
+        </PremiumPageLayout>
     )
 }
 
 export default function NewFuelLogPage() {
     return (
-        <Suspense fallback={<div className="p-6 text-center text-gray-500">Cargando formulario...</div>}>
+        <Suspense fallback={<div className="p-6 text-center text-muted-foreground">Cargando formulario...</div>}>
             <NewFuelLogContent />
         </Suspense>
     )

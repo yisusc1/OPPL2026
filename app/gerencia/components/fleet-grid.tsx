@@ -40,15 +40,15 @@ export function FleetGrid({ vehicles }: { vehicles: FleetStatus[] }) {
                 {vehicles.map((vehicle) => (
                     <Card
                         key={vehicle.id}
-                        className="overflow-hidden rounded-[32px] bg-white border border-zinc-100 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-500 group cursor-pointer"
+                        className="overflow-hidden rounded-[32px] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:hover:shadow-[0_8px_30px_rgb(0,0,0,0.3)] transition-all duration-500 group cursor-pointer"
                         onClick={() => setSelectedVehicle(vehicle)}
                     >
                         {/* IMAGE AREA */}
-                        <div className="h-40 bg-zinc-50 relative group-hover:scale-105 transition-transform duration-700">
+                        <div className="h-40 bg-zinc-50 dark:bg-zinc-950 relative group-hover:scale-105 transition-transform duration-700">
                             {vehicle.imageUrl ? (
                                 <img src={vehicle.imageUrl} alt={vehicle.plate} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-300">
+                                <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700">
                                     <Truck size={48} />
                                 </div>
                             )}
@@ -57,8 +57,8 @@ export function FleetGrid({ vehicles }: { vehicles: FleetStatus[] }) {
                             <div className="absolute top-4 right-4">
                                 <div className={`
                                 flex items-center gap-2 px-3 py-1.5 rounded-full 
-                                backdrop-blur-xl bg-white/80 border border-white/40 shadow-sm
-                                transition-all duration-300 hover:bg-white/90
+                                backdrop-blur-xl bg-white/80 dark:bg-black/60 border border-white/40 dark:border-white/10 shadow-sm
+                                transition-all duration-300 hover:bg-white/90 dark:hover:bg-black/80
                             `}>
                                     {/* Status Dot */}
                                     <span className={`relative flex h-2.5 w-2.5`}>
@@ -69,9 +69,9 @@ export function FleetGrid({ vehicles }: { vehicles: FleetStatus[] }) {
                                             }`}></span>
                                     </span>
 
-                                    <span className={`text-xs font-semibold tracking-wide ${vehicle.status === 'IN_ROUTE' ? 'text-green-800' :
-                                        vehicle.status === 'CRITICAL' ? 'text-red-800' :
-                                            vehicle.status === 'MAINTENANCE' ? 'text-amber-800' : 'text-zinc-600'
+                                    <span className={`text-xs font-semibold tracking-wide ${vehicle.status === 'IN_ROUTE' ? 'text-green-800 dark:text-green-400' :
+                                        vehicle.status === 'CRITICAL' ? 'text-red-800 dark:text-red-400' :
+                                            vehicle.status === 'MAINTENANCE' ? 'text-amber-800 dark:text-amber-400' : 'text-zinc-600 dark:text-zinc-400'
                                         }`}>
                                         {getStatusLabel(vehicle.status)}
                                     </span>
@@ -82,17 +82,17 @@ export function FleetGrid({ vehicles }: { vehicles: FleetStatus[] }) {
                         <CardContent className="p-5">
                             <div className="flex justify-between items-start mb-2">
                                 <div>
-                                    <h3 className="font-bold text-lg text-zinc-900">{vehicle.model}</h3>
-                                    <p className="text-zinc-500 text-sm font-mono">{vehicle.plate} • {vehicle.code}</p>
+                                    <h3 className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{vehicle.model}</h3>
+                                    <p className="text-zinc-500 dark:text-zinc-400 text-sm font-mono">{vehicle.plate} • {vehicle.code}</p>
                                 </div>
-                                <div className="bg-zinc-100/50 p-2 rounded-full backdrop-blur-sm">
-                                    {vehicle.tipo === 'Moto' ? <Bike size={20} className="text-zinc-500" /> : <Car size={20} className="text-zinc-500" />}
+                                <div className="bg-zinc-100/50 dark:bg-zinc-800/50 p-2 rounded-full backdrop-blur-sm">
+                                    {vehicle.tipo === 'Moto' ? <Bike size={20} className="text-zinc-500 dark:text-zinc-400" /> : <Car size={20} className="text-zinc-500 dark:text-zinc-400" />}
                                 </div>
                             </div>
 
                             <div className="space-y-3 mt-4">
-                                <div className="flex items-center gap-3 text-sm text-zinc-600 bg-zinc-50 p-2 rounded-lg">
-                                    <User size={16} className="text-zinc-400" />
+                                <div className="flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-lg">
+                                    <User size={16} className="text-zinc-400 dark:text-zinc-500" />
                                     <span className="font-medium truncate">
                                         {vehicle.driver || "Sin conductor"}
                                     </span>
@@ -104,46 +104,46 @@ export function FleetGrid({ vehicles }: { vehicles: FleetStatus[] }) {
                                         <Fuel size={12} strokeWidth={2.5} />
                                         <span>{vehicle.current_fuel_level}%</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 text-zinc-600 text-xs font-bold border border-zinc-100 shadow-sm">
+                                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 text-xs font-bold border border-zinc-100 dark:border-zinc-700 shadow-sm">
                                         <Gauge size={12} strokeWidth={2.5} />
                                         <span className="font-mono tracking-tight">{vehicle.kilometraje?.toLocaleString()} km</span>
                                     </div>
                                 </div>
 
                                 {vehicle.status === 'IN_ROUTE' ? (
-                                    <div className="flex items-center gap-3 text-xs text-green-600 bg-green-50 p-2 rounded-lg border border-green-100 mt-3">
+                                    <div className="flex items-center gap-3 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 p-2 rounded-lg border border-green-100 dark:border-green-900/30 mt-3">
                                         <MapPin size={14} className="animate-bounce" />
                                         <span>Salida: {new Date(vehicle.lastExit!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-3 text-xs text-zinc-400 bg-zinc-50 p-2 rounded-lg mt-3">
+                                    <div className="flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-lg mt-3">
                                         <CheckCircle2 size={14} />
                                         <span>En Galpón</span>
                                     </div>
                                 )}
 
                                 {vehicle.faultsSummary && (vehicle.faultsSummary.critical > 0 || vehicle.faultsSummary.high > 0 || vehicle.faultsSummary.medium > 0 || vehicle.faultsSummary.low > 0) && (
-                                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-zinc-100">
+                                    <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
                                         {vehicle.faultsSummary.critical > 0 && (
-                                            <div className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 rounded-full border border-red-100">
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-full border border-red-100 dark:border-red-900/30">
                                                 <AlertTriangle size={10} strokeWidth={2.5} />
                                                 <span className="text-[10px] font-bold">{vehicle.faultsSummary.critical} Críticas</span>
                                             </div>
                                         )}
                                         {vehicle.faultsSummary.high > 0 && (
-                                            <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-600 rounded-full border border-orange-100">
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-full border border-orange-100 dark:border-orange-900/30">
                                                 <Activity size={10} strokeWidth={2.5} />
                                                 <span className="text-[10px] font-bold">{vehicle.faultsSummary.high} Altas</span>
                                             </div>
                                         )}
                                         {vehicle.faultsSummary.medium > 0 && (
-                                            <div className="flex items-center gap-1 px-2 py-1 bg-yellow-50 text-yellow-600 rounded-full border border-yellow-100">
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded-full border border-yellow-100 dark:border-yellow-900/30">
                                                 <Activity size={10} strokeWidth={2.5} />
                                                 <span className="text-[10px] font-bold">{vehicle.faultsSummary.medium} Medias</span>
                                             </div>
                                         )}
                                         {vehicle.faultsSummary.low > 0 && (
-                                            <div className="flex items-center gap-1 px-2 py-1 bg-zinc-50 text-zinc-500 rounded-full border border-zinc-100">
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-full border border-zinc-100 dark:border-zinc-700">
                                                 <Activity size={10} strokeWidth={2.5} />
                                                 <span className="text-[10px] font-bold">{vehicle.faultsSummary.low} Bajas</span>
                                             </div>

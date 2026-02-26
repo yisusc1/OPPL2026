@@ -10,20 +10,42 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0 0 0); /* black */
-  --primary-foreground: oklch(1 0 0); /* white */
+  --primary: oklch(0.205 0 0); /* zinc-900 */
+  --primary-foreground: oklch(0.985 0 0); /* zinc-50 */
   --secondary: oklch(0.97 0 0); /* zinc-100 */
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0); /* zinc-500 */
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325); /* keep red for errors */
+  --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0); /* zinc-200 */
   --input: oklch(0.922 0 0);
-  --ring: oklch(0 0 0); /* black ring */
-  --radius: 0.75rem; /* rounded-xl by default, components will override */
+  --ring: oklch(0.145 0 0); /* zinc-900/black ring */
+  --radius: 0.75rem; 
+}
+
+.dark {
+  --background: oklch(0.145 0 0); /* zinc-900 */
+  --foreground: oklch(0.985 0 0); /* zinc-50 */
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0); /* zinc-50 */
+  --primary-foreground: oklch(0.205 0 0); /* zinc-900 */
+  --secondary: oklch(0.269 0 0); /* zinc-800 */
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0); /* zinc-400 */
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.269 0 0); /* zinc-800 */
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.87 0 0); /* zinc-300 */
 }
 
 @theme inline {

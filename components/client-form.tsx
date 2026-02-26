@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, CheckCircle, Pencil, Send, Trash2, User, Wifi, Cloud, PenTool, Ruler, LayoutGrid, Home, MapPin, Router } from "lucide-react"
+import { ArrowLeft, CheckCircle, Pencil, Send, Trash2, User, Wifi, Cloud, PenTool, Ruler, LayoutGrid, Home, MapPin, Router, Box, Info } from "lucide-react"
 import { toast } from "sonner"
 import { AutoFillButton } from "@/components/auto-fill-button"
 import { Switch } from "@/components/ui/switch"
@@ -34,7 +34,6 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
   const [success, setSuccess] = useState(false)
   const [successData, setSuccessData] = useState<any>(null)
   const [lastRecordId, setLastRecordId] = useState<string | null>(null)
-  const [reportBlob, setReportBlob] = useState<Blob | null>(null)
   const router = useRouter()
   const [formData, setFormData] = useState({
     // Phase 1: Asignación
@@ -461,9 +460,6 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
     }
   }
 
-  const inputClass = "w-full h-11 px-3 rounded-xl border border-zinc-200 bg-white text-sm focus:ring-1 focus:ring-black focus:border-black transition-all"
-  const labelClass = "block text-xs font-semibold text-zinc-500 mb-1.5 uppercase tracking-wide"
-
   const handleWhatsApp = () => {
     let message = ""
     const currentDate = new Date().toLocaleDateString("es-ES")
@@ -536,41 +532,44 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
     window.open(url, '_blank')
   }
 
+  const inputClass = "w-full h-12 px-4 rounded-xl border-0 bg-zinc-50 dark:bg-zinc-900/50 text-base text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-500 transition-all font-medium"
+  const labelClass = "block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 mb-1.5 uppercase tracking-wider pl-1"
+
   if (success) {
     return (
-      <main className="min-h-screen bg-zinc-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md rounded-3xl border-none shadow-xl bg-white overflow-hidden">
+      <main className="min-h-screen bg-zinc-50 dark:bg-black/95 flex items-center justify-center p-4 transition-colors">
+        <Card className="w-full max-w-md rounded-[32px] border-0 shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden ring-1 ring-zinc-100 dark:ring-zinc-800 animate-in zoom-in-95 duration-300">
           <CardContent className="p-8 text-center space-y-6">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600 mb-2">
-              <CheckCircle size={40} strokeWidth={3} />
+            <div className="w-24 h-24 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto text-green-500 dark:text-green-400 mb-2 shadow-inner">
+              <CheckCircle size={48} strokeWidth={2} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-zinc-900 mb-2">¡Fase Completada!</h2>
-              <p className="text-zinc-500">La información ha sido registrada exitosamente.</p>
+              <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">¡Fase Completada!</h2>
+              <p className="text-zinc-500 dark:text-zinc-400">La información ha sido registrada exitosamente.</p>
             </div>
 
             <div className="pt-4 space-y-3">
-              <Button onClick={handleWhatsApp} className="w-full h-12 rounded-xl bg-[#25D366] text-white font-bold hover:bg-[#128C7E] flex items-center justify-center gap-2">
-                <Send size={18} />
+              <Button onClick={handleWhatsApp} className="w-full h-14 rounded-2xl bg-[#25D366] hover:bg-[#128C7E] text-white font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/20 transition-all">
+                <Send size={20} />
                 Enviar a WhatsApp
               </Button>
 
               {(phase === 'assignment' || phase === 'review') ? (
-                <Button onClick={() => onPhaseComplete(phase === 'assignment' ? 'review' : 'closure')} className="w-full h-12 rounded-xl bg-black text-white font-bold hover:bg-zinc-800">
-                  Continuar a Siguiente Fase
+                <Button onClick={() => onPhaseComplete(phase === 'assignment' ? 'review' : 'closure')} className="w-full h-14 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold text-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-xl shadow-zinc-900/10">
+                  Continuar Siguiente Fase
                 </Button>
               ) : (
-                <Button onClick={() => onPhaseComplete(null)} className="w-full h-12 rounded-xl bg-black text-white font-bold hover:bg-zinc-800">
+                <Button onClick={() => onPhaseComplete(null)} className="w-full h-14 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-black font-bold text-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 shadow-xl shadow-zinc-900/10">
                   Finalizar Todo
                 </Button>
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <Button onClick={() => setSuccess(false)} variant="outline" className="w-full h-12 rounded-xl font-bold border-zinc-200 text-zinc-700 hover:bg-zinc-50">
+                <Button onClick={() => setSuccess(false)} variant="ghost" className="w-full h-14 rounded-2xl font-bold text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   <Pencil size={18} className="mr-2" />
                   Editar
                 </Button>
-                <Button onClick={onBack} variant="ghost" className="w-full h-12 rounded-xl text-zinc-500 hover:text-zinc-900 font-medium">
+                <Button onClick={onBack} variant="ghost" className="w-full h-14 rounded-2xl text-zinc-500 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800">
                   Volver
                 </Button>
               </div>
@@ -582,7 +581,7 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 p-2 sm:p-4 pb-20">
+    <main className="min-h-screen bg-zinc-50 dark:bg-black/95 p-4 sm:p-6 pb-24 transition-colors">
       <AutoFillButton
         phase={phase}
         onFill={(d) => setFormData((prev) => {
@@ -593,65 +592,79 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
           return newState
         })}
       />
-      <div className="max-w-xl mx-auto">
+
+      <div className="max-w-2xl mx-auto">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-zinc-500 hover:text-zinc-900 mb-6 font-medium transition-colors text-sm"
+          className="flex items-center gap-3 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white mb-8 font-bold transition-all text-sm group"
         >
-          <div className="w-8 h-8 rounded-full bg-white border border-zinc-200 flex items-center justify-center">
-            <ArrowLeft size={16} />
+          <div className="w-10 h-10 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+            <ArrowLeft size={18} />
           </div>
-          <span>Volver</span>
+          <span>Volver al listado</span>
         </button>
 
-        <Card className="rounded-[24px] border-none shadow-sm bg-white overflow-hidden">
-          <CardHeader className="border-b border-zinc-100 py-5 px-6 bg-white">
-            <CardTitle className="text-xl font-bold text-zinc-900">
-              {phase === "assignment" && "Fase 1: Asignación"}
-              {phase === "review" && "Fase 2: Revisión"}
-              {phase === "closure" && "Fase 3: Cierre"}
+        <Card className="rounded-[32px] border-0 shadow-2xl bg-white dark:bg-zinc-950 overflow-hidden ring-1 ring-zinc-100 dark:ring-zinc-800">
+          <CardHeader className="border-b border-zinc-50 dark:border-zinc-900 py-8 px-8 bg-white dark:bg-zinc-950">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-900 text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                {phase === "assignment" && "Fase 1"}
+                {phase === "review" && "Fase 2"}
+                {phase === "closure" && "Fase 3"}
+              </div>
+            </div>
+            <CardTitle className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+              {phase === "assignment" && "Asignación Técnica"}
+              {phase === "review" && "Revisión de Instalación"}
+              {phase === "closure" && "Cierre y Reporte"}
             </CardTitle>
-            <p className="text-zinc-400 font-medium text-sm mt-0.5">
+            <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg mt-1">
               {client.nombre}
             </p>
           </CardHeader>
-          <CardContent className="p-5 sm:p-6 bg-white">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="p-8 bg-white dark:bg-zinc-950">
+            <form onSubmit={handleSubmit} className="space-y-8">
 
-              {/* READ ONLY INFO */}
-              <div className="grid grid-cols-2 gap-3 bg-zinc-50/80 p-4 rounded-2xl border border-zinc-100">
-                <div>
-                  <span className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Equipo</span>
-                  <span className="font-semibold text-zinc-900 text-sm">{formData.equipo || client.equipo}</span>
+              {/* READ ONLY INFO CARD */}
+              <div className="grid grid-cols-2 gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-[24px] border border-zinc-100 dark:border-zinc-800">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 text-zinc-400 dark:text-zinc-500"><Box size={16} /></div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Equipo</span>
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100 text-base">{formData.equipo || client.equipo}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Plan</span>
-                  <span className="font-semibold text-zinc-900 text-sm">{formData.plan || client.plan}</span>
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 text-zinc-400 dark:text-zinc-500"><Info size={16} /></div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Plan</span>
+                    <span className="font-bold text-zinc-900 dark:text-zinc-100 text-base leading-tight">{formData.plan || client.plan}</span>
+                  </div>
                 </div>
-                <div className="col-span-2 pt-2 border-t border-zinc-100">
-                  <span className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">ONU Serial</span>
-                  <input className="w-full bg-transparent font-mono text-sm font-medium text-zinc-900 border-none p-0 focus:ring-0" name="onu" value={formData.onu} onChange={handleChange} placeholder="---" />
+                <div className="col-span-2 pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                  <span className="block text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-1 pl-1">ONU Serial</span>
+                  <input className="w-full bg-transparent font-mono text-base font-bold text-zinc-900 dark:text-zinc-100 border-none p-0 focus:ring-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 tracking-widest" name="onu" value={formData.onu} onChange={handleChange} placeholder="---" />
                 </div>
               </div>
 
               {phase === "assignment" && (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
                     <label className={labelClass}>Técnico 1 *</label>
-                    <input name="tecnico_1" value={formData.tecnico_1} onChange={handleChange} required className={`${inputClass} ${teamData?.members[0] ? 'bg-zinc-100 text-zinc-500' : ''}`} readOnly={!!teamData?.members[0]} placeholder="Nombre del técnico" />
+                    <input name="tecnico_1" value={formData.tecnico_1} onChange={handleChange} required className={`${inputClass} ${teamData?.members[0] ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500' : ''}`} readOnly={!!teamData?.members[0]} placeholder="Nombre del técnico" />
                   </div>
                   <div>
                     <label className={labelClass}>Técnico 2 *</label>
-                    <input name="tecnico_2" value={formData.tecnico_2} onChange={handleChange} required className={`${inputClass} ${teamData?.members[1] ? 'bg-zinc-100 text-zinc-500' : ''}`} readOnly={!!teamData?.members[1]} placeholder="Nombre del técnico" />
+                    <input name="tecnico_2" value={formData.tecnico_2} onChange={handleChange} required className={`${inputClass} ${teamData?.members[1] ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500' : ''}`} readOnly={!!teamData?.members[1]} placeholder="Nombre del técnico" />
                   </div>
                 </div>
               )}
 
               {phase === "review" && (
-                <div className="space-y-5">
+                <div className="space-y-6">
                   <div>
                     <label className={labelClass}>Ubicación / Zona *</label>
-                    <input name="ubicacion" value={formData.ubicacion} onChange={handleChange} required className={inputClass} />
+                    <input name="ubicacion" value={formData.ubicacion} onChange={handleChange} required className={inputClass} placeholder="Ej. Centro, Norte..." />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -680,8 +693,8 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   <div>
                     <label className={labelClass}>Coordenadas</label>
                     <div className="flex gap-2">
-                      <input name="coordenadas" value={formData.coordenadas} readOnly className={`${inputClass} bg-zinc-50 text-zinc-500`} />
-                      <Button type="button" onClick={capturarUbicacion} size="icon" className="h-11 w-11 rounded-xl bg-zinc-900 text-white hover:bg-zinc-700 shrink-0">
+                      <input name="coordenadas" value={formData.coordenadas} readOnly className={`${inputClass} bg-zinc-100 dark:bg-zinc-800 text-zinc-500`} />
+                      <Button type="button" onClick={capturarUbicacion} size="icon" className="h-12 w-12 rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-700 shrink-0">
                         <MapPin size={20} />
                       </Button>
                     </div>
@@ -698,13 +711,13 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   </div>
                   <div>
                     <label className={labelClass}>Observación</label>
-                    <textarea name="observacion" value={formData.observacion} onChange={handleChange} className={`${inputClass} h-24 py-2 resize-none`} />
+                    <textarea name="observacion" value={formData.observacion} onChange={handleChange} className={`${inputClass} h-32 py-3 resize-none`} placeholder="Detalles adicionales..." />
                   </div>
                 </div>
               )}
 
               {phase === "closure" && (
-                <div className="space-y-5">
+                <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className={labelClass}>V. Descarga</label>
@@ -717,16 +730,16 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   </div>
 
                   {/* Spool */}
-                  <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
-                    <label className="text-xs font-bold text-blue-600 mb-1.5 uppercase block">Bobina Utilizada *</label>
-                    <select name="codigo_carrete" value={formData.codigo_carrete} onChange={handleChange} required className={`${inputClass} border-blue-200 bg-white`}>
+                  <div className="p-5 bg-blue-50 dark:bg-blue-900/10 rounded-[24px] border border-blue-100 dark:border-blue-900/30">
+                    <label className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-2 uppercase block tracking-wider">Bobina Utilizada *</label>
+                    <select name="codigo_carrete" value={formData.codigo_carrete} onChange={handleChange} required className={`${inputClass} border-blue-200 dark:border-blue-800 bg-white dark:bg-black`}>
                       <option value="">Seleccione Bobina...</option>
                       {mySpools.map((s) => (
                         <option key={s.serial} value={s.serial}>{s.label}</option>
                       ))}
                     </select>
                     {mySpools.length === 0 && (
-                      <p className="text-red-500 text-[10px] mt-1 font-medium">⚠ Sin bobinas asignadas.</p>
+                      <p className="text-red-500 text-[10px] mt-2 font-medium">⚠ Sin bobinas asignadas.</p>
                     )}
                   </div>
 
@@ -737,7 +750,7 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                     </div>
                     <div>
                       <label className={labelClass}>Merma *</label>
-                      <input name="metraje_desechado" value={formData.metraje_desechado} onChange={handleChange} required className={`${inputClass} text-red-600`} />
+                      <input name="metraje_desechado" value={formData.metraje_desechado} onChange={handleChange} required className={`${inputClass} text-red-600 dark:text-red-400`} />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -752,9 +765,9 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-zinc-50 rounded-xl border border-zinc-100">
+                    <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                       <div className="space-y-0.5">
-                        <label className="text-sm font-semibold text-zinc-900 block">Power Go</label>
+                        <label className="text-sm font-bold text-zinc-900 dark:text-white block">Power Go</label>
                         <p className="text-[10px] text-zinc-400">
                           {formData.power_go === "Activo" ? "Servicio Activo" : "Servicio Inactivo"}
                         </p>
@@ -774,24 +787,24 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   </div>
 
                   {/* SWITCHES SECTION */}
-                  <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100 space-y-4">
+                  <div className="bg-zinc-50 dark:bg-zinc-900/40 p-5 rounded-[24px] border border-zinc-100 dark:border-zinc-800 space-y-5">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <h4 className="text-sm font-semibold text-zinc-900">Patchcord</h4>
+                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Patchcord</h4>
                         <p className="text-[10px] text-zinc-400">¿Se utilizó?</p>
                       </div>
                       <Switch checked={formData.patchcord} onCheckedChange={(c) => handleSwitchChange('patchcord', c)} />
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <h4 className="text-sm font-semibold text-zinc-900">Roseta</h4>
+                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Roseta</h4>
                         <p className="text-[10px] text-zinc-400">¿Se instaló?</p>
                       </div>
                       <Switch checked={formData.rosetas} onCheckedChange={(c) => handleSwitchChange('rosetas', c)} />
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
-                        <h4 className="text-sm font-semibold text-zinc-900">Venta Router</h4>
+                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white">Venta Router</h4>
                         <p className="text-[10px] text-zinc-400">¿Cliente compró?</p>
                       </div>
                       <Switch checked={formData.venta_router} onCheckedChange={(c) => handleSwitchChange('venta_router', c)} />
@@ -799,27 +812,27 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   </div>
 
                   {formData.venta_router && (
-                    <div className="animate-in slide-in-from-top-2 fade-in duration-300 space-y-4 p-4 bg-purple-50 rounded-xl border border-purple-100">
+                    <div className="animate-in slide-in-from-top-2 fade-in duration-300 space-y-4 p-5 bg-purple-50 dark:bg-purple-900/10 rounded-[24px] border border-purple-100 dark:border-purple-900/30">
                       <div>
-                        <label className="text-xs font-bold text-purple-600 mb-1.5 uppercase block">Serial Router</label>
-                        <input name="router_serial" value={formData.router_serial} onChange={handleChange} className={`${inputClass} border-purple-200 bg-white`} />
+                        <label className="text-xs font-bold text-purple-600 dark:text-purple-400 mb-1.5 uppercase block">Serial Router</label>
+                        <input name="router_serial" value={formData.router_serial} onChange={handleChange} className={`${inputClass} border-purple-200 dark:border-purple-800 bg-white dark:bg-black`} />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-purple-600 mb-1.5 uppercase block">MAC Router</label>
-                        <input name="mac_router" value={formData.mac_router} onChange={handleChange} className={`${inputClass} border-purple-200 bg-white`} />
+                        <label className="text-xs font-bold text-purple-600 dark:text-purple-400 mb-1.5 uppercase block">MAC Router</label>
+                        <input name="mac_router" value={formData.mac_router} onChange={handleChange} className={`${inputClass} border-purple-200 dark:border-purple-800 bg-white dark:bg-black`} />
                       </div>
                     </div>
                   )}
 
                   <div>
                     <label className={labelClass}>Observación Final</label>
-                    <textarea name="observacion_final" value={formData.observacion_final} onChange={handleChange} className={`${inputClass} h-24 py-2 resize-none`} />
+                    <textarea name="observacion_final" value={formData.observacion_final} onChange={handleChange} className={`${inputClass} h-32 py-3 resize-none`} placeholder="Comentarios del cierre..." />
                   </div>
                 </div>
               )}
 
-              <div className="pt-4">
-                <Button type="submit" disabled={loading} className="w-full h-14 bg-black text-white text-lg font-bold rounded-2xl hover:bg-zinc-800 active:scale-[0.98] transition-all shadow-lg shadow-zinc-200">
+              <div className="pt-6">
+                <Button type="submit" disabled={loading} className="w-full h-16 bg-zinc-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black text-xl font-bold rounded-2xl shadow-xl shadow-zinc-900/10 active:scale-[0.98] transition-all">
                   {loading ? "Guardando..." : "Guardar Registro"}
                 </Button>
               </div>

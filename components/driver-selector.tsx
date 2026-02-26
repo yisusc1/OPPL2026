@@ -63,19 +63,19 @@ export function DriverSelector({
     return (
         <div className="space-y-3">
             {/* Label only rendered here, ensure parent doesn't duplicate or use empty string prop if needed */}
-            {label && <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">{label}</Label>}
+            {label && <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{label}</Label>}
 
             {selectedDriver ? (
-                <div className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl shadow-sm animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center shrink-0">
-                            <User size={18} className="text-zinc-500" />
+                        <div className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center shrink-0">
+                            <User size={18} className="text-zinc-500 dark:text-zinc-400" />
                         </div>
                         <div>
-                            <div className="font-bold text-sm text-zinc-900">
+                            <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
                                 {selectedDriver.first_name} {selectedDriver.last_name}
                             </div>
-                            <div className="text-xs text-zinc-500 flex items-center gap-3 mt-0.5">
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-3 mt-0.5">
                                 {selectedDriver.national_id && (
                                     <span className="flex items-center gap-1">
                                         <IdCard size={12} />
@@ -95,7 +95,7 @@ export function DriverSelector({
                         variant="ghost"
                         size="sm"
                         onClick={() => setOpen(true)}
-                        className="text-xs h-8 hover:bg-zinc-100"
+                        className="text-xs h-8 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
                     >
                         Cambiar
                     </Button>
@@ -104,7 +104,7 @@ export function DriverSelector({
                 <Button
                     variant="outline"
                     onClick={() => setOpen(true)}
-                    className="w-full justify-start h-12 rounded-xl text-zinc-500 border-dashed border-zinc-300 hover:border-zinc-400 hover:bg-zinc-50"
+                    className="w-full justify-start h-12 rounded-xl text-zinc-500 dark:text-zinc-400 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 bg-white dark:bg-zinc-900"
                 >
                     <User className="mr-2 h-4 w-4" />
                     Seleccionar Conductor...
@@ -112,9 +112,9 @@ export function DriverSelector({
             )}
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md p-0 gap-0 overflow-hidden bg-white border-none rounded-2xl shadow-2xl">
-                    <DialogHeader className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50">
-                        <DialogTitle className="text-base font-bold text-zinc-900">Seleccionar Conductor</DialogTitle>
+                <DialogContent className="max-w-md p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-900 border-none rounded-2xl shadow-2xl">
+                    <DialogHeader className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+                        <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">Seleccionar Conductor</DialogTitle>
                     </DialogHeader>
 
                     <div className="p-4 space-y-4">
@@ -124,7 +124,7 @@ export function DriverSelector({
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Buscar por nombre o cédula..."
-                                className="pl-9 h-11 rounded-xl bg-zinc-50 border-zinc-200 focus-visible:ring-black transition-all"
+                                className="pl-9 h-11 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus-visible:ring-black dark:focus-visible:ring-white transition-all"
                                 autoFocus
                             />
                         </div>
@@ -133,18 +133,18 @@ export function DriverSelector({
                             {/* Unassign Option */}
                             <div
                                 onClick={() => handleSelect(null)}
-                                className={`p-3 rounded-xl cursor-pointer flex items-center gap-3 transition-all mb-2 border hover:bg-red-50 hover:border-red-200 group
-                                    ${!selectedDriverId ? 'bg-zinc-100 border-zinc-200' : 'bg-transparent border-dashed border-zinc-300'}
+                                className={`p-3 rounded-xl cursor-pointer flex items-center gap-3 transition-all mb-2 border hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200 dark:hover:border-red-900/30 group
+                                    ${!selectedDriverId ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700' : 'bg-transparent border-dashed border-zinc-300 dark:border-zinc-700'}
                                 `}
                             >
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${!selectedDriverId ? 'bg-zinc-200 text-zinc-900' : 'bg-zinc-100 text-zinc-400 group-hover:text-red-500 group-hover:bg-red-100'}`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${!selectedDriverId ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 group-hover:text-red-500 group-hover:bg-red-100 dark:group-hover:bg-red-900/40'}`}>
                                     <UserX size={14} />
                                 </div>
-                                <div className={`font-bold text-sm ${!selectedDriverId ? 'text-zinc-900' : 'text-zinc-500 group-hover:text-red-600'}`}>
+                                <div className={`font-bold text-sm ${!selectedDriverId ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400 group-hover:text-red-600 dark:group-hover:text-red-400'}`}>
                                     Sin Conductor (Desasignar)
                                 </div>
                                 {!selectedDriverId && (
-                                    <div className="ml-auto text-[10px] font-bold text-zinc-900 bg-white border border-zinc-200 px-2 py-1 rounded-md shrink-0 shadow-sm">
+                                    <div className="ml-auto text-[10px] font-bold text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 px-2 py-1 rounded-md shrink-0 shadow-sm">
                                         Seleccionado
                                     </div>
                                 )}
@@ -165,23 +165,23 @@ export function DriverSelector({
                                         key={d.id}
                                         onClick={() => handleSelect(d)}
                                         className={`p-3 rounded-xl cursor-pointer flex justify-between items-center transition-all group
-                                            ${selectedDriverId === d.id ? 'bg-zinc-100 border border-zinc-200' : 'hover:bg-zinc-50 border border-transparent'}
+                                            ${selectedDriverId === d.id ? 'bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700' : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50 border border-transparent'}
                                         `}
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors
-                                                ${selectedDriverId === d.id ? 'bg-zinc-200 text-zinc-900' : 'bg-zinc-100 text-zinc-400 group-hover:text-zinc-600'}
+                                                ${selectedDriverId === d.id ? 'bg-zinc-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-600 dark:group-hover:text-zinc-300'}
                                             `}>
                                                 <User size={14} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-sm text-zinc-900 group-hover:text-black transition-colors">
+                                                <div className="font-bold text-sm text-zinc-900 dark:text-zinc-100 group-hover:text-black dark:group-hover:text-white transition-colors">
                                                     {d.first_name} {d.last_name}
                                                 </div>
-                                                <div className="text-xs text-zinc-500 flex items-center gap-3">
+                                                <div className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-3">
                                                     {d.national_id && (
                                                         <span className="flex items-center gap-1">
-                                                            <IdCard size={12} className="text-zinc-400" />
+                                                            <IdCard size={12} className="text-zinc-400 dark:text-zinc-500" />
                                                             {d.national_id}
                                                         </span>
                                                     )}
@@ -189,12 +189,12 @@ export function DriverSelector({
                                             </div>
                                         </div>
                                         {d.currentVehicle && d.currentVehicle.id !== (selectedDriver?.currentVehicle?.id) && (
-                                            <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md shrink-0">
+                                            <div className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md shrink-0">
                                                 {d.currentVehicle.modelo}
                                             </div>
                                         )}
                                         {selectedDriverId === d.id && (
-                                            <div className="text-[10px] font-bold text-zinc-900 bg-white border border-zinc-200 px-2 py-1 rounded-md shrink-0 shadow-sm ml-2">
+                                            <div className="text-[10px] font-bold text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 px-2 py-1 rounded-md shrink-0 shadow-sm ml-2">
                                                 Actual
                                             </div>
                                         )}

@@ -57,7 +57,8 @@ export const JOB_TITLES_BY_DEPARTMENT: Record<string, string[]> = {
     ],
     "Transporte": [
         "Encomendador",
-        "Chofer"
+        "Chofer",
+        "Mecánico"
     ],
     "Administración": [
         "Encargado",
@@ -92,6 +93,8 @@ export const ALL_JOB_TITLES = Array.from(new Set(
 export const INITIAL_MODULES_CONFIG = [
     { key: "module_tecnicos", label: "Técnicos (Instalaciones)", path: "/tecnicos", default: true },
     { key: "module_soporte", label: "Soporte Técnico", path: "/soporte", default: true },
+    { key: "module_map", label: "Mapa de Red", path: "/map", default: true },
+    { key: "module_dashboard", label: "Dashboard Interactivo", path: "/dashboard", default: true },
     { key: "module_planificacion", label: "Planificación", path: "/planificacion", default: true },
     { key: "module_distribucion", label: "Distribución", path: "/distribucion", default: true },
     { key: "module_afectaciones", label: "Afectaciones", path: "/afectaciones", default: true },

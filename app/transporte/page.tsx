@@ -14,12 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import QRCode from "react-qr-code"
 import Link from "next/link"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumContent } from "@/components/ui/premium-content"
 
 type Vehicle = {
     id: string
     modelo: string
     placa: string
     codigo: string
+    foto_url?: string // [NEW] Added for image support
     falla_activa?: any
     current_fuel_level?: number
     kilometraje?: number
@@ -92,7 +96,7 @@ export default function TransportePage() {
             // 2. Check for Assigned Vehicle (Driver Mode)
             const { data: myVehicle } = await supabase
                 .from('vehiculos')
-                .select('*')
+                .select('*') // This already selects all, including foto_url if it exists in schema
                 .eq('assigned_driver_id', user.id)
                 .limit(1)
                 .maybeSingle()
@@ -102,7 +106,8 @@ export default function TransportePage() {
             } else {
                 // 3. If no assigned vehicle, load Pool (Pool Mode)
                 console.log("No assigned vehicle found, loading pool.")
-                const { data: allVehicles } = await supabase.from('vehiculos').select('id, modelo, placa, codigo')
+                // [UPDATED] Included foto_url in selection
+                const { data: allVehicles } = await supabase.from('vehiculos').select('id, modelo, placa, codigo, foto_url')
                 if (allVehicles) setVehicles(allVehicles)
             }
 
@@ -161,53 +166,68 @@ export default function TransportePage() {
     // --- RENDER HELPERS ---
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-zinc-50 text-zinc-400">Cargando panel...</div>
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    <p className="text-muted-foreground">Cargando panel...</p>
+                </div>
+            </div>
+        )
     }
 
     return (
-        <main className="min-h-screen bg-zinc-50 pb-20">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12">
+        <PremiumPageLayout
+            title={`Hola, ${profile?.first_name || 'Usuario'}`}
+            description={assignedVehicle ? "Modo Chofer" : "Panel de Operaciones"}
+        >
+            <div className="mb-8">
+                <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4">
+                    <HomeIcon size={20} />
+                    <span>Volver al inicio</span>
+                </Link>
+            </div>
 
-                {/* HEADER STANDARDIZED */}
-                <div className="flex justify-between items-end mb-12">
-                    <div>
-                        <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wide mb-1">
-                            {assignedVehicle ? "Modo Chofer" : "Panel de Operaciones"}
-                        </h2>
-                        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">
-                            Hola, {profile?.first_name || 'Usuario'}
-                        </h1>
-                    </div>
-                    <div className="flex gap-2">
-                        <Link
-                            href="/"
-                            className="p-2 text-zinc-400 hover:text-zinc-900 transition-colors rounded-full hover:bg-zinc-100 flex items-center justify-center"
-                            title="Ir al inicio"
-                        >
-                            <HomeIcon size={24} />
-                        </Link>
-                        <LogoutButton />
-                    </div>
-                </div>
+            <div className="max-w-5xl mx-auto space-y-8">
 
                 {/* DRIVER SPECIFIC HEADER */}
                 {assignedVehicle && (
-                    <div className="mb-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                        <div className="bg-white rounded-[2rem] p-6 border border-zinc-100 shadow-sm relative overflow-hidden">
-                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <PremiumContent className="p-0 border-0 bg-transparent shadow-none">
+                        <div className="bg-gradient-to-br from-zinc-900 to-black rounded-[2rem] p-6 text-white border border-zinc-800 shadow-xl relative overflow-hidden">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
                                 <div>
                                     <h3 className="text-zinc-400 text-xs font-bold uppercase tracking-widest mb-2">Vehículo Asignado</h3>
                                     <div className="flex items-center gap-4">
-                                        <div className="h-16 w-16 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-900">
-                                            <Car size={32} />
+                                        <div className="h-16 w-16 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center text-white overflow-hidden relative">
+                                            {/* [UPDATED] Replaced Icon with Image Logic */}
+                                            {assignedVehicle.foto_url ? (
+                                                <img
+                                                    src={assignedVehicle.foto_url}
+                                                    alt={assignedVehicle.modelo}
+                                                    className="w-full h-full object-cover"
+                                                    onError={(e) => {
+                                                        e.currentTarget.style.display = 'none'
+                                                        e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                                                    }}
+                                                />
+                                            ) : null}
+                                            {/* Fallback Icon / Default Image */}
+                                            <div className={`${assignedVehicle.foto_url ? 'hidden' : ''} w-full h-full flex items-center justify-center`}>
+                                                {/* Use default mitsubishi image if model matches, else icon */}
+                                                {assignedVehicle.modelo.toLowerCase().includes('l300') ? (
+                                                    <img src="/vehicles/mitsubishi_l300.png" alt="Mitsubishi L300" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Car size={32} />
+                                                )}
+                                            </div>
                                         </div>
                                         <div>
-                                            <h2 className="text-2xl font-bold text-zinc-900 leading-tight">{assignedVehicle.modelo}</h2>
+                                            <h2 className="text-2xl font-bold text-white leading-tight">{assignedVehicle.modelo}</h2>
                                             <div className="flex items-center gap-3 mt-1">
-                                                <span className="font-mono text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-200 text-sm">
+                                                <span className="font-mono text-zinc-300 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10 text-sm">
                                                     {assignedVehicle.placa}
                                                 </span>
-                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 text-xs font-bold border border-blue-500/20">
                                                     <Fuel size={12} />
                                                     {assignedVehicle.current_fuel_level || 0}%
                                                 </div>
@@ -219,14 +239,14 @@ export default function TransportePage() {
                                 {/* QR BUTTON FOR DRIVER */}
                                 <Dialog open={qrOpen} onOpenChange={setQrOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="h-14 px-6 rounded-2xl bg-black text-white hover:bg-zinc-800 shadow-lg shadow-zinc-200/50 active:scale-95 transition-all text-sm font-semibold flex items-center gap-2">
+                                        <Button className="h-14 px-6 rounded-2xl bg-white text-black hover:bg-zinc-200 shadow-lg active:scale-95 transition-all text-sm font-semibold flex items-center gap-2">
                                             <QrCode size={18} />
                                             <span>Código de Combustible</span>
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-md bg-white border-none shadow-2xl rounded-[2.5rem] p-8 flex flex-col items-center">
                                         <DialogHeader>
-                                            <DialogTitle className="text-center text-2xl font-bold">Código de Carga</DialogTitle>
+                                            <DialogTitle className="text-center text-2xl font-bold text-black">Código de Carga</DialogTitle>
                                             <DialogDescription className="text-center text-zinc-400">Autorización Digital</DialogDescription>
                                         </DialogHeader>
                                         <div className="p-6 bg-white border border-zinc-100 shadow-lg rounded-[2rem] mb-4 w-full max-w-[280px]">
@@ -252,7 +272,7 @@ export default function TransportePage() {
                                 </Dialog>
                             </div>
                         </div>
-                    </div>
+                    </PremiumContent>
                 )}
 
                 {/* UNIFIED ACTION GRID (3 CARDS) */}
@@ -270,29 +290,30 @@ export default function TransportePage() {
                                 setSalidaOpen(true)
                             }
                         }}
-                        className={`group relative overflow-hidden bg-white rounded-[32px] p-8 border border-zinc-200 shadow-sm transition-all duration-300 text-left h-full ${activeTripReport ? 'opacity-60 cursor-not-allowed bg-zinc-50' : 'hover:shadow-xl hover:border-zinc-300'}`}
+                        className="text-left w-full h-full"
                     >
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                            <Truck size={100} />
-                        </div>
-                        <div className="relative z-10 flex flex-col h-full justify-between space-y-6">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${activeTripReport ? 'bg-zinc-100 text-zinc-400' : 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white'}`}>
-                                <Truck size={24} />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-zinc-900 mb-2">
-                                    {activeTripReport ? "En Ruta (Activo)" : "Registrar Salida"}
-                                </h2>
-                                <p className="text-zinc-500 text-sm font-medium">
-                                    {activeTripReport ? "Tienes un viaje en curso. Registra la entrada para iniciar otro." : (assignedVehicle ? "Iniciar ruta con tu unidad asignada." : "Seleccionar vehículo del departamento para iniciar ruta.")}
-                                </p>
-                            </div>
-                            {!activeTripReport && (
-                                <div className="flex items-center text-indigo-600 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                                    Iniciar <ArrowRight size={16} className="ml-2" />
+                        <PremiumCard
+                            className={`h-full flex flex-col justify-between ${activeTripReport ? 'opacity-60 cursor-not-allowed bg-muted/50' : 'hover:border-primary/50'}`}
+                        >
+                            <div className="flex flex-col h-full justify-between space-y-6">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${activeTripReport ? 'bg-muted text-muted-foreground' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                    <Truck size={24} />
                                 </div>
-                            )}
-                        </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-xl font-bold text-foreground">
+                                        {activeTripReport ? "En Ruta (Activo)" : "Registrar Salida"}
+                                    </h2>
+                                    <p className="text-muted-foreground text-sm font-medium">
+                                        {activeTripReport ? "Tienes un viaje en curso. Registra la entrada para iniciar otro." : (assignedVehicle ? "Iniciar ruta con tu unidad asignada." : "Seleccionar vehículo del departamento para iniciar ruta.")}
+                                    </p>
+                                </div>
+                                {!activeTripReport && (
+                                    <div className="flex items-center text-indigo-500 font-bold text-sm">
+                                        Iniciar <ArrowRight size={16} className="ml-2" />
+                                    </div>
+                                )}
+                            </div>
+                        </PremiumCard>
                     </button>
 
                     {/* CARD 2: ENTRADA */}
@@ -300,36 +321,35 @@ export default function TransportePage() {
                         disabled={!activeTripReport} // [NEW] Disable if NOT in trip
                         onClick={() => {
                             if (!activeTripReport) return // Prevent click
-
-                            // [NEW] Logic: If active trip, PRE-SELECT that vehicle
                             if (activeTripReport) {
                                 setInitialVehicleId(activeTripReport.vehiculo_id)
                                 setEntradaOpen(true)
                             }
                         }}
-                        className={`group relative overflow-hidden bg-white rounded-[32px] p-8 border border-zinc-200 shadow-sm transition-all duration-300 text-left h-full ${!activeTripReport ? 'opacity-60 cursor-not-allowed bg-zinc-50' : 'hover:shadow-xl hover:border-zinc-300'}`}
+                        className="text-left w-full h-full"
                     >
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                            <LogOut size={100} className="scale-x-[-1]" />
-                        </div>
-                        <div className="relative z-10 flex flex-col h-full justify-between space-y-6">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${!activeTripReport ? 'bg-zinc-100 text-zinc-400' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'}`}>
-                                <LogOut size={24} className="scale-x-[-1]" />
-                            </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-zinc-900 mb-2">
-                                    {!activeTripReport ? "Sin Viaje Activo" : "Registrar Entrada"}
-                                </h2>
-                                <p className="text-zinc-500 text-sm font-medium">
-                                    {!activeTripReport ? "No tienes un vehículo en ruta actualmente. Registra una salida primero." : (assignedVehicle ? "Finalizar ruta y reportar kilometraje." : "Cerrar ruta, registrar kilometraje y liberar vehículo.")}
-                                </p>
-                            </div>
-                            {activeTripReport && (
-                                <div className="flex items-center text-emerald-600 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                                    Registrar <ArrowRight size={16} className="ml-2" />
+                        <PremiumCard
+                            className={`h-full flex flex-col justify-between ${!activeTripReport ? 'opacity-60 cursor-not-allowed bg-muted/50' : 'hover:border-primary/50'}`}
+                        >
+                            <div className="flex flex-col h-full justify-between space-y-6">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${!activeTripReport ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                    <LogOut size={24} className="scale-x-[-1]" />
                                 </div>
-                            )}
-                        </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-xl font-bold text-foreground">
+                                        {!activeTripReport ? "Sin Viaje Activo" : "Registrar Entrada"}
+                                    </h2>
+                                    <p className="text-muted-foreground text-sm font-medium">
+                                        {!activeTripReport ? "No tienes un vehículo en ruta actualmente. Registra una salida primero." : (assignedVehicle ? "Finalizar ruta y reportar kilometraje." : "Cerrar ruta, registrar kilometraje y liberar vehículo.")}
+                                    </p>
+                                </div>
+                                {activeTripReport && (
+                                    <div className="flex items-center text-emerald-500 font-bold text-sm">
+                                        Registrar <ArrowRight size={16} className="ml-2" />
+                                    </div>
+                                )}
+                            </div>
+                        </PremiumCard>
                     </button>
 
                     {/* CARD 3: FALLA */}
@@ -342,25 +362,24 @@ export default function TransportePage() {
                                 startFaultReportingPool()
                             }
                         }}
-                        className="group relative overflow-hidden bg-white rounded-[32px] p-8 border border-zinc-200 shadow-sm hover:shadow-xl hover:border-red-200 transition-all duration-300 text-left h-full"
+                        className="text-left w-full h-full"
                     >
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-500">
-                            <AlertTriangle size={100} />
-                        </div>
-                        <div className="relative z-10 flex flex-col h-full justify-between space-y-6">
-                            <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                                <AlertTriangle size={24} />
+                        <PremiumCard className="h-full flex flex-col justify-between hover:border-red-500/50">
+                            <div className="flex flex-col h-full justify-between space-y-6">
+                                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
+                                    <AlertTriangle size={24} />
+                                </div>
+                                <div className="space-y-2">
+                                    <h2 className="text-xl font-bold text-foreground">Reportar Falla</h2>
+                                    <p className="text-muted-foreground text-sm font-medium">
+                                        {assignedVehicle ? "Notificar avería en tu unidad asignada." : "Notificar avería en un vehículo de la flota."}
+                                    </p>
+                                </div>
+                                <div className="flex items-center text-red-500 font-bold text-sm">
+                                    Reportar <ArrowRight size={16} className="ml-2" />
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-xl font-bold text-zinc-900 mb-2">Reportar Falla</h2>
-                                <p className="text-zinc-500 text-sm font-medium">
-                                    {assignedVehicle ? "Notificar avería en tu unidad asignada." : "Notificar avería en un vehículo de la flota."}
-                                </p>
-                            </div>
-                            <div className="flex items-center text-red-600 font-bold text-sm group-hover:translate-x-1 transition-transform">
-                                Reportar <ArrowRight size={16} className="ml-2" />
-                            </div>
-                        </div>
+                        </PremiumCard>
                     </button>
                 </div>
 
@@ -385,14 +404,14 @@ export default function TransportePage() {
 
                 {/* POOL SELECTOR DIALOG */}
                 <Dialog open={vehicleSelectOpen} onOpenChange={setVehicleSelectOpen}>
-                    <DialogContent className="sm:max-w-md rounded-2xl border-none shadow-2xl">
+                    <DialogContent className="sm:max-w-md rounded-2xl border-none shadow-2xl bg-background border border-border">
                         <DialogHeader>
-                            <DialogTitle className="text-center text-xl font-bold">Seleccionar Vehículo</DialogTitle>
+                            <DialogTitle className="text-center text-xl font-bold text-foreground">Seleccionar Vehículo</DialogTitle>
                         </DialogHeader>
                         <div className="py-4">
-                            <label className="text-sm font-semibold text-zinc-700 mb-2 block">Vehículo con Falla</label>
+                            <label className="text-sm font-semibold text-muted-foreground mb-2 block">Vehículo con Falla</label>
                             <Select value={selectedVehicleId} onValueChange={setSelectedVehicleId}>
-                                <SelectTrigger className="h-12 rounded-xl">
+                                <SelectTrigger className="h-12 rounded-xl bg-background border-border text-foreground">
                                     <SelectValue placeholder="Seleccione un vehículo..." />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -405,11 +424,11 @@ export default function TransportePage() {
                             </Select>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setVehicleSelectOpen(false)} className="rounded-xl">Cancelar</Button>
+                            <Button variant="outline" onClick={() => setVehicleSelectOpen(false)} className="rounded-xl border-border text-foreground hover:bg-muted">Cancelar</Button>
                             <Button
                                 onClick={confirmVehicleSelectionPool}
                                 disabled={!selectedVehicleId}
-                                className="rounded-xl bg-black text-white hover:bg-zinc-800"
+                                className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                             >
                                 Continuar
                             </Button>
@@ -430,6 +449,6 @@ export default function TransportePage() {
                     />
                 )}
             </div>
-        </main>
+        </PremiumPageLayout>
     )
 }

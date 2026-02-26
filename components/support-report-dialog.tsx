@@ -103,7 +103,6 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
         )
     }
 
-    // --- SPEEDTEST LOGIC ---
     // --- SPEEDTEST LOGIC (30s Duration) ---
     const runSpeedTest = async () => {
         setSpeedTest({ running: true, download: 0, upload: 0, ping: 0, progress: 0 })
@@ -197,9 +196,6 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
         abortControllers.forEach(c => c.abort())
         setSpeedTest(prev => ({ ...prev, download: finalDownload, progress: 55 }))
 
-        // -----------------------
-        // 3. UPLOAD PHASE (~12s Animation)
-        // -----------------------
         // -----------------------
         // 3. UPLOAD PHASE (~12s Animation)
         // -----------------------
@@ -320,15 +316,6 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
             return
         }
 
-        // New Mandatory Fields
-        // Validation Removed as per User Request (Speedtest Optional)
-        /*
-        if (!formData.hasEvidence) {
-            toast.error("Debe confirmar que tiene la evidencia (Foto Speedtest)")
-            return
-        }
-        */
-
         if (isSwap && !formData.onu_nueva) {
             toast.error("Para cambios de equipo, el serial de la ONU Nueva es obligatorio")
             return
@@ -382,14 +369,14 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
     // 1. SUCCESS VIEW
     if (step === 'success') {
         return (
-            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-                <div className="w-full max-w-md rounded-[32px] bg-white p-8 flex flex-col items-center justify-center text-center space-y-6 shadow-2xl ring-1 ring-black/5">
-                    <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-in zoom-in spin-in-3">
+            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                <div className="w-full max-w-md rounded-[32px] bg-white dark:bg-zinc-950 p-8 flex flex-col items-center justify-center text-center space-y-6 shadow-2xl ring-1 ring-zinc-900/5 dark:ring-white/10 animate-in zoom-in-95 duration-300">
+                    <div className="h-20 w-20 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 animate-in zoom-in spin-in-3">
                         <CheckCircle size={40} />
                     </div>
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-bold text-slate-900">¡Reporte Guardado!</h2>
-                        <p className="text-slate-500 text-sm">El soporte se ha registrado correctamente en el sistema.</p>
+                        <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">¡Reporte Guardado!</h2>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm">El soporte se ha registrado correctamente en el sistema.</p>
                     </div>
 
                     <div className="w-full space-y-3 pt-4">
@@ -397,7 +384,7 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                             <Send size={24} className="mr-2" />
                             Abrir WhatsApp
                         </Button>
-                        <Button onClick={resetAndClose} variant="ghost" className="w-full text-slate-400">
+                        <Button onClick={resetAndClose} variant="ghost" className="w-full text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
                             Cerrar
                         </Button>
                     </div>
@@ -409,23 +396,22 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
     // 2. PREVIEW VIEW
     if (step === 'preview') {
         return (
-            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-                <div className="w-full max-w-md max-h-[90vh] flex flex-col rounded-[32px] bg-[#F2F2F7] overflow-hidden shadow-2xl ring-1 ring-white/20">
-                    <div className="bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-200 sticky top-0 flex justify-between items-center">
-                        <Button onClick={() => setStep('form')} variant="ghost" size="icon" className="-ml-2"><ArrowLeft /></Button>
-                        {/* Replace DialogTitle with standard h3 */}
-                        <h3 className="text-base font-bold text-slate-900">Previsualización</h3>
+            <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                <div className={`w-full max-w-md max-h-[90vh] flex flex-col rounded-[32px] bg-white dark:bg-zinc-950 overflow-hidden shadow-2xl ring-1 ring-zinc-900/5 dark:ring-white/10 transform transition-all duration-300 ${open ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
+                    <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 flex justify-between items-center z-50">
+                        <Button onClick={() => setStep('form')} variant="ghost" size="icon" className="-ml-2 text-zinc-600 dark:text-zinc-400"><ArrowLeft /></Button>
+                        <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">Previsualización</h3>
                         <div className="w-8" />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-sm font-mono text-slate-600 whitespace-pre-wrap leading-relaxed">
+                    <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+                        <div className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 text-sm font-mono text-zinc-600 dark:text-zinc-300 whitespace-pre-wrap leading-relaxed">
                             {getWhatsAppText().replace(/\*/g, '')}
                         </div>
                     </div>
 
-                    <div className="p-6 bg-white border-t border-slate-100">
-                        <Button onClick={handleSave} disabled={loading} className="w-full h-14 bg-black text-white rounded-2xl font-bold text-lg shadow-xl shadow-black/10">
+                    <div className="p-6 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800">
+                        <Button onClick={handleSave} disabled={loading} className="w-full h-14 bg-zinc-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 rounded-2xl font-bold text-lg shadow-xl shadow-zinc-900/10 active:scale-[0.98] transition-all">
                             {loading ? <Loader2 className="animate-spin mr-2" /> : <CheckCircle className="mr-2" />}
                             Confirmar y Guardar
                         </Button>
@@ -437,14 +423,14 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
 
     // 3. FORM VIEW
     return (
-        <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
-            <div className="w-full max-w-xl max-h-[92vh] flex flex-col rounded-[32px] bg-[#F2F2F7] overflow-hidden shadow-2xl ring-1 ring-white/20">
+        <div className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+            <div className={`w-full max-w-xl max-h-[92vh] flex flex-col rounded-[32px] bg-white dark:bg-zinc-950 overflow-hidden shadow-2xl ring-1 ring-zinc-900/5 dark:ring-white/10 transform transition-all duration-300 ${open ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
 
                 {/* Header iOS Style */}
-                <div className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-200/50 px-6 py-4 flex items-center justify-between shrink-0">
+                <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-100 dark:border-zinc-800 px-6 py-4 flex items-center justify-between shrink-0">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Nuevo Soporte</h2>
-                        <p className="text-xs text-slate-500 font-medium">Complete los datos requeridos</p>
+                        <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Nuevo Soporte</h2>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Complete los datos requeridos</p>
                     </div>
                     <Button variant="ghost" size="icon" onClick={() => {
                         setFormData({
@@ -472,20 +458,18 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                         })
                         setIsSwap(true)
                         toast.success("Datos Completados")
-                    }} className="text-slate-400 hover:text-indigo-600 hover:bg-indigo-50">
+                    }} className="text-zinc-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
                         <Wand2 size={18} />
                     </Button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
-
-
+                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-8">
 
                     {/* GLOBAL WARNINGS */}
                     {getWarnings().length > 0 && (
-                        <div className="space-y-2">
+                        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
                             {getWarnings().map((w, i) => (
-                                <div key={i} className={`p-3 rounded-xl flex items-center gap-3 ${w.type === 'critical' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>
+                                <div key={i} className={`p-4 rounded-2xl flex items-center gap-3 border ${w.type === 'critical' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-100 dark:border-red-900/30' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-100 dark:border-amber-900/30'}`}>
                                     <AlertTriangle size={18} />
                                     <span className="text-xs font-bold">{w.msg}</span>
                                 </div>
@@ -494,39 +478,39 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                     )}
 
                     {/* SECTION 1: CLIENT & CAUSE */}
-                    <div className="space-y-2">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Información Básica</Label>
-                        <div className="bg-white rounded-[20px] shadow-sm border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                    <div className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Información Básica</Label>
+                        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-[24px] p-2 space-y-2">
 
                             {/* CEDULA INPUT */}
-                            <div className="p-4 flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                                    <Hash size={16} />
+                            <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 p-3 pl-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+                                <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 shrink-0">
+                                    <Hash size={18} />
                                 </div>
-                                <div className="flex-1 space-y-1">
-                                    <Label className="text-[11px] font-bold text-slate-900">Cédula del Cliente</Label>
+                                <div className="flex-1">
+                                    <Label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-0.5 block">Cédula del Cliente</Label>
                                     <Input
                                         name="cedula"
                                         value={formData.cedula}
                                         onChange={handleChange}
-                                        className="h-9 border-none p-0 text-base font-medium placeholder:text-slate-300 focus-visible:ring-0"
+                                        className="h-7 border-none p-0 text-lg font-bold placeholder:text-zinc-300 dark:placeholder:text-zinc-700 bg-transparent focus-visible:ring-0 shadow-none text-zinc-900 dark:text-zinc-100"
                                         placeholder="Ej: 12345678"
                                     />
                                 </div>
                             </div>
 
                             {/* CAUSE SELECT */}
-                            <div className="p-4 flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 shrink-0">
-                                    <Wrench size={16} />
+                            <div className="flex items-center gap-3 bg-white dark:bg-zinc-900 p-3 pl-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 focus-within:ring-2 focus-within:ring-blue-500/10 transition-all">
+                                <div className="h-10 w-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 shrink-0">
+                                    <Wrench size={18} />
                                 </div>
-                                <div className="flex-1 space-y-1">
-                                    <Label className="text-[11px] font-bold text-slate-900">Motivo</Label>
+                                <div className="flex-1 relative">
+                                    <Label className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 mb-0.5 block">Motivo del Soporte</Label>
                                     <Select onValueChange={(val) => handleSelectChange("causa", val)} value={formData.causa}>
-                                        <SelectTrigger className="h-9 border-none p-0 text-base font-medium focus:ring-0 shadow-none">
+                                        <SelectTrigger className="h-7 border-none p-0 text-base font-bold text-zinc-900 dark:text-zinc-100 focus:ring-0 shadow-none bg-transparent">
                                             <SelectValue placeholder="Seleccionar..." />
                                         </SelectTrigger>
-                                        <SelectContent className="z-[10002]">
+                                        <SelectContent className="rounded-2xl border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 z-[10002]">
                                             <SelectItem value="Tendido Fracturado">Tendido Fracturado</SelectItem>
                                             <SelectItem value="Cambio de ONU">Cambio de ONU</SelectItem>
                                             <SelectItem value="Atenuación Alta">Atenuación Alta</SelectItem>
@@ -541,34 +525,34 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                     </div>
 
                     {/* SECTION 2: TECHNICAL DETAILS */}
-                    <div className="space-y-2">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Datos Técnicos</Label>
-                        <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Datos Técnicos</Label>
+                        <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Precinto</Label>
-                                <Input className="h-11 rounded-xl bg-slate-50 border-slate-100 font-mono text-base" name="precinto" value={formData.precinto} onChange={handleChange} />
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Precinto</Label>
+                                <Input className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-center font-bold text-zinc-900 dark:text-zinc-100" name="precinto" value={formData.precinto} onChange={handleChange} />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Caja NAP</Label>
-                                <Input className="h-11 rounded-xl bg-slate-50 border-slate-100 text-base" name="caja_nap" value={formData.caja_nap} onChange={handleChange} />
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Caja NAP</Label>
+                                <Input className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-center font-bold text-zinc-900 dark:text-zinc-100" name="caja_nap" value={formData.caja_nap} onChange={handleChange} />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Potencia NAP</Label>
-                                <Input className="h-11 rounded-xl bg-slate-50 border-slate-100 font-mono text-base" name="potencia_nap" value={formData.potencia_nap} onChange={handleChange} />
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Potencia NAP</Label>
+                                <Input className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-center font-bold text-zinc-900 dark:text-zinc-100" name="potencia_nap" value={formData.potencia_nap} onChange={handleChange} />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Potencia Cliente</Label>
-                                <Input className="h-11 rounded-xl bg-slate-50 border-slate-100 font-mono text-base" name="potencia_cliente" value={formData.potencia_cliente} onChange={handleChange} />
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Potencia Cliente</Label>
+                                <Input className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-center font-bold text-zinc-900 dark:text-zinc-100" name="potencia_cliente" value={formData.potencia_cliente} onChange={handleChange} />
                             </div>
                             <div className="space-y-1">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Puerto</Label>
-                                <Input className="h-11 rounded-xl bg-slate-50 border-slate-100 text-base" name="puerto" value={formData.puerto} onChange={handleChange} />
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Puerto</Label>
+                                <Input className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-center font-bold text-zinc-900 dark:text-zinc-100" name="puerto" value={formData.puerto} onChange={handleChange} />
                             </div>
-                            <div className="col-span-1 md:col-span-2 space-y-1 relative">
-                                <Label className="text-[10px] text-slate-400 font-bold uppercase">Coordenadas</Label>
+                            <div className="col-span-1 space-y-1">
+                                <Label className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase pl-1">Coordenadas</Label>
                                 <div className="flex gap-2">
                                     <Input
-                                        className="h-11 rounded-xl bg-slate-50 border-slate-100 font-mono text-base"
+                                        className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border-0 text-xs font-mono text-zinc-600 dark:text-zinc-300"
                                         name="coordenadas"
                                         value={formData.coordenadas}
                                         onChange={handleChange}
@@ -576,9 +560,8 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                                     />
                                     <Button
                                         type="button"
-                                        variant="outline"
                                         size="icon"
-                                        className="h-11 w-11 rounded-xl shrink-0 border-slate-200 text-blue-600 hover:bg-blue-50"
+                                        className="h-12 w-12 rounded-2xl shrink-0 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-0 shadow-none"
                                         onClick={handleGps}
                                         disabled={gpsLoading}
                                     >
@@ -590,20 +573,22 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                     </div>
 
                     {/* SECTION 3: MATERIALS */}
-                    <div className="space-y-2">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Materiales Utilizados</Label>
-                        <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 space-y-4">
+                    <div className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Materiales Utilizados</Label>
+                        <div className="bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-100 dark:border-zinc-800 rounded-[24px] p-2 space-y-2">
                             {/* Spool */}
-                            <div className="p-3 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col gap-3">
-                                <div className="flex items-center gap-2 text-blue-600">
-                                    <Box size={18} />
+                            <div className="p-4 bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800/50 flex flex-col gap-4">
+                                <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg text-blue-600 dark:text-blue-400">
+                                        <Box size={16} />
+                                    </div>
                                     <span className="text-xs font-bold uppercase">Bobina de Fibra</span>
                                 </div>
                                 <select
                                     name="codigo_carrete"
                                     value={formData.codigo_carrete}
                                     onChange={(e) => handleSelectChange("codigo_carrete", e.target.value)}
-                                    className="h-10 w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="h-12 w-full rounded-xl border-none bg-zinc-50 dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-0"
                                 >
                                     <option value="" disabled>Seleccionar Bobina...</option>
                                     {spools.map((s) => (
@@ -614,48 +599,48 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                                 </select>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <Label className="text-[9px] uppercase text-blue-400 font-bold mb-1 block">Usado (m)</Label>
-                                        <Input type="number" name="metraje_usado" value={formData.metraje_usado} onChange={handleChange} className="h-10 bg-white border-blue-200 text-base rounded-xl" />
+                                        <Label className="text-[9px] uppercase text-zinc-400 font-bold mb-1 pl-1 block">Usado (m)</Label>
+                                        <Input type="number" name="metraje_usado" value={formData.metraje_usado} onChange={handleChange} className="h-10 bg-zinc-50 dark:bg-zinc-800 border-0 text-center font-bold rounded-xl" />
                                     </div>
                                     <div>
-                                        <Label className="text-[9px] uppercase text-red-400 font-bold mb-1 block">Merma (m)</Label>
-                                        <Input type="number" name="metraje_desechado" value={formData.metraje_desechado} onChange={handleChange} className="h-10 bg-white border-red-200 text-red-600 text-base rounded-xl" />
+                                        <Label className="text-[9px] uppercase text-zinc-400 font-bold mb-1 pl-1 block">Merma (m)</Label>
+                                        <Input type="number" name="metraje_desechado" value={formData.metraje_desechado} onChange={handleChange} className="h-10 bg-red-50 dark:bg-red-900/10 border-0 text-red-600 dark:text-red-400 text-center font-bold rounded-xl" />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Small Parts Grid */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                <div className="space-y-1 text-center">
-                                    <Label className="text-[9px] uppercase font-bold text-slate-400">Conect.</Label>
-                                    <Input type="number" name="conectores" value={formData.conectores} onChange={handleChange} className="text-center h-11 rounded-xl bg-slate-50 text-base" />
+                            <div className="grid grid-cols-4 gap-2">
+                                <div className="space-y-1 text-center bg-white dark:bg-zinc-900 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <Label className="text-[8px] uppercase font-bold text-zinc-400">Conect.</Label>
+                                    <Input type="number" name="conectores" value={formData.conectores} onChange={handleChange} className="text-center h-8 w-full rounded-lg bg-zinc-50 dark:bg-zinc-800 border-0 text-sm font-bold p-0" />
                                 </div>
-                                <div className="space-y-1 text-center">
-                                    <Label className="text-[9px] uppercase font-bold text-slate-400">Tensores</Label>
-                                    <Input type="number" name="tensores" value={formData.tensores} onChange={handleChange} className="text-center h-11 rounded-xl bg-slate-50 text-base" />
+                                <div className="space-y-1 text-center bg-white dark:bg-zinc-900 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <Label className="text-[8px] uppercase font-bold text-zinc-400">Tenso.</Label>
+                                    <Input type="number" name="tensores" value={formData.tensores} onChange={handleChange} className="text-center h-8 w-full rounded-lg bg-zinc-50 dark:bg-zinc-800 border-0 text-sm font-bold p-0" />
                                 </div>
-                                <div className="space-y-1 text-center">
-                                    <Label className="text-[9px] uppercase font-bold text-slate-400">Patch</Label>
-                                    <Input type="number" name="patchcord" value={formData.patchcord} onChange={handleChange} className="text-center h-11 rounded-xl bg-slate-50 text-base" />
+                                <div className="space-y-1 text-center bg-white dark:bg-zinc-900 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <Label className="text-[8px] uppercase font-bold text-zinc-400">Patch</Label>
+                                    <Input type="number" name="patchcord" value={formData.patchcord} onChange={handleChange} className="text-center h-8 w-full rounded-lg bg-zinc-50 dark:bg-zinc-800 border-0 text-sm font-bold p-0" />
                                 </div>
-                                <div className="space-y-1 text-center">
-                                    <Label className="text-[9px] uppercase font-bold text-slate-400">Rosetas</Label>
-                                    <Input type="number" name="rosetas" value={formData.rosetas} onChange={handleChange} className="text-center h-11 rounded-xl bg-slate-50 text-base" />
+                                <div className="space-y-1 text-center bg-white dark:bg-zinc-900 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <Label className="text-[8px] uppercase font-bold text-zinc-400">Roseta</Label>
+                                    <Input type="number" name="rosetas" value={formData.rosetas} onChange={handleChange} className="text-center h-8 w-full rounded-lg bg-zinc-50 dark:bg-zinc-800 border-0 text-sm font-bold p-0" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* SECTION 4: EQUIPMENT SWAP (TOGGLE) */}
-                    <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 space-y-4">
+                    <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-100 dark:border-zinc-800 space-y-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                    <RefreshCw size={20} />
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                    <RefreshCw size={22} />
                                 </div>
                                 <div>
-                                    <Label className="text-sm font-bold text-slate-900 cursor-pointer block" htmlFor="swap-mode">Cambio de Equipo</Label>
-                                    <span className="text-[11px] text-slate-400 font-medium">Si reemplazó ONU</span>
+                                    <Label className="text-base font-bold text-zinc-900 dark:text-zinc-100 cursor-pointer block" htmlFor="swap-mode">Cambio de Equipo</Label>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Si reemplazó ONU</span>
                                 </div>
                             </div>
                             <Switch
@@ -670,23 +655,23 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                         {isSwap && (
                             <div className="pt-2 grid grid-cols-1 md:grid-cols-2 gap-3 animate-in slide-in-from-top-2 fade-in duration-300">
                                 <div className="space-y-1">
-                                    <Label className="text-[10px] text-slate-500 font-bold uppercase">ONU Anterior</Label>
+                                    <Label className="text-[10px] text-zinc-500 font-bold uppercase pl-1">ONU Retirada</Label>
                                     <Input
                                         name="onu_anterior"
                                         value={formData.onu_anterior}
                                         onChange={handleChange}
-                                        className="h-11 bg-slate-50 border-slate-200 rounded-xl text-base"
-                                        placeholder="Serial Retirado"
+                                        className="h-12 bg-zinc-50 dark:bg-zinc-800 border-0 text-zinc-900 dark:text-zinc-100 rounded-2xl text-base font-mono"
+                                        placeholder="Serial..."
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-[10px] text-indigo-600 font-bold uppercase">ONU Nueva</Label>
+                                    <Label className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase pl-1">ONU Instalada</Label>
                                     <Input
                                         name="onu_nueva"
                                         value={formData.onu_nueva}
                                         onChange={handleChange}
-                                        className="h-11 bg-indigo-50 border-indigo-200 text-indigo-900 rounded-xl text-base"
-                                        placeholder="Serial Instalado"
+                                        className="h-12 bg-indigo-50 dark:bg-indigo-900/20 border-0 text-indigo-900 dark:text-indigo-300 rounded-2xl text-base font-bold font-mono"
+                                        placeholder="Serial..."
                                     />
                                 </div>
                             </div>
@@ -695,76 +680,73 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
 
                     {/* SECTION 5: EVIDENCE */}
                     <div className="space-y-4">
-                        <div className="bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-slate-50 text-slate-600 flex items-center justify-center">
-                                    <Camera size={20} />
+                        <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-2xl bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center">
+                                    <Camera size={22} />
                                 </div>
                                 <div>
-                                    <Label className="text-sm font-bold text-slate-900 block">Realizar prueba de velocidad</Label>
-                                    <span className="text-[11px] text-slate-400 font-medium">Opcional</span>
+                                    <Label className="text-base font-bold text-zinc-900 dark:text-zinc-100 block">Prueba de Velocidad</Label>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Opcional</span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold text-slate-400">{formData.hasEvidence ? 'Activo' : 'Inactivo'}</span>
                                 <Switch
                                     checked={formData.hasEvidence}
                                     onCheckedChange={(c) => setFormData({ ...formData, hasEvidence: c })}
-                                    className="data-[state=checked]:bg-green-500"
+                                    className="data-[state=checked]:bg-green-500 scale-110"
                                 />
                             </div>
                         </div>
 
                         {/* SPEEDTEST UI (Conditional) */}
                         {formData.hasEvidence && (
-                            <div className="bg-black text-white rounded-[24px] p-6 shadow-2xl shadow-black/10 relative overflow-hidden animate-in slide-in-from-top-4 duration-500">
+                            <div className="bg-black text-white rounded-[32px] p-8 shadow-2xl relative overflow-hidden animate-in slide-in-from-top-4 duration-500">
                                 {/* Background mesh */}
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/20 to-purple-500/0 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/30 to-purple-500/0 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
 
-                                <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-6">
+                                <div className="relative z-10 flex flex-col items-center justify-center text-center space-y-8">
 
                                     {/* Speedometer Circle */}
-                                    <div className="relative w-40 h-40">
+                                    <div className="relative w-48 h-48">
                                         {/* SVG Ring */}
                                         <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="80" cy="80" r="70" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-zinc-800" />
+                                            <circle cx="96" cy="96" r="80" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-zinc-800" />
                                             <circle
-                                                cx="80" cy="80" r="70"
+                                                cx="96" cy="96" r="80"
                                                 stroke="currentColor" strokeWidth="12" fill="transparent"
                                                 className={`text-green-400 transition-all duration-300 ease-out ${speedTest.running ? 'opacity-100' : 'opacity-0'}`}
-                                                strokeDasharray={440}
-                                                strokeDashoffset={440 - (440 * speedTest.progress / 100)}
+                                                strokeDasharray={500}
+                                                strokeDashoffset={500 - (500 * speedTest.progress / 100)}
                                             />
                                         </svg>
                                         {/* Center Value */}
                                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                            <span className="text-4xl font-bold tracking-tighter tabular-nums">
+                                            <span className="text-5xl font-bold tracking-tighter tabular-nums text-white">
                                                 {speedTest.download > 0 ? speedTest.download : 'GO'}
                                             </span>
-                                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Mbps</span>
+                                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-1">Mbps Download</span>
                                         </div>
                                     </div>
 
-                                    <div className="h-2" />
-
                                     {/* Stats Grid */}
-                                    <div className="grid grid-cols-3 gap-8 w-full">
-                                        <div>
-                                            <div className="text-xs text-zinc-500 font-bold uppercase mb-1">Ping</div>
-                                            <div className="text-xl font-bold flex items-center justify-center gap-1">
-                                                {speedTest.ping}<span className="text-xs text-zinc-600">ms</span>
+                                    <div className="grid grid-cols-3 gap-6 w-full px-4">
+                                        <div className="bg-zinc-900/50 p-3 rounded-2xl">
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Ping</div>
+                                            <div className="text-lg font-bold flex items-center justify-center gap-1 text-white">
+                                                {speedTest.ping}<span className="text-[10px] text-zinc-500">ms</span>
                                             </div>
                                         </div>
-                                        <div>
-                                            <div className="text-xs text-zinc-500 font-bold uppercase mb-1">Bajada</div>
-                                            <div className="text-xl font-bold text-green-400 flex items-center justify-center gap-1">
-                                                {speedTest.download}<span className="text-xs text-green-700">Mb</span>
+                                        <div className="bg-zinc-900/50 p-3 rounded-2xl border border-green-900/30">
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Bajada</div>
+                                            <div className="text-lg font-bold text-green-400 flex items-center justify-center gap-1">
+                                                {speedTest.download}<span className="text-[10px] text-green-800">Mb</span>
                                             </div>
                                         </div>
-                                        <div>
-                                            <div className="text-xs text-zinc-500 font-bold uppercase mb-1">Subida</div>
-                                            <div className="text-xl font-bold text-indigo-400 flex items-center justify-center gap-1">
-                                                {speedTest.upload}<span className="text-xs text-indigo-700">Mb</span>
+                                        <div className="bg-zinc-900/50 p-3 rounded-2xl border border-indigo-900/30">
+                                            <div className="text-[10px] text-zinc-500 font-bold uppercase mb-1">Subida</div>
+                                            <div className="text-lg font-bold text-indigo-400 flex items-center justify-center gap-1">
+                                                {speedTest.upload}<span className="text-[10px] text-indigo-800">Mb</span>
                                             </div>
                                         </div>
                                     </div>
@@ -773,7 +755,7 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
                                         <Button
                                             onClick={runSpeedTest}
                                             size="lg"
-                                            className="w-full rounded-2xl font-bold bg-white text-black hover:bg-zinc-200 transition-all active:scale-95"
+                                            className="w-full h-14 rounded-2xl font-bold text-lg bg-white text-black hover:bg-zinc-200 transition-all active:scale-95"
                                         >
                                             {speedTest.download > 0 ? "Repetir Prueba" : "Iniciar Test"}
                                         </Button>
@@ -785,25 +767,25 @@ export function SupportReportDialog({ open, onOpenChange }: SupportReportDialogP
 
                     {/* OBSERVATIONS */}
                     <div className="pb-4">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1 mb-2 block">Notas Adicionales</Label>
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1 mb-2 block">Notas Adicionales</Label>
                         <Textarea
                             name="observacion"
                             value={formData.observacion}
                             onChange={handleChange}
                             placeholder="Detalles sobre la reparación..."
-                            className="bg-white border-slate-200 rounded-2xl min-h-[100px] shadow-sm resize-none focus:ring-0 focus:border-slate-300 text-base py-3"
+                            className="bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 rounded-2xl min-h-[100px] shadow-sm resize-none focus:ring-0 focus:border-zinc-300 dark:focus:border-zinc-700 text-base py-3 text-zinc-900 dark:text-zinc-100"
                         />
                     </div>
 
                 </div>
 
-                <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-                    <Button onClick={handleNext} className="w-full h-14 text-lg font-bold rounded-2xl bg-black hover:bg-zinc-800 text-white shadow-xl shadow-black/10 active:scale-[0.98] transition-all">
+                <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+                    <Button onClick={handleNext} className="w-full h-14 bg-zinc-900 hover:bg-black dark:bg-zinc-100 dark:hover:bg-white text-white dark:text-zinc-900 text-lg font-bold rounded-2xl shadow-xl shadow-zinc-900/10 active:scale-[0.98] transition-all">
                         Continuar <ArrowRight className="ml-2" />
                     </Button>
                 </div>
 
             </div>
-        </div >
+        </div>
     )
 }

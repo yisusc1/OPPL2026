@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
 import Link from "next/link"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumContent } from "@/components/ui/premium-content"
 import { Button } from "@/components/ui/button"
 import { getPendingAudits } from "./actions"
 
@@ -42,95 +45,82 @@ export default async function ControlPage() {
     const soloTechs = technicians?.filter(t => !t.team_id) || []
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-4 md:p-10">
-            {/* HEADER */}
-            <div className="max-w-6xl mx-auto mb-12">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Link href="/" className="p-2 -ml-2 rounded-full hover:bg-slate-200/50 transition-colors text-slate-500">
-                                <ArrowLeft size={24} />
+        <PremiumPageLayout title="Fiscalización" description="Panel de control de inventario y auditoría en tiempo real.">
+            <div className="space-y-8">
+                {/* HEADER ACTIONS */}
+                <PremiumContent className="p-4 md:p-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 w-full md:w-auto">
+                            <Link href="/admin/equipos" className="w-full md:w-auto">
+                                <Button variant="outline" className="w-full h-12 rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Gestión de Equipos
+                                </Button>
                             </Link>
-                            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Fiscalización</h1>
-
+                            <Link href="/control/spools" className="w-full md:w-auto">
+                                <Button className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 font-bold">
+                                    <Disc className="mr-2 h-5 w-5" />
+                                    Gestión de Bobinas
+                                </Button>
+                            </Link>
                         </div>
-                        <p className="text-slate-500 max-w-lg">
-                            Panel de control de inventario. Selecciona un equipo o técnico para auditar su stock en tiempo real.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
-                        {/* Toggle here for visibility on Mobile and PC */}
-                        <div className="self-end md:self-auto mb-2 md:mb-0">
+                        <div className="w-full md:w-auto flex items-center justify-end gap-3">
                             <DesktopModeToggle />
+                            <DailyReportDialog teams={teams || []} />
                         </div>
-                        <Link href="/admin/equipos" className="w-full md:w-auto">
-                            <Button variant="outline" className="w-full md:w-auto rounded-xl h-12 border-slate-200 bg-white hover:bg-slate-50 shadow-sm text-slate-700">
-                                <Users className="mr-2 h-4 w-4" />
-                                Gestión de Equipos
-                            </Button>
-                        </Link>
-                        <Link href="/control/spools" className="w-full md:w-auto">
-                            <Button className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 font-bold rounded-xl h-12 px-6">
-                                <Disc className="mr-2 h-5 w-5" />
-                                Gestión de Bobinas
-                            </Button>
-                        </Link>
-                        <DailyReportDialog teams={teams || []} />
-
                     </div>
-                </div>
-            </div>
+                </PremiumContent>
 
-            <div className="max-w-6xl mx-auto space-y-12">
                 {/* SECCION EQUIPOS */}
                 <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="h-10 w-10 rounded-xl bg-blue-100/50 text-blue-600 flex items-center justify-center">
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                        <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
                             <Users size={20} />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-800">Equipos (Parejas)</h2>
+                        <h2 className="text-xl font-bold text-foreground">Equipos (Parejas)</h2>
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {teams?.map((team) => (
                             <Link key={team.id} href={`/control/history/${team.id}`}>
-                                <div className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer h-full flex flex-col justify-between">
+                                <PremiumCard className="group h-full flex flex-col justify-between hover:border-blue-500/30 transition-all p-6">
                                     <div>
                                         <div className="flex items-center justify-between mb-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg font-bold">
+                                                <div className="h-12 w-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-lg font-bold">
                                                     {team.name.replace("Equipo ", "")}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">{team.name}</h3>
-                                                    <span className="text-xs text-slate-500 font-medium bg-slate-100 px-2 py-0.5 rounded-md">
-                                                        Activo
-                                                    </span>
-                                                    {pendingSet.has(team.id) && (
-                                                        <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 animate-pulse">
-                                                            <AlertCircle size={10} />
-                                                            AUDITORÍA PENDIENTE
+                                                    <h3 className="font-bold text-lg text-foreground group-hover:text-blue-500 transition-colors">{team.name}</h3>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        <span className="text-xs font-medium bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded">
+                                                            Activo
                                                         </span>
-                                                    )}
+                                                        {pendingSet.has(team.id) && (
+                                                            <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
+                                                                <AlertCircle size={10} />
+                                                                AUDITAR
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="h-8 w-8 rounded-full bg-slate-50 text-slate-300 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-colors">
+                                            <div className="h-8 w-8 rounded-full bg-muted text-muted-foreground group-hover:bg-blue-500 group-hover:text-white flex items-center justify-center transition-colors">
                                                 <ChevronRight size={18} />
                                             </div>
                                         </div>
 
                                         {/* Members Preview List */}
-                                        <div className="space-y-2 border-t pt-4 border-slate-50">
+                                        <div className="space-y-3 border-t border-border/50 pt-4">
                                             {team.profiles && team.profiles.length > 0 ? (
                                                 <div className="flex flex-col gap-2">
                                                     {/* @ts-ignore */}
                                                     {team.profiles.map((p: any) => (
                                                         <div key={p.id} className="flex items-center gap-3">
-                                                            <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                                                            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
                                                                 <User size={14} />
                                                             </div>
-                                                            <span className="text-sm font-semibold text-slate-700">
+                                                            <span className="text-sm font-semibold text-muted-foreground group-hover:text-foreground transition-colors">
                                                                 {p.first_name} {p.last_name}
                                                             </span>
                                                         </div>
@@ -142,18 +132,18 @@ export default async function ControlPage() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-blue-600 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <div className="mt-6 flex items-center gap-2 text-xs font-bold text-blue-500 opacity-60 group-hover:opacity-100 transition-opacity uppercase tracking-wider">
                                         <ShieldCheck size={14} />
-                                        <span>Ver Historial / Auditar</span>
+                                        <span>Auditar Inventario</span>
                                     </div>
-                                </div>
+                                </PremiumCard>
                             </Link>
                         ))}
                         {teams?.length === 0 && (
-                            <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                            <div className="col-span-full py-12 text-center border-2 border-dashed border-muted rounded-2xl">
                                 <p className="text-muted-foreground">No hay equipos creados.</p>
                                 <Link href="/admin/equipos">
-                                    <Button variant="link" className="text-blue-600 mt-2">Crear Equipo</Button>
+                                    <Button variant="link" className="text-primary mt-2">Crear Equipo</Button>
                                 </Link>
                             </div>
                         )}
@@ -162,50 +152,50 @@ export default async function ControlPage() {
 
                 {/* SECCION TECNICOS INDIVIDUALES */}
                 <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center">
+                    <div className="flex items-center gap-3 mb-6 px-2">
+                        <div className="h-10 w-10 rounded-xl bg-slate-500/10 text-slate-500 flex items-center justify-center">
                             <User size={20} />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-800">Técnicos Individuales <span className="text-sm font-normal text-slate-400 ml-2">(Sin Grupo)</span></h2>
+                        <h2 className="text-xl font-bold text-foreground">Técnicos Individuales <span className="text-sm font-normal text-muted-foreground ml-2">(Sin Grupo)</span></h2>
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {soloTechs.map((tech) => (
                             <Link key={tech.id} href={`/control/history/${tech.id}`}>
-                                <div className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                                <PremiumCard className="group hover:border-slate-500/30 transition-all p-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm font-bold uppercase">
+                                        <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center text-lg font-bold uppercase">
                                             {(tech.first_name || "T")[0]}{(tech.last_name || "")[0]}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{tech.first_name} {tech.last_name}</h3>
-                                            <p className="text-xs text-slate-400">{tech.email}</p>
+                                            <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{tech.first_name} {tech.last_name}</h3>
+                                            <p className="text-xs text-muted-foreground font-mono">{tech.email}</p>
                                             {pendingSet.has(tech.id) && (
-                                                <div className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200 animate-pulse">
+                                                <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
                                                     <AlertCircle size={10} />
                                                     PENDIENTE
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-blue-600">
+                                        <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-primary">
                                             <ChevronRight size={18} />
                                         </div>
                                     </div>
-                                    <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-slate-400 group-hover:text-blue-600 transition-colors">
+                                    <div className="mt-4 pt-4 border-t border-border/50 flex items-center gap-2 text-xs font-bold text-muted-foreground group-hover:text-primary transition-colors uppercase tracking-wider">
                                         <ShieldCheck size={14} />
-                                        <span>Ver Historial / Auditar</span>
+                                        <span>Auditar Inventario</span>
                                     </div>
-                                </div>
+                                </PremiumCard>
                             </Link>
                         ))}
                         {soloTechs.length === 0 && (
-                            <div className="col-span-full py-8 text-center bg-white rounded-2xl border border-slate-100">
-                                <p className="text-slate-400 text-sm">Todos los técnicos están asignados a un equipo.</p>
+                            <div className="col-span-full py-8 text-center">
+                                <p className="text-muted-foreground text-sm">Todos los técnicos están asignados a un equipo.</p>
                             </div>
                         )}
                     </div>
                 </section>
             </div>
-        </div>
+        </PremiumPageLayout>
     )
 }

@@ -1,147 +1,123 @@
+
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { User, Shield, Mail, ArrowLeft, Building2, Briefcase, IdCard, Phone } from "lucide-react"
-import Link from "next/link"
+import { LogOut, User, Mail, Shield, Smartphone, Key, CircleUser, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumContent } from "@/components/ui/premium-content"
+import { LogoutButton } from "@/components/ui/logout-button"
 
-export default async function ProfilePage() {
+export default async function PerfilPage() {
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
     redirect("/login")
   }
 
-  // Fetch roles and new fields from profiles table
   const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
     .single()
 
-  const roles = profile?.roles || []
-
-  // Helper for displaying optional fields
-  const getDisplayValue = (value: string | undefined | null) => {
-    return value || <span className="text-amber-600 font-medium italic text-xs">En espera de asignación (Por Admin)</span>
-  }
-
-  const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || user.email?.split('@')[0]
-
   return (
-    <div className="min-h-screen bg-zinc-50 flex flex-col items-center p-6">
-      <div className="max-w-2xl w-full space-y-6">
+    <PremiumPageLayout title="Mi Perfil" description="Gestiona tu información personal y preferencias">
 
-        {/* Header with Back Button */}
-        <div className="flex items-center space-x-4 mb-4">
-          <Link href="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="h-6 w-6" />
-            </Button>
-          </Link>
-          <h1 className="text-3xl font-bold text-zinc-900">Mi Perfil</h1>
-        </div>
+      <div className="max-w-4xl mx-auto space-y-6">
 
-        <Card className="rounded-[32px] border-zinc-200 shadow-sm overflow-hidden">
-          <div className="bg-zinc-900 p-8 flex flex-col items-center justify-center space-y-4">
-            <div className="w-24 h-24 rounded-full bg-zinc-800 flex items-center justify-center border-4 border-zinc-700">
-              <User className="h-12 w-12 text-zinc-100" />
+        {/* HEADLINE PROFILE CARD */}
+        <PremiumCard className="p-8 relative overflow-hidden flex flex-col items-center text-center">
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white shadow-xl mb-6 ring-4 ring-white/10">
+              <span className="text-4xl font-bold">
+                {profile?.first_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+              </span>
             </div>
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-white capitalize">{fullName}</h2>
-              <p className="text-zinc-400">{user.email}</p>
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">
+              {profile?.first_name} {profile?.last_name}
+            </h2>
+            <p className="text-muted-foreground mt-1 text-lg">
+              {user.email}
+            </p>
+            <div className="flex gap-2 mt-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+                <Shield size={12} />
+                {profile?.role || 'Usuario'}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-green-500/10 text-green-500 border border-green-500/20">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                Activo
+              </span>
             </div>
           </div>
 
-          <CardContent className="p-8 space-y-8">
+          {/* Background Decorative Elements */}
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
+        </PremiumCard>
 
-            {/* Personal Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Email */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-zinc-500">
-                  <Mail className="h-4 w-4" />
-                  <span className="text-sm font-medium">Correo Electrónico</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* INFO PERSONAL */}
+          <PremiumContent className="p-0 overflow-hidden h-full">
+            <div className="p-6 border-b border-white/5 bg-white/5">
+              <h3 className="font-bold flex items-center gap-2">
+                <CircleUser className="text-primary" size={20} />
+                Información Personal
+              </h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nombre Completo</label>
+                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent">
+                  {profile?.first_name} {profile?.last_name || '(No registrado)'}
                 </div>
-                <p className="text-zinc-900 font-medium pl-6">{user.email}</p>
               </div>
-
-              {/* ID / Cédula */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-zinc-500">
-                  <IdCard className="h-4 w-4" />
-                  <span className="text-sm font-medium">Cédula de Identidad</span>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Correo Electrónico</label>
+                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent flex items-center gap-2">
+                  <Mail size={16} className="text-muted-foreground" />
+                  {user.email}
                 </div>
-                <p className="text-zinc-900 font-medium pl-6">{profile?.national_id || "No especificado"}</p>
               </div>
-
-              {/* Teléfono */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-zinc-500">
-                  <Phone className="h-4 w-4" />
-                  <span className="text-sm font-medium">Teléfono</span>
+              <div className="space-y-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rol de Sistema</label>
+                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent flex items-center gap-2">
+                  <Shield size={16} className="text-muted-foreground" />
+                  {profile?.role || 'User'}
                 </div>
-                <p className="text-zinc-900 font-medium pl-6">{profile?.phone || "No registrado"}</p>
-              </div>
-
-              {/* Localidad / Dept */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-zinc-500">
-                  <Building2 className="h-4 w-4" />
-                  <span className="text-sm font-medium">Departamento</span>
-                </div>
-                <p className="text-zinc-900 font-medium pl-6">{getDisplayValue(profile?.department)}</p>
-              </div>
-
-              {/* Cargo */}
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-zinc-500">
-                  <Briefcase className="h-4 w-4" />
-                  <span className="text-sm font-medium">Cargo</span>
-                </div>
-                <p className="text-zinc-900 font-medium pl-6">{getDisplayValue(profile?.job_title)}</p>
               </div>
             </div>
+          </PremiumContent>
 
-            <Separator />
-
-            {/* Roles Section */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 text-zinc-900">
-                <Shield className="h-5 w-5 text-zinc-500" />
-                <span className="font-medium">Roles y Permisos</span>
+          {/* SECURITY & ACTIONS */}
+          <PremiumContent className="p-0 overflow-hidden h-full flex flex-col">
+            <div className="p-6 border-b border-white/5 bg-white/5">
+              <h3 className="font-bold flex items-center gap-2">
+                <Lock className="text-primary" size={20} />
+                Seguridad y Sesión
+              </h3>
+            </div>
+            <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800" disabled>
+                  <Key className="mr-3 text-muted-foreground" size={18} />
+                  Cambiar Contraseña
+                  <span className="ml-auto text-xs text-muted-foreground">(Próximamente)</span>
+                </Button>
+                {/* Add more security options here later */}
               </div>
-              <div className="pl-8 flex flex-wrap gap-2">
-                {roles.length > 0 ? (
-                  roles.map((role: string) => (
-                    <span
-                      key={role}
-                      className="px-4 py-2 rounded-full bg-zinc-100 text-zinc-700 font-medium border border-zinc-200 capitalize"
-                    >
-                      {role}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-zinc-400 italic">Sin roles asignados</p>
-                )}
+
+              <div className="border-t border-white/5 pt-6 mt-auto">
+                <LogoutButton />
               </div>
             </div>
+          </PremiumContent>
+        </div>
 
-            {/* Account Info */}
-            <div className="space-y-4 pt-4">
-              <div className="text-xs text-zinc-400 text-center">
-                ID de Usuario: <span className="font-mono">{user.id}</span>
-              </div>
-            </div>
-
-          </CardContent>
-        </Card>
       </div>
-    </div>
+
+    </PremiumPageLayout>
   )
 }

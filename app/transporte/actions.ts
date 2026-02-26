@@ -62,12 +62,13 @@ export async function crearSalida(formData: FormData) {
         return { success: false, error: error.message };
     }
 
-    // [NEW] Update Vehicle Fuel Level with Text Parsing
+    // [NEW] Update Vehicle Fuel Level AND Mileage
     const fuelString = rawData.gasolina_salida?.toString() || '';
     const fuelLevel = parseFuelLevel(fuelString);
 
     const { error: updateError } = await supabase.from('vehiculos').update({
         current_fuel_level: fuelLevel,
+        kilometraje: rawData.km_salida, // Update mileage on exit
         last_fuel_update: new Date().toISOString()
     }).eq('id', rawData.vehiculo_id);
 
@@ -112,13 +113,14 @@ export async function registrarEntrada(formData: FormData) {
         return { success: false, error: error.message };
     }
 
-    // [NEW] Update Vehicle Fuel Level with Text Parsing
+    // [NEW] Update Vehicle Fuel Level AND Mileage with Text Parsing
     if (updateData.gasolina_entrada) {
         const fuelLevel = parseFuelLevel(updateData.gasolina_entrada.toString());
         // Fetch vehicle_id from the report data (we selected it above)
         if (data && data.vehiculo_id) {
             await supabase.from('vehiculos').update({
                 current_fuel_level: fuelLevel,
+                kilometraje: updateData.km_entrada, // Update mileage on entry
                 last_fuel_update: new Date().toISOString()
             }).eq('id', data.vehiculo_id);
         }
@@ -134,17 +136,23 @@ export async function revalidateGerencia() {
 }
 
 // [NEW] Helper Action for Client Components
-export async function updateVehicleFuel(vehicleId: string, fuelText: string) {
+export async function updateVehicleFuel(vehicleId: string, fuelText: string, kilometraje?: number) {
     const supabase = await createClient();
     const fuelLevel = parseFuelLevel(fuelText);
 
-    const { error } = await supabase.from('vehiculos').update({
+    const updatePayload: any = {
         current_fuel_level: fuelLevel,
         last_fuel_update: new Date().toISOString()
-    }).eq('id', vehicleId);
+    };
+
+    if (kilometraje !== undefined) {
+        updatePayload.kilometraje = kilometraje;
+    }
+
+    const { error } = await supabase.from('vehiculos').update(updatePayload).eq('id', vehicleId);
 
     if (error) {
-        console.error("Error updating fuel:", error);
+        console.error("Error updating vehicle stats:", error);
         return { success: false, error: error.message };
     }
 

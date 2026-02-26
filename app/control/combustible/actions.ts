@@ -70,7 +70,8 @@ export async function createFuelLog(data: FuelLogData) {
             mileage: data.mileage,
             supervisor_id: user.id,
             ticket_url: data.ticket_url,
-            notes: data.notes
+            notes: data.notes,
+            cost_usd: data.liters * 0.5 // Fixed rate: $0.5 per liter
         })
 
         if (error) throw error

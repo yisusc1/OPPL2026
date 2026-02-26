@@ -112,11 +112,8 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
             .not('assigned_driver_id', 'is', null)
 
         if (profiles) {
-            const driversList = profiles.filter((p: any) =>
-                p.roles?.includes('chofer') ||
-                p.job_title?.toLowerCase().includes('chofer') ||
-                p.job_title?.toLowerCase().includes('conductor')
-            )
+            const driversList = profiles // Showing all profiles to match Form behavior and avoid invisible assigned drivers
+
 
             // Map current vehicle to driver
             const driversWithStatus = driversList.map((d: any) => {
@@ -213,14 +210,14 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
     return (
         <>
             <Dialog open={isOpen} onOpenChange={onClose}>
-                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-white border-none rounded-[32px] shadow-2xl max-h-[90vh] flex flex-col focus:outline-none">
+                <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden bg-white dark:bg-zinc-900 border-none rounded-[32px] shadow-2xl max-h-[90vh] flex flex-col focus:outline-none">
 
                     {/* Scrollable Content Container */}
                     <div className="overflow-y-auto custom-scrollbar flex flex-col">
 
                         {/* Top Section: Image & Key Info */}
-                        <div className="w-full bg-zinc-50 flex flex-col">
-                            <div className="relative w-full aspect-video bg-zinc-200">
+                        <div className="w-full bg-zinc-50 dark:bg-zinc-950 flex flex-col">
+                            <div className="relative w-full aspect-video bg-zinc-200 dark:bg-zinc-800">
                                 {vehicle.foto_url ? (
                                     <Image
                                         src={vehicle.foto_url}
@@ -229,7 +226,7 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <div className="flex items-center justify-center h-full text-zinc-300">
+                                    <div className="flex items-center justify-center h-full text-zinc-300 dark:text-zinc-700">
                                         {getIcon(vehicle.tipo)}
                                     </div>
                                 )}
@@ -249,24 +246,24 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
 
                             <div className="p-6">
                                 <div className="mb-6">
-                                    <DialogTitle className="text-2xl font-bold text-zinc-900 leading-tight">{vehicle.modelo}</DialogTitle>
-                                    <DialogDescription className="text-zinc-500 font-mono text-lg">{vehicle.placa}</DialogDescription>
+                                    <DialogTitle className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">{vehicle.modelo}</DialogTitle>
+                                    <DialogDescription className="text-zinc-500 dark:text-zinc-400 font-mono text-lg">{vehicle.placa}</DialogDescription>
                                 </div>
 
                                 {/* Driver Assignment Section - NEW */}
                                 <div className="mb-6">
                                     {readonly ? (
-                                        <div className="bg-zinc-50 p-4 rounded-xl border border-zinc-100">
-                                            <div className="text-zinc-400 text-xs font-semibold uppercase mb-2">Conductor Asignado</div>
+                                        <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700">
+                                            <div className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold uppercase mb-2">Conductor Asignado</div>
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-500">
+                                                <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-zinc-500 dark:text-zinc-300">
                                                     <User size={20} />
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-zinc-900">
+                                                    <div className="font-bold text-zinc-900 dark:text-zinc-100">
                                                         {drivers.find(d => d.id === vehicle.assigned_driver_id)?.first_name} {drivers.find(d => d.id === vehicle.assigned_driver_id)?.last_name || "Sin Asignar"}
                                                     </div>
-                                                    <div className="text-xs text-zinc-500">
+                                                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
                                                         {vehicle.assigned_driver_id ? "Conductor Oficial" : "Vehículo sin conductor"}
                                                     </div>
                                                 </div>
@@ -289,9 +286,9 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                 {/* Department display */}
                                 {
                                     vehicle.department && (
-                                        <div className="mb-6 bg-zinc-50 p-3 rounded-xl border border-zinc-100 flex items-center justify-between">
-                                            <span className="text-zinc-500 text-sm font-medium">Departamento</span>
-                                            <span className="font-bold text-zinc-900 bg-white px-3 py-1 rounded-lg border border-zinc-200 shadow-sm text-sm">
+                                        <div className="mb-6 bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-700 flex items-center justify-between">
+                                            <span className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Departamento</span>
+                                            <span className="font-bold text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-900 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700 shadow-sm text-sm">
                                                 {vehicle.department}
                                             </span>
                                         </div>
@@ -299,24 +296,24 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                 }
 
                                 <div className="grid grid-cols-2 gap-3 mb-6">
-                                    <div className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm">
-                                        <div className="text-zinc-400 text-xs font-semibold uppercase mb-1">Kilometraje</div>
-                                        <div className="text-zinc-900 font-bold flex items-center gap-1">
+                                    <div className="bg-white dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
+                                        <div className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold uppercase mb-1">Kilometraje</div>
+                                        <div className="text-zinc-900 dark:text-zinc-100 font-bold flex items-center gap-1">
                                             <MapPin size={14} className="text-blue-500" />
                                             {(vehicle.kilometraje || 0).toLocaleString()}
                                         </div>
                                     </div>
-                                    <div className="bg-white p-3 rounded-xl border border-zinc-100 shadow-sm">
-                                        <div className="text-zinc-400 text-xs font-semibold uppercase mb-1">Código</div>
-                                        <div className="text-zinc-900 font-bold flex items-center gap-1">
+                                    <div className="bg-white dark:bg-zinc-800/50 p-3 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
+                                        <div className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold uppercase mb-1">Código</div>
+                                        <div className="text-zinc-900 dark:text-zinc-100 font-bold flex items-center gap-1">
                                             <Hash size={14} className="text-purple-500" />
                                             {vehicle.codigo}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="bg-white p-4 rounded-xl border border-zinc-100 shadow-sm mb-6 flex justify-between items-center">
-                                    <span className="text-zinc-500 text-sm font-medium">Nivel de Combustible</span>
+                                <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm mb-6 flex justify-between items-center">
+                                    <span className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">Nivel de Combustible</span>
                                     <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold ${(vehicle.current_fuel_level || 0) <= 25 ? "bg-red-50 text-red-600 border border-red-100" :
                                         (vehicle.current_fuel_level || 0) <= 50 ? "bg-yellow-50 text-yellow-700 border border-yellow-100" :
                                             "bg-emerald-50 text-emerald-700 border border-emerald-100"
@@ -329,14 +326,14 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
 
                                 {/* ACTIVE REPORT SECTION [NEW] */}
                                 {vehicle.activeReport && (
-                                    <div className="mb-6 bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                                    <div className="mb-6 bg-blue-50/50 dark:bg-blue-950/20 p-5 rounded-2xl border border-blue-100 dark:border-blue-900/30">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                            <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg">
                                                 <MapPin size={18} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-blue-900 text-sm">Reporte de Salida Activo</h3>
-                                                <p className="text-xs text-blue-600">
+                                                <h3 className="font-bold text-blue-900 dark:text-blue-100 text-sm">Reporte de Salida Activo</h3>
+                                                <p className="text-xs text-blue-600 dark:text-blue-400">
                                                     Salida: {new Date(vehicle.activeReport.fecha_salida).toLocaleString()}
                                                 </p>
                                             </div>
@@ -344,20 +341,20 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
 
                                         {/* Key Metrics */}
                                         <div className="grid grid-cols-2 gap-3 mb-4">
-                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                                            <div className="bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
                                                 <span className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Conductor</span>
-                                                <span className="font-semibold text-zinc-800 text-sm block truncate">{vehicle.activeReport.conductor}</span>
+                                                <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm block truncate">{vehicle.activeReport.conductor}</span>
                                             </div>
-                                            <div className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                                            <div className="bg-white dark:bg-zinc-900/50 p-3 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm">
                                                 <span className="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Km Salida</span>
-                                                <span className="font-semibold text-zinc-800 text-sm block">{vehicle.activeReport.km_salida} km</span>
+                                                <span className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm block">{vehicle.activeReport.km_salida} km</span>
                                             </div>
                                         </div>
 
                                         {/* Checklist */}
-                                        <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
-                                            <div className="bg-blue-50/30 px-4 py-2 border-b border-blue-100">
-                                                <span className="text-xs font-bold text-blue-800">Verificación de Salida</span>
+                                        <div className="bg-white dark:bg-zinc-900/50 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm overflow-hidden">
+                                            <div className="bg-blue-50/30 dark:bg-blue-950/30 px-4 py-2 border-b border-blue-100 dark:border-blue-900/30">
+                                                <span className="text-xs font-bold text-blue-800 dark:text-blue-300">Verificación de Salida</span>
                                             </div>
                                             <div className="p-4 grid grid-cols-2 gap-y-3 gap-x-4">
                                                 {/* COMMON */}
@@ -399,18 +396,18 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
 
                                 {/* Maintenance Section */}
                                 <div className="mt-6 mb-6">
-                                    <h3 className="text-sm font-bold text-zinc-900 mb-3 flex items-center gap-2">
+                                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
                                         <Wrench className="text-zinc-400" size={16} />
                                         Mantenimiento Preventivo
                                     </h3>
 
                                     <div className="space-y-4">
                                         {/* Oil Change */}
-                                        <div className="bg-white p-4 rounded-xl border border-zinc-100 shadow-sm">
+                                        <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
                                             <div className="flex justify-between items-center mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <Droplets size={16} className="text-amber-500" />
-                                                    <span className="text-sm font-medium text-zinc-700">Cambio de Aceite</span>
+                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Cambio de Aceite</span>
                                                 </div>
                                                 <span className="text-xs text-zinc-400 font-mono">
                                                     Último: {vehicle.last_oil_change_km ? vehicle.last_oil_change_km.toLocaleString() + ' km' : 'N/A'}
@@ -427,12 +424,12 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                 return (
                                                     <div>
                                                         <div className="flex justify-between text-xs mb-1.5">
-                                                            <span className="text-zinc-500">Recorrido: {driven.toLocaleString()} km</span>
-                                                            <span className={`font-bold ${progress >= 90 ? 'text-red-600' : 'text-zinc-600'}`}>
+                                                            <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
+                                                            <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
                                                                 {remaining.toLocaleString()} km restantes
                                                             </span>
                                                         </div>
-                                                        <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                                                        <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
                                                                 style={{ width: `${progress}%` }}
@@ -455,11 +452,11 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                             if (hideFor.some(keyword => model.includes(keyword))) return null
 
                                             return (
-                                                <div className="bg-white p-4 rounded-xl border border-zinc-100 shadow-sm">
+                                                <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
                                                     <div className="flex justify-between items-center mb-2">
                                                         <div className="flex items-center gap-2">
                                                             <Gauge size={16} className="text-blue-500" />
-                                                            <span className="text-sm font-medium text-zinc-700">Correa de Tiempo</span>
+                                                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Correa de Tiempo</span>
                                                         </div>
                                                         <span className="text-xs text-zinc-400 font-mono">
                                                             Último: {vehicle.last_timing_belt_km ? vehicle.last_timing_belt_km.toLocaleString() + ' km' : 'N/A'}
@@ -476,12 +473,12 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                         return (
                                                             <div>
                                                                 <div className="flex justify-between text-xs mb-1.5">
-                                                                    <span className="text-zinc-500">Recorrido: {driven.toLocaleString()} km</span>
-                                                                    <span className={`font-bold ${progress >= 90 ? 'text-red-600' : 'text-zinc-600'}`}>
+                                                                    <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
+                                                                    <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
                                                                         {remaining.toLocaleString()} km restantes
                                                                     </span>
                                                                 </div>
-                                                                <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                                                                <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
                                                                     <div
                                                                         className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
                                                                         style={{ width: `${progress}%` }}
@@ -498,11 +495,11 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
 
                                         {/* Chain Kit - Only for Motos */}
                                         {(vehicle.tipo?.toLowerCase() === 'moto' || vehicle.modelo?.toLowerCase().includes('moto')) && (
-                                            <div className="bg-white p-4 rounded-xl border border-zinc-100 shadow-sm">
+                                            <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
                                                 <div className="flex justify-between items-center mb-2">
                                                     <div className="flex items-center gap-2">
-                                                        <Bike size={16} className="text-zinc-600" />
-                                                        <span className="text-sm font-medium text-zinc-700">Kit de Arrastre</span>
+                                                        <Bike size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Kit de Arrastre</span>
                                                     </div>
                                                     <span className="text-xs text-zinc-400 font-mono">
                                                         Último: {vehicle.last_chain_kit_km ? vehicle.last_chain_kit_km.toLocaleString() + ' km' : 'N/A'}
@@ -519,12 +516,12 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                     return (
                                                         <div>
                                                             <div className="flex justify-between text-xs mb-1.5">
-                                                                <span className="text-zinc-500">Recorrido: {driven.toLocaleString()} km</span>
-                                                                <span className={`font-bold ${progress >= 90 ? 'text-red-600' : 'text-zinc-600'}`}>
+                                                                <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
+                                                                <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
                                                                     {remaining.toLocaleString()} km restantes
                                                                 </span>
                                                             </div>
-                                                            <div className="h-2 w-full bg-zinc-100 rounded-full overflow-hidden">
+                                                            <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
                                                                 <div
                                                                     className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
                                                                     style={{ width: `${progress}%` }}
@@ -533,17 +530,17 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                         </div>
                                                     )
                                                 })() : (
-                                                    <div className="text-xs text-zinc-400 italic">Sin información de servicio</div>
+                                                    <div className="text-xs text-zinc-400 italic dark:text-zinc-500">Sin información de servicio</div>
                                                 )}
                                             </div>
                                         )}
 
                                         {/* Washing - For All */}
-                                        <div className="bg-white p-4 rounded-xl border border-zinc-100 shadow-sm">
+                                        <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
                                             <div className="flex justify-between items-center mb-2">
                                                 <div className="flex items-center gap-2">
                                                     <Droplets size={16} className="text-cyan-500" />
-                                                    <span className="text-sm font-medium text-zinc-700">Lavado y Aspirado</span>
+                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Lavado y Aspirado</span>
                                                 </div>
                                             </div>
 
@@ -552,15 +549,15 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                 const today = new Date()
                                                 const diffTime = Math.abs(today.getTime() - lastWash.getTime())
                                                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                                                const statusColor = diffDays > 15 ? 'text-red-500 bg-red-50 border-red-100' : diffDays > 7 ? 'text-yellow-600 bg-yellow-50 border-yellow-100' : 'text-cyan-600 bg-cyan-50 border-cyan-100'
+                                                const statusColor = diffDays > 15 ? 'text-red-500 bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30' : diffDays > 7 ? 'text-yellow-600 bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400' : 'text-cyan-600 bg-cyan-50 border-cyan-100 dark:bg-cyan-900/20 dark:border-cyan-900/30 dark:text-cyan-400'
                                                 const statusText = diffDays > 15 ? 'Necesita Lavado' : diffDays > 7 ? 'Aceptable' : 'Limpio'
 
                                                 return (
                                                     <div className="flex justify-between items-center">
-                                                        <span className="text-xs text-zinc-500">
+                                                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
                                                             Hace {diffDays} días ({lastWash.toLocaleDateString()})
                                                         </span>
-                                                        <span className="text-[10px] font-bold px-2 py-1 rounded-full border ${statusColor}">
+                                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${statusColor}`}>
                                                             {statusText}
                                                         </span>
                                                     </div>
@@ -568,7 +565,7 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                             })() : (
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-xs text-zinc-400 italic">Sin registro de lavado</span>
-                                                    <span className="text-[10px] font-bold px-2 py-1 rounded-full border bg-zinc-50 border-zinc-100 text-zinc-400">
+                                                    <span className="text-[10px] font-bold px-2 py-1 rounded-full border bg-zinc-50 border-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:border-zinc-700">
                                                         Desconocido
                                                     </span>
                                                 </div>
@@ -585,26 +582,26 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                     )
                                 }
 
-                                <div className="grid grid-cols-3 gap-4 text-sm border-t border-zinc-100 pt-4">
+                                <div className="grid grid-cols-3 gap-4 text-sm border-t border-zinc-100 dark:border-zinc-800 pt-4">
                                     <div>
                                         <span className="block text-zinc-400 text-xs mb-1">Año</span>
-                                        <span className="font-medium text-zinc-900">{vehicle.año || '-'}</span>
+                                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{vehicle.año || '-'}</span>
                                     </div>
                                     <div>
                                         <span className="block text-zinc-400 text-xs mb-1">Color</span>
-                                        <span className="font-medium text-zinc-900">{vehicle.color || '-'}</span>
+                                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{vehicle.color || '-'}</span>
                                     </div>
                                     <div>
                                         <span className="block text-zinc-400 text-xs mb-1">Tanque</span>
-                                        <span className="font-medium text-zinc-900">{vehicle.capacidad_tanque || '-'} L</span>
+                                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{vehicle.capacidad_tanque || '-'} L</span>
                                     </div>
                                 </div>
                             </div >
                         </div >
 
                         {/* Bottom Section: Faults History */}
-                        < div className="w-full p-6 bg-white border-t border-zinc-100" >
-                            <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2 mb-4">
+                        < div className="w-full p-6 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800" >
+                            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2 mb-4">
                                 <Wrench className="text-zinc-400" size={20} />
                                 Historial de Fallas
                             </h3>
@@ -613,24 +610,24 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                 {loadingFaults ? (
                                     <div className="text-center py-6 text-zinc-400 text-sm">Cargando historial...</div>
                                 ) : faults.length === 0 ? (
-                                    <div className="text-center py-8 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
-                                        <div className="mx-auto w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center text-zinc-400 mb-2">
+                                    <div className="text-center py-8 bg-zinc-50 dark:bg-zinc-900 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                                        <div className="mx-auto w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 mb-2">
                                             <Wrench size={18} />
                                         </div>
-                                        <h4 className="text-zinc-900 font-medium text-sm">Sin fallas reportadas</h4>
+                                        <h4 className="text-zinc-900 dark:text-zinc-100 font-medium text-sm">Sin fallas reportadas</h4>
                                     </div>
                                 ) : (
                                     faults.map((fault) => (
-                                        <div key={fault.id} className="group p-4 rounded-2xl border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-all bg-zinc-50/50">
+                                        <div key={fault.id} className="group p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all bg-zinc-50/50 dark:bg-zinc-900/50">
                                             <div className="flex justify-between items-start mb-2">
                                                 <div className="flex gap-2 items-center">
                                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getPriorityColor(fault.prioridad)}`}>
                                                         {fault.prioridad}
                                                     </span>
-                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${fault.estado === 'Pendiente' ? 'bg-zinc-200 text-zinc-700' :
-                                                        fault.estado === 'En Revisión' ? 'bg-blue-100 text-blue-700' :
-                                                            fault.estado === 'Reparado' ? 'bg-green-100 text-green-700' :
-                                                                'bg-zinc-100 text-zinc-400'
+                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${fault.estado === 'Pendiente' ? 'bg-zinc-200 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300' :
+                                                        fault.estado === 'En Revisión' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                                            fault.estado === 'Reparado' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
+                                                                'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500'
                                                         }`}>
                                                         {fault.estado}
                                                     </span>
@@ -639,8 +636,8 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                                     {new Date(fault.created_at).toLocaleDateString()}
                                                 </div>
                                             </div>
-                                            <h4 className="font-bold text-zinc-900 text-sm mb-1">{fault.tipo_falla}</h4>
-                                            <p className="text-sm text-zinc-600 leading-relaxed">{fault.descripcion}</p>
+                                            <h4 className="font-bold text-zinc-900 dark:text-zinc-100 text-sm mb-1">{fault.tipo_falla}</h4>
+                                            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{fault.descripcion}</p>
                                         </div>
                                     ))
                                 )}
@@ -692,11 +689,11 @@ function CheckItem({ label, checked }: { label: string, checked: boolean }) {
         <div className="flex items-center gap-2">
             <div className={`
                 w-5 h-5 rounded-full flex items-center justify-center text-[10px] border
-                ${checked ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-50 text-red-400 border-red-100'}
+                ${checked ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900/30' : 'bg-red-50 dark:bg-red-900/20 text-red-400 dark:text-red-400 border-red-100 dark:border-red-900/30'}
             `}>
                 {checked ? <CheckCircle2 size={12} strokeWidth={3} /> : <X size={12} strokeWidth={3} />}
             </div>
-            <span className={`text-xs font-medium ${checked ? 'text-zinc-700' : 'text-zinc-400'}`}>{label}</span>
+            <span className={`text-xs font-medium ${checked ? 'text-zinc-700 dark:text-zinc-300' : 'text-zinc-400 dark:text-zinc-500'}`}>{label}</span>
         </div>
     )
 }

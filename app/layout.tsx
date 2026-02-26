@@ -26,8 +26,8 @@ import { getSystemSettings } from "./admin/settings-actions";
 // ... existing imports
 
 import { VoiceAssistant } from "@/components/voice-assistant";
-
 import { VoiceProvider } from "@/components/voice-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export default async function RootLayout({
   children,
@@ -60,11 +60,18 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <UserProvider initialUser={user} initialProfile={profile}>
-          <VoiceProvider>
-            {children}
-            {isVoiceEnabled && <VoiceAssistant />}
-            <Toaster richColors position="top-center" />
-          </VoiceProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <VoiceProvider>
+              {children}
+              {isVoiceEnabled && <VoiceAssistant />}
+              <Toaster richColors position="top-center" />
+            </VoiceProvider>
+          </ThemeProvider>
         </UserProvider>
       </body>
     </html>

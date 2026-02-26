@@ -185,18 +185,18 @@ export function MaintenanceRegistrationDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-md bg-zinc-50 p-0 gap-0 overflow-hidden border-none rounded-3xl">
-                <div className="p-6 pb-4 bg-white border-b border-zinc-100">
+            <DialogContent className="max-w-md bg-zinc-50 dark:bg-zinc-950 p-0 gap-0 overflow-hidden border-none rounded-3xl text-foreground">
+                <div className="p-6 pb-4 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-white/5">
                     <DialogHeader>
-                        <DialogTitle className="text-xl font-bold text-zinc-900">Registrar Mantenimiento</DialogTitle>
-                        <DialogDescription>Seleccione el vehículo y el tipo de servicio realizado.</DialogDescription>
+                        <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-white">Registrar Mantenimiento</DialogTitle>
+                        <DialogDescription className="text-zinc-500 dark:text-zinc-400">Seleccione el vehículo y el tipo de servicio realizado.</DialogDescription>
                     </DialogHeader>
                 </div>
 
                 <div className="p-6 space-y-6 overflow-y-auto max-h-[70vh]">
                     {/* 1. Vehicle Selection */}
                     <div className="space-y-3">
-                        <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Vehículo</Label>
+                        <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Vehículo</Label>
                         {!selectedVehicle ? (
                             <div className="relative">
                                 <SearchInput
@@ -204,7 +204,7 @@ export function MaintenanceRegistrationDialog({
                                     onChange={setSearchTerm}
                                     placeholder="Buscar placa o modelo..."
                                 />
-                                <div className="mt-2 max-h-40 overflow-y-auto border border-zinc-200 rounded-xl bg-white divide-y divide-zinc-50 shadow-sm">
+                                <div className="mt-2 max-h-40 overflow-y-auto border border-zinc-200 dark:border-white/10 rounded-xl bg-white dark:bg-zinc-900 divide-y divide-zinc-50 dark:divide-white/5 shadow-sm">
                                     {loadingVehicles ? (
                                         <div className="p-4 text-center text-zinc-400 text-sm">Cargando...</div>
                                     ) : filteredVehicles.length === 0 ? (
@@ -217,13 +217,13 @@ export function MaintenanceRegistrationDialog({
                                                     setSelectedVehicle(v)
                                                     setMileage(v.kilometraje?.toString() || "")
                                                 }}
-                                                className="p-3 hover:bg-zinc-50 cursor-pointer flex justify-between items-center transition-colors"
+                                                className="p-3 hover:bg-zinc-50 dark:hover:bg-white/5 cursor-pointer flex justify-between items-center transition-colors"
                                             >
                                                 <div>
-                                                    <div className="font-bold text-sm text-zinc-900">{v.modelo}</div>
-                                                    <div className="text-xs text-zinc-500 font-mono">{v.placa}</div>
+                                                    <div className="font-bold text-sm text-zinc-900 dark:text-white">{v.modelo}</div>
+                                                    <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">{v.placa}</div>
                                                 </div>
-                                                <div className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-md">
+                                                <div className="text-xs font-bold text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-white/5 px-2 py-1 rounded-md">
                                                     {(v.kilometraje || 0).toLocaleString()} km
                                                 </div>
                                             </div>
@@ -232,36 +232,38 @@ export function MaintenanceRegistrationDialog({
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex items-center justify-between p-3 bg-white border border-zinc-200 rounded-xl shadow-sm">
+                            <div className="flex items-center justify-between p-3 bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl shadow-sm">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center">
-                                        <Car size={18} className="text-zinc-500" />
+                                    <div className="w-10 h-10 bg-zinc-100 dark:bg-white/5 rounded-full flex items-center justify-center">
+                                        <Car size={18} className="text-zinc-500 dark:text-zinc-400" />
                                     </div>
                                     <div>
-                                        <div className="font-bold text-sm text-zinc-900">{selectedVehicle.modelo}</div>
-                                        <div className="text-xs text-zinc-500 font-mono">{selectedVehicle.placa}</div>
+                                        <div className="font-bold text-sm text-zinc-900 dark:text-white">{selectedVehicle.modelo}</div>
+                                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">{selectedVehicle.placa}</div>
                                     </div>
                                 </div>
                                 {!lockVehicle && activeTab !== 'fault' && (
-                                    <Button variant="ghost" size="sm" onClick={() => setSelectedVehicle(null)}>Cambiar</Button>
+                                    <Button variant="ghost" size="sm" onClick={() => setSelectedVehicle(null)}
+                                        className="text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white">
+                                        Cambiar
+                                    </Button>
                                 )}
                             </div>
                         )}
                     </div>
 
-                    {/* 2. Service Type */}
                     {/* 2. Toggle Mode (Only if vehicle selected) */}
                     {selectedVehicle && (
-                        <div className="bg-zinc-100 p-1 rounded-xl flex gap-1">
+                        <div className="bg-zinc-100 dark:bg-white/5 p-1 rounded-xl flex gap-1">
                             <button
                                 onClick={() => setActiveTab('maintenance')}
-                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'maintenance' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'maintenance' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}
                             >
                                 Mantenimiento
                             </button>
                             <button
                                 onClick={() => setActiveTab('fault')}
-                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'fault' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-700'}`}
+                                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'fault' ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'}`}
                             >
                                 Registrar Falla
                             </button>
@@ -271,7 +273,7 @@ export function MaintenanceRegistrationDialog({
                     {/* 3. Content based on Tab */}
                     {selectedVehicle && activeTab === 'maintenance' && (
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Tipo de Servicio</Label>
+                            <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tipo de Servicio</Label>
                             <div className="grid grid-cols-2 gap-3">
                                 {[
                                     { id: 'OIL_CHANGE', label: 'Cambio de Aceite', icon: Droplets },
@@ -301,13 +303,13 @@ export function MaintenanceRegistrationDialog({
                                             disabled={lockServiceType}
                                             className={`p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all
                                                 ${isSelected
-                                                    ? 'border-zinc-900 bg-zinc-50 text-zinc-900'
-                                                    : 'border-zinc-100 bg-white text-zinc-500 hover:border-zinc-200 hover:bg-zinc-50'
+                                                    ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-white/10 text-zinc-900 dark:text-white'
+                                                    : 'border-zinc-100 dark:border-white/5 bg-white dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-white/10'
                                                 }
                                                 ${lockServiceType ? 'cursor-default opacity-70' : ''}
                                             `}
                                         >
-                                            <service.icon size={24} className={isSelected ? 'text-zinc-900' : 'text-zinc-400'} />
+                                            <service.icon size={24} className={isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'} />
                                             <span className="font-medium text-sm">{service.label}</span>
                                         </button>
                                     )
@@ -320,9 +322,9 @@ export function MaintenanceRegistrationDialog({
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Tipo de Falla</Label>
+                                    <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tipo de Falla</Label>
                                     <Select value={faultType} onValueChange={setFaultType}>
-                                        <SelectTrigger className="h-11 rounded-xl bg-zinc-50 border-zinc-200">
+                                        <SelectTrigger className="h-11 rounded-xl bg-zinc-50 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -335,9 +337,9 @@ export function MaintenanceRegistrationDialog({
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Prioridad</Label>
+                                    <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Prioridad</Label>
                                     <Select value={faultPriority} onValueChange={setFaultPriority}>
-                                        <SelectTrigger className="h-11 rounded-xl bg-zinc-50 border-zinc-200">
+                                        <SelectTrigger className="h-11 rounded-xl bg-zinc-50 dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -358,13 +360,13 @@ export function MaintenanceRegistrationDialog({
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             {activeTab === 'maintenance' && (
                                 <div className="space-y-2">
-                                    <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">Kilometraje Actual</Label>
+                                    <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kilometraje Actual</Label>
                                     <div className="relative">
                                         <Input
                                             type="number"
                                             value={mileage}
                                             onChange={(e) => setMileage(e.target.value)}
-                                            className="pl-10 font-mono font-bold"
+                                            className="pl-10 font-mono font-bold bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white"
                                         />
                                         <div className="absolute left-3 top-2.5 text-zinc-400">
                                             <Gauge size={16} />
@@ -377,26 +379,26 @@ export function MaintenanceRegistrationDialog({
                             )}
 
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                                <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                                     {activeTab === 'fault' ? 'Descripción del Problema' : 'Notas (Opcional)'}
                                 </Label>
                                 <Textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     placeholder={activeTab === 'fault' ? "Describa detalladamente la falla..." : "Detalles adicionales del servicio..."}
-                                    className="resize-none h-24"
+                                    className="resize-none h-24 bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
                                 />
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="p-4 bg-white border-t border-zinc-100 flex justify-end gap-2">
-                    <Button variant="outline" onClick={onClose} disabled={isSubmitting}>Cancelar</Button>
+                <div className="p-4 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-white/5 flex justify-end gap-2">
+                    <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5">Cancelar</Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting || !selectedVehicle || (activeTab === 'maintenance' && (!serviceType || !mileage)) || (activeTab === 'fault' && !notes)}
-                        className="bg-black text-white hover:bg-zinc-800"
+                        className="bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200"
                     >
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {activeTab === 'fault' ? 'Reportar Falla' : 'Registrar Servicio'}
@@ -410,12 +412,12 @@ export function MaintenanceRegistrationDialog({
 function SearchInput({ value, onChange, placeholder }: any) {
     return (
         <div className="relative">
-            <Command className="absolute left-3 top-3 text-zinc-400" size={16} />
+            <Command className="absolute left-3 top-3 text-zinc-400 dark:text-zinc-500" size={16} />
             <Input
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder={placeholder}
-                className="pl-9 h-10 bg-white"
+                className="pl-9 h-10 bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
             />
         </div>
     )

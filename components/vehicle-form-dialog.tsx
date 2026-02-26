@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X, Upload, Camera, Trash2 } from "lucide-react"
+import { X, Upload, Camera, Trash2, User } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -22,6 +22,14 @@ type Vehicle = {
     capacidad_tanque: string
     foto_url?: string
     department?: string
+    assigned_driver_id?: string | null
+}
+
+type Profile = {
+    id: string
+    first_name: string
+    last_name: string
+    cedula: string
 }
 
 type VehicleFormDialogProps = {
@@ -33,6 +41,7 @@ type VehicleFormDialogProps = {
 
 export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEdit }: VehicleFormDialogProps) {
     const [loading, setLoading] = useState(false)
+    const [drivers, setDrivers] = useState<Profile[]>([])
     const [photoPreview, setPhotoPreview] = useState<string | null>(null)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [formData, setFormData] = useState<Vehicle>({
@@ -44,8 +53,27 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
         tipo: "Carga",
         capacidad_tanque: "",
         foto_url: "",
-        department: ""
+        department: "",
+        assigned_driver_id: null
     })
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchDrivers()
+        }
+    }, [isOpen])
+
+    async function fetchDrivers() {
+        const supabase = createClient()
+        const { data } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name, cedula')
+            .order('first_name')
+
+        if (data) {
+            setDrivers(data)
+        }
+    }
 
     useEffect(() => {
         if (vehicleToEdit) {
@@ -59,7 +87,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 tipo: vehicleToEdit.tipo || "Carga",
                 capacidad_tanque: vehicleToEdit.capacidad_tanque || "",
                 foto_url: vehicleToEdit.foto_url || "",
-                department: vehicleToEdit.department || ""
+                department: vehicleToEdit.department || "",
+                assigned_driver_id: vehicleToEdit.assigned_driver_id || null
             })
             if (vehicleToEdit.foto_url) {
                 setPhotoPreview(vehicleToEdit.foto_url)
@@ -77,7 +106,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 tipo: "Carga",
                 capacidad_tanque: "",
                 foto_url: "",
-                department: ""
+                department: "",
+                assigned_driver_id: null
             })
             setPhotoPreview(null)
         }
@@ -145,7 +175,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 tipo: formData.tipo,
                 capacidad_tanque: formData.capacidad_tanque,
                 foto_url: finalFotoUrl,
-                department: formData.department
+                department: formData.department,
+                assigned_driver_id: formData.assigned_driver_id
             }
 
             let error;
@@ -181,14 +212,14 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
 
     return (
         <div className="fixed inset-0 bg-zinc-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-            <Card className="w-full max-w-2xl rounded-[32px] border-none shadow-2xl bg-white overflow-hidden max-h-[90vh] flex flex-col">
-                <CardHeader className="flex flex-row items-center justify-between pb-6 pt-6 px-6 border-b border-zinc-100 shrink-0">
-                    <CardTitle className="text-xl font-bold text-zinc-900">
+            <Card className="w-full max-w-2xl rounded-[32px] border-none shadow-2xl bg-white dark:bg-zinc-900 overflow-hidden max-h-[90vh] flex flex-col">
+                <CardHeader className="flex flex-row items-center justify-between pb-6 pt-6 px-6 border-b border-zinc-100 dark:border-zinc-800 shrink-0">
+                    <CardTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                         {vehicleToEdit ? "Editar Vehículo" : "Nuevo Vehículo"}
                     </CardTitle>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-50 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+                        className="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -200,7 +231,7 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                         {/* PHOTO UPLOAD */}
                         <div className="flex flex-col items-center justify-center space-y-4">
                             <div
-                                className="relative w-40 h-40 rounded-3xl bg-zinc-100 border-2 border-dashed border-zinc-300 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-zinc-400 transition-colors"
+                                className="relative w-40 h-40 rounded-3xl bg-zinc-100 dark:bg-zinc-800 border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center cursor-pointer overflow-hidden group hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 {photoPreview ? (
@@ -211,7 +242,7 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                         className="object-cover"
                                     />
                                 ) : (
-                                    <div className="text-center text-zinc-400">
+                                    <div className="text-center text-zinc-400 dark:text-zinc-500">
                                         <Camera size={32} className="mx-auto mb-2" />
                                         <span className="text-xs font-medium">Subir Foto</span>
                                     </div>
@@ -229,75 +260,75 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                 className="hidden"
                                 onChange={handlePhotoSelect}
                             />
-                            <p className="text-xs text-zinc-400">JPG, PNG, WEBP (Max 5MB)</p>
+                            <p className="text-xs text-zinc-400 dark:text-zinc-500">JPG, PNG, WEBP (Max 5MB)</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Código</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Código</label>
                                 <input
                                     name="codigo"
                                     value={formData.codigo}
                                     onChange={handleChange}
                                     required
                                     placeholder="Ej. C-01"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Placa</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Placa</label>
                                 <input
                                     name="placa"
                                     value={formData.placa}
                                     onChange={handleChange}
                                     required
                                     placeholder="Ej. AB123CD"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Modelo</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Modelo</label>
                                 <input
                                     name="modelo"
                                     value={formData.modelo}
                                     onChange={handleChange}
                                     required
                                     placeholder="Ej. Toyota Hilux"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Año</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Año</label>
                                 <input
                                     name="año"
                                     value={formData.año}
                                     onChange={handleChange}
                                     placeholder="2024"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Color</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Color</label>
                                 <input
                                     name="color"
                                     value={formData.color}
                                     onChange={handleChange}
                                     placeholder="Blanco"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Capacidad Tanque</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Capacidad Tanque</label>
                                 <input
                                     name="capacidad_tanque"
                                     value={formData.capacidad_tanque}
                                     onChange={handleChange}
                                     placeholder="Liters"
-                                    className="w-full h-12 px-4 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-900 focus:ring-2 focus:ring-black focus:outline-none"
+                                    className="w-full h-12 px-4 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-black dark:focus:ring-white focus:outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
                                 />
                             </div>
                             <div className="col-span-1 md:col-span-2">
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Tipo de Vehículo</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Tipo de Vehículo</label>
                                 <div className="grid grid-cols-3 gap-3">
                                     {['Particular', 'Carga', 'Moto'].map((type) => (
                                         <button
@@ -305,8 +336,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                             type="button"
                                             onClick={() => setFormData({ ...formData, tipo: type })}
                                             className={`h-12 rounded-xl font-medium border transition-all ${formData.tipo === type
-                                                ? 'bg-black text-white border-black'
-                                                : 'bg-white text-zinc-600 border-zinc-200 hover:bg-zinc-50'
+                                                ? 'bg-black dark:bg-zinc-100 text-white dark:text-zinc-900 border-black dark:border-zinc-100'
+                                                : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700'
                                                 }`}
                                         >
                                             {type}
@@ -316,17 +347,42 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                             </div>
 
                             <div className="col-span-1 md:col-span-2">
-                                <label className="block text-sm font-semibold text-zinc-900 mb-2 pl-1">Departamento Asignado</label>
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Departamento Asignado</label>
                                 <Select
                                     value={formData.department}
                                     onValueChange={(val) => setFormData({ ...formData, department: val })}
                                 >
-                                    <SelectTrigger className="h-12 rounded-xl bg-zinc-50 border-zinc-200">
+                                    <SelectTrigger className="h-12 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100">
                                         <SelectValue placeholder="Seleccionar Departamento" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {DEPARTMENTS.map((dept) => (
                                             <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="col-span-1 md:col-span-2">
+                                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-2 pl-1">Conductor Habitual / Asignado</label>
+                                <Select
+                                    value={formData.assigned_driver_id || "none"}
+                                    onValueChange={(val) => setFormData({ ...formData, assigned_driver_id: val === "none" ? null : val })}
+                                >
+                                    <SelectTrigger className="h-12 rounded-xl bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100">
+                                        <SelectValue placeholder="Seleccionar Conductor" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">
+                                            <span className="text-zinc-400 italic">Sin conductor asignado (Desasignar)</span>
+                                        </SelectItem>
+                                        {drivers.map((driver) => (
+                                            <SelectItem key={driver.id} value={driver.id}>
+                                                <div className="flex flex-col text-left">
+                                                    <span className="font-medium text-zinc-900 dark:text-zinc-100">{driver.first_name} {driver.last_name}</span>
+                                                    <span className="text-xs text-zinc-500">{driver.cedula}</span>
+                                                </div>
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -337,7 +393,7 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                             <Button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full h-14 bg-black text-white text-lg font-semibold rounded-2xl hover:bg-zinc-800 active:scale-[0.98] transition-all"
+                                className="w-full h-14 bg-black dark:bg-zinc-100 text-white dark:text-zinc-900 text-lg font-semibold rounded-2xl hover:bg-zinc-800 dark:hover:bg-zinc-200 active:scale-[0.98] transition-all"
                             >
                                 {loading ? "Guardando..." : (vehicleToEdit ? "Guardar Cambios" : "Crear Vehículo")}
                             </Button>

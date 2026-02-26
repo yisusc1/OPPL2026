@@ -399,22 +399,22 @@ export function TechnicianReportDialog({ profile, stock, todaysInstallations, to
     if (step === 'success') {
         return (
             <Dialog open={open} onOpenChange={(v) => { if (!v) window.location.reload(); setOpen(v); }}>
-                <DialogContent className="max-w-md w-full rounded-[32px] p-0 border-0 bg-white">
-                    <div className="p-8 flex flex-col items-center justify-center text-center space-y-6">
-                        <div className="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 animate-in zoom-in spin-in-3">
-                            <CheckCircle size={40} />
+                <DialogContent className="max-w-md w-full rounded-[32px] p-0 border-0 bg-white dark:bg-zinc-950 outline-none overflow-hidden">
+                    <div className="p-10 flex flex-col items-center justify-center text-center space-y-6 animate-in zoom-in-95 fade-in duration-300">
+                        <div className="h-24 w-24 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 animate-in zoom-in spin-in-12 duration-500 delay-100">
+                            <CheckCircle size={48} strokeWidth={2.5} />
                         </div>
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-slate-900">¡Reporte Enviado!</h2>
-                            <p className="text-slate-500 text-sm">El reporte diario se ha guardado correctamente.</p>
+                            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">¡Reporte Enviado!</h2>
+                            <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium">El reporte diario se ha guardado correctamente.</p>
                         </div>
 
-                        <div className="w-full space-y-3 pt-4">
-                            <Button onClick={openWhatsApp} className="w-full h-14 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-2xl font-bold text-lg shadow-lg shadow-green-500/20 active:scale-95 transition-all">
+                        <div className="w-full space-y-3 pt-6">
+                            <Button onClick={openWhatsApp} className="w-full h-14 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-lg shadow-lg shadow-green-600/20 active:scale-95 transition-all">
                                 <Send size={24} className="mr-2" />
                                 Abrir WhatsApp
                             </Button>
-                            <Button onClick={() => window.location.reload()} variant="ghost" className="w-full text-slate-400">
+                            <Button onClick={() => window.location.reload()} variant="ghost" className="w-full h-12 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-medium">
                                 Cerrar y Actualizar
                             </Button>
                         </div>
@@ -430,21 +430,21 @@ export function TechnicianReportDialog({ profile, stock, todaysInstallations, to
         const text = getWhatsAppText().replace(/\*/g, '')
         return (
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md w-full max-h-[90vh] flex flex-col rounded-[32px] p-0 border-0 bg-[#F2F2F7]">
-                    <div className="bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-200 sticky top-0 flex justify-between items-center">
-                        <Button onClick={() => setStep('form')} variant="ghost" size="icon" className="-ml-2"><ArrowLeft /></Button>
-                        <DialogTitle className="text-base font-bold text-slate-900">Previsualización</DialogTitle>
+                <DialogContent className="max-w-md w-full max-h-[90vh] flex flex-col rounded-[32px] p-0 border-0 bg-zinc-50 dark:bg-zinc-950 outline-none overflow-hidden">
+                    <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md px-6 py-4 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 flex justify-between items-center z-10">
+                        <Button onClick={() => setStep('form')} variant="ghost" size="icon" className="-ml-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full"><ArrowLeft className="text-zinc-900 dark:text-zinc-100" /></Button>
+                        <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100">Previsualización</DialogTitle>
                         <div className="w-8" />
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-sm font-mono text-slate-600 whitespace-pre-wrap leading-relaxed">
+                    <div className="flex-1 overflow-y-auto p-6 animate-in slide-in-from-right-4 duration-300">
+                        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 text-sm font-mono text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap leading-relaxed">
                             {text}
                         </div>
                     </div>
 
-                    <div className="p-6 bg-white border-t border-slate-100">
-                        <Button onClick={handleSave} className="w-full h-14 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg shadow-green-600/20">
+                    <div className="p-6 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800 z-10 shrink-0">
+                        <Button onClick={handleSave} className="w-full h-14 rounded-2xl bg-green-600 hover:bg-green-700 text-white font-bold text-lg shadow-lg shadow-green-600/20 active:scale-[0.98] transition-all">
                             <Send size={20} className="mr-2" /> Confirmar y Guardar
                         </Button>
                     </div>
@@ -457,27 +457,27 @@ export function TechnicianReportDialog({ profile, stock, todaysInstallations, to
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button className="w-full bg-[#34C759] hover:bg-[#2DB84C] text-white font-bold rounded-2xl mt-4 h-14 gap-2 shadow-lg shadow-[#34C759]/20 transition-all active:scale-[0.98] text-lg">
-                    <MessageSquare size={22} className="text-white fill-white/20" />
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl mt-4 h-14 gap-2 shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] text-lg">
+                    <MessageSquare size={22} className="text-white/80" />
                     Reporte Final
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] md:max-w-2xl w-full max-h-[92vh] flex flex-col rounded-[32px] bg-[#F2F2F7] p-0 border-0 outline-none">
+            <DialogContent className="max-w-[95vw] md:max-w-2xl w-full max-h-[92vh] flex flex-col rounded-[32px] bg-white dark:bg-zinc-950 p-0 border-0 outline-none overflow-hidden">
 
-                {/* Header iOS Style */}
-                <div className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-200/50 px-6 py-4 flex items-center justify-between shrink-0">
+                {/* Header */}
+                <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-100 dark:border-zinc-800 px-8 py-5 flex items-center justify-between shrink-0">
                     <div>
-                        <DialogTitle className="text-xl font-bold text-slate-900 tracking-tight">Reporte Diario</DialogTitle>
-                        <p className="text-xs text-slate-500 font-medium">Verifique los datos antes de enviar</p>
+                        <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Reporte Diario</DialogTitle>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">Verifique los datos antes de enviar</p>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
+                <div className="flex-1 overflow-y-auto px-6 md:px-8 py-6 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
                     {/* VEHICLE */}
-                    <section className="space-y-2">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Vehículo Asignado</Label>
-                        <div className="bg-white rounded-[20px] p-2 border border-slate-100 shadow-sm">
+                    <section className="space-y-3">
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Vehículo Asignado</Label>
+                        <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl p-2">
                             <VehicleSelector
                                 vehicles={vehicles}
                                 selectedVehicleId={selectedVehicle === "none" ? undefined : selectedVehicle}
@@ -488,96 +488,151 @@ export function TechnicianReportDialog({ profile, stock, todaysInstallations, to
                     </section>
 
                     {/* SERIALS */}
-                    <section className="space-y-4">
+                    <section className="space-y-6">
                         {/* ONUs */}
-                        <div className="bg-white p-5 rounded-[24px] shadow-sm border border-slate-100 space-y-4">
-                            <div className="flex justify-between items-center">
-                                <Label className="font-bold text-slate-900 text-base">ONUs</Label>
-                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl">
-                                    <span className="text-[10px] font-bold text-slate-400 pl-2 uppercase">Cant</span>
-                                    <Input type="number" className="h-9 w-14 text-center font-bold text-lg border-0 bg-white shadow-sm rounded-lg"
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center px-1">
+                                <Label className="font-bold text-zinc-900 dark:text-zinc-100 text-base">ONUs Instaladas</Label>
+                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase pl-2">Cant.</span>
+                                    <Input type="number" className="h-8 w-14 text-center font-bold text-lg border-0 bg-white dark:bg-zinc-800 shadow-sm rounded-lg focus-visible:ring-0"
                                         value={onuCount} onChange={e => setOnuCount(parseInt(e.target.value) || 0)} />
                                 </div>
                             </div>
-                            {onuCount > 0 && <div className="space-y-3 pt-2">{onuSerials.map((s, i) => <Input key={i} value={s} onChange={e => updateSerial('ONU', i, e.target.value)} placeholder={`Serial ONU ${i + 1}`} className="bg-slate-50 border-0 rounded-xl h-11 text-base placeholder:text-slate-300" />)}</div>}
+                            {onuCount > 0 && (
+                                <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
+                                    {onuSerials.map((s, i) => (
+                                        <Input
+                                            key={i}
+                                            value={s}
+                                            onChange={e => updateSerial('ONU', i, e.target.value)}
+                                            placeholder={`Serial ONU ${i + 1}`}
+                                            className="bg-zinc-50 dark:bg-zinc-900 border-0 rounded-xl h-12 text-base placeholder:text-zinc-300 dark:placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all font-medium"
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
+
                         {/* Routers */}
-                        <div className="bg-white p-5 rounded-[24px] shadow-sm border border-slate-100 space-y-4">
-                            <div className="flex justify-between items-center">
-                                <Label className="font-bold text-slate-900 text-base">Routers</Label>
-                                <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl">
-                                    <span className="text-[10px] font-bold text-slate-400 pl-2 uppercase">Cant</span>
-                                    <Input type="number" className="h-9 w-14 text-center font-bold text-lg border-0 bg-white shadow-sm rounded-lg"
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center px-1">
+                                <Label className="font-bold text-zinc-900 dark:text-zinc-100 text-base">Routers Instalados</Label>
+                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 p-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                                    <span className="text-[10px] font-bold text-zinc-400 uppercase pl-2">Cant.</span>
+                                    <Input type="number" className="h-8 w-14 text-center font-bold text-lg border-0 bg-white dark:bg-zinc-800 shadow-sm rounded-lg focus-visible:ring-0"
                                         value={routerCount} onChange={e => setRouterCount(parseInt(e.target.value) || 0)} />
                                 </div>
                             </div>
-                            {routerCount > 0 && <div className="space-y-3 pt-2">{routerSerials.map((s, i) => <Input key={i} value={s} onChange={e => updateSerial('ROUTER', i, e.target.value)} placeholder={`Serial Router ${i + 1}`} className="bg-slate-50 border-0 rounded-xl h-11 text-base placeholder:text-slate-300" />)}</div>}
+                            {routerCount > 0 && (
+                                <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-2">
+                                    {routerSerials.map((s, i) => (
+                                        <Input
+                                            key={i}
+                                            value={s}
+                                            onChange={e => updateSerial('ROUTER', i, e.target.value)}
+                                            placeholder={`Serial Router ${i + 1}`}
+                                            className="bg-zinc-50 dark:bg-zinc-900 border-0 rounded-xl h-12 text-base placeholder:text-zinc-300 dark:placeholder:text-zinc-600 focus-visible:ring-1 focus-visible:ring-blue-500 transition-all font-medium"
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </section>
 
                     {/* SPOOLS */}
-                    <section className="space-y-3">
+                    <section className="space-y-4">
                         <div className="flex justify-between items-center px-1">
-                            <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Carretes</Label>
-                            <Button size="sm" variant="ghost" className="text-blue-600 hover:bg-blue-50 h-8 rounded-lg text-xs font-bold" onClick={addSpool}><Plus size={16} className="mr-1" /> Añadir</Button>
+                            <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">Carretes / Bobinas</Label>
+                            <Button size="sm" variant="ghost" className="text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 h-8 rounded-lg text-xs font-bold" onClick={addSpool}>
+                                <Plus size={16} className="mr-1" /> Añadir
+                            </Button>
                         </div>
-                        {/* Debug Removed */}
-                        {spools.map((spool, idx) => (
-                            <div key={idx} className="bg-white p-4 rounded-[24px] border border-slate-100 shadow-sm space-y-4 relative">
-                                <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl" onClick={() => removeSpool(idx)}><Trash2 size={18} /></Button>
-                                <div className="pr-10">
-                                    <Label className="text-[10px] uppercase text-slate-400 font-bold ml-1">Serial Carrete</Label>
-                                    <Select value={spool.serial} onValueChange={v => updateSpool(idx, 'serial', v)}>
-                                        <SelectTrigger className="h-11 border-0 bg-slate-50 mt-1 rounded-xl text-base font-medium"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                                        <SelectContent>
-                                            {availableSpools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                            <SelectItem value="OTRO">Manual...</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+
+                        <div className="space-y-3">
+                            {spools.map((spool, idx) => (
+                                <div key={idx} className="bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-[24px] border border-zinc-100 dark:border-zinc-800/50 space-y-4 relative group animate-in slide-in-from-bottom-2">
+                                    <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => removeSpool(idx)}>
+                                        <Trash2 size={18} />
+                                    </Button>
+
+                                    <div className="pr-10">
+                                        <Label className="text-[10px] uppercase text-zinc-400 font-bold ml-1 mb-1.5 block">Identificador / Serial</Label>
+                                        <Select value={spool.serial} onValueChange={v => updateSpool(idx, 'serial', v)}>
+                                            <SelectTrigger className="h-12 border-0 bg-white dark:bg-zinc-800 rounded-xl text-base font-medium shadow-sm"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                            <SelectContent>
+                                                {availableSpools.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                                <SelectItem value="OTRO">Manual...</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="text-[10px] uppercase text-blue-500 font-bold ml-1 mb-1.5 block">Usado (m)</Label>
+                                            <Input type="number" className="bg-blue-50/50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900/30 text-blue-700 dark:text-blue-400 h-12 rounded-xl text-base font-bold shadow-sm"
+                                                value={spool.used} onChange={e => updateSpool(idx, 'used', parseFloat(e.target.value))} />
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px] uppercase text-zinc-400 font-bold ml-1 mb-1.5 block">Restante (m)</Label>
+                                            <Input type="number" className="bg-white dark:bg-zinc-800 border-0 h-12 rounded-xl text-base shadow-sm font-medium"
+                                                value={spool.remaining} onChange={e => updateSpool(idx, 'remaining', parseFloat(e.target.value))} />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><Label className="text-[10px] uppercase text-blue-500 font-bold ml-1">Usado (m)</Label><Input type="number" className="bg-blue-50/50 border-blue-100 text-blue-900 mt-1 h-11 rounded-xl text-base font-bold" value={spool.used} onChange={e => updateSpool(idx, 'used', parseFloat(e.target.value))} /></div>
-                                    <div><Label className="text-[10px] uppercase text-slate-400 font-bold ml-1">Restante (m)</Label><Input type="number" className="bg-slate-50 border-0 mt-1 h-11 rounded-xl text-base" value={spool.remaining} onChange={e => updateSpool(idx, 'remaining', parseFloat(e.target.value))} /></div>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </section>
 
-                    {/* MATERIALS (Updated with Remaining) */}
+                    {/* MATERIALS */}
                     <section className="space-y-3">
-                        <Label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider pl-1">Resumen Materiales</Label>
-                        <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm divide-y divide-slate-50 overflow-hidden">
-                            {/* CONECTORES */}
-                            <div className="p-5 grid grid-cols-3 gap-3">
-                                <div className="col-span-3 font-bold text-sm text-slate-900 mb-1">Conectores</div>
-                                <div><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Usados</Label><Input type="number" className="bg-blue-50 text-blue-700 font-bold border-0 h-10 rounded-xl text-center text-base" value={materials.conectores_used} onChange={e => setMaterials({ ...materials, conectores_used: parseFloat(e.target.value) })} /></div>
-                                <div><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Restantes</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.conectores_remaining} onChange={e => setMaterials({ ...materials, conectores_remaining: parseFloat(e.target.value) })} /></div>
-                                <div><Label className="text-[9px] text-red-400 uppercase font-bold text-center block mb-1">Malos</Label><Input type="number" className="bg-red-50 text-red-600 font-bold border-0 h-10 rounded-xl text-center text-base" value={materials.conectores_defective} onChange={e => setMaterials({ ...materials, conectores_defective: parseFloat(e.target.value) })} /></div>
+                        <Label className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Resumen Materiales</Label>
+                        <div className="bg-zinc-50 dark:bg-zinc-900/30 rounded-[24px] border border-zinc-100 dark:border-zinc-800 overflow-hidden p-1">
+
+                            {/* Header Row */}
+                            <div className="grid grid-cols-4 gap-2 mb-2 px-4 pt-3 opacity-50">
+                                <span className="col-span-1 text-[10px] uppercase font-bold text-zinc-500">Item</span>
+                                <span className="text-[10px] uppercase font-bold text-center text-zinc-500">Uso</span>
+                                <span className="text-[10px] uppercase font-bold text-center text-zinc-500">Stock</span>
+                                <span className="text-[10px] uppercase font-bold text-center text-zinc-500">Malo</span>
                             </div>
-                            {/* TENSORES */}
-                            <div className="p-5 grid grid-cols-3 gap-3">
-                                <div className="col-span-3 font-bold text-sm text-slate-900 mb-1">Tensores</div>
-                                <div><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Usados</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.tensores_used} onChange={e => setMaterials({ ...materials, tensores_used: parseFloat(e.target.value) })} /></div>
-                                <div className="col-span-2"><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Restantes</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.tensores_remaining} onChange={e => setMaterials({ ...materials, tensores_remaining: parseFloat(e.target.value) })} /></div>
-                            </div>
-                            {/* PATCHCORDS */}
-                            <div className="p-5 grid grid-cols-3 gap-3">
-                                <div className="col-span-3 font-bold text-sm text-slate-900 mb-1">Patchcords</div>
-                                <div><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Usados</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.patchcords_used} onChange={e => setMaterials({ ...materials, patchcords_used: parseFloat(e.target.value) })} /></div>
-                                <div className="col-span-2"><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Restantes</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.patchcords_remaining} onChange={e => setMaterials({ ...materials, patchcords_remaining: parseFloat(e.target.value) })} /></div>
-                            </div>
-                            {/* ROSETAS */}
-                            <div className="p-5 grid grid-cols-3 gap-3">
-                                <div className="col-span-3 font-bold text-sm text-slate-900 mb-1">Rosetas</div>
-                                <div className="col-span-3"><Label className="text-[9px] text-slate-400 uppercase font-bold text-center block mb-1">Utilizadas</Label><Input type="number" className="bg-slate-50 border-0 h-10 rounded-xl text-center text-base" value={materials.rosetas_used} onChange={e => setMaterials({ ...materials, rosetas_used: parseFloat(e.target.value) })} /></div>
+
+                            <div className="space-y-1">
+                                {/* Conectores */}
+                                <div className="grid grid-cols-4 gap-2 items-center bg-white dark:bg-zinc-900 p-3 rounded-xl shadow-sm">
+                                    <span className="font-bold text-sm text-zinc-700 dark:text-zinc-300 pl-1">Conectores</span>
+                                    <Input type="number" className="h-9 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-bold border-0 text-center rounded-lg" value={materials.conectores_used} onChange={e => setMaterials({ ...materials, conectores_used: parseFloat(e.target.value) })} />
+                                    <Input type="number" className="h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.conectores_remaining} onChange={e => setMaterials({ ...materials, conectores_remaining: parseFloat(e.target.value) })} />
+                                    <Input type="number" className="h-9 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold border-0 text-center rounded-lg" value={materials.conectores_defective} onChange={e => setMaterials({ ...materials, conectores_defective: parseFloat(e.target.value) })} />
+                                </div>
+
+                                {/* Tensores */}
+                                <div className="grid grid-cols-4 gap-2 items-center bg-white dark:bg-zinc-900 p-3 rounded-xl shadow-sm">
+                                    <span className="font-bold text-sm text-zinc-700 dark:text-zinc-300 pl-1">Tensores</span>
+                                    <Input type="number" className="h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.tensores_used} onChange={e => setMaterials({ ...materials, tensores_used: parseFloat(e.target.value) })} />
+                                    <Input type="number" className="col-span-2 h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.tensores_remaining} onChange={e => setMaterials({ ...materials, tensores_remaining: parseFloat(e.target.value) })} />
+                                </div>
+
+                                {/* Patchcords */}
+                                <div className="grid grid-cols-4 gap-2 items-center bg-white dark:bg-zinc-900 p-3 rounded-xl shadow-sm">
+                                    <span className="font-bold text-sm text-zinc-700 dark:text-zinc-300 pl-1">Patchcords</span>
+                                    <Input type="number" className="h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.patchcords_used} onChange={e => setMaterials({ ...materials, patchcords_used: parseFloat(e.target.value) })} />
+                                    <Input type="number" className="col-span-2 h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.patchcords_remaining} onChange={e => setMaterials({ ...materials, patchcords_remaining: parseFloat(e.target.value) })} />
+                                </div>
+
+                                {/* Rosetas */}
+                                <div className="grid grid-cols-4 gap-2 items-center bg-white dark:bg-zinc-900 p-3 rounded-xl shadow-sm">
+                                    <span className="font-bold text-sm text-zinc-700 dark:text-zinc-300 pl-1">Rosetas</span>
+                                    <Input type="number" className="col-span-3 h-9 bg-zinc-50 dark:bg-zinc-800 border-0 text-center rounded-lg" value={materials.rosetas_used} onChange={e => setMaterials({ ...materials, rosetas_used: parseFloat(e.target.value) })} />
+                                </div>
                             </div>
                         </div>
                     </section>
 
                 </div>
 
-                <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-                    <Button onClick={() => setStep('preview')} className="w-full h-14 text-lg font-bold rounded-2xl bg-black hover:bg-zinc-800 text-white shadow-xl shadow-black/10 active:scale-[0.98] transition-all">
+                <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+                    <Button onClick={() => setStep('preview')} className="w-full h-14 text-lg font-bold rounded-2xl bg-zinc-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-black shadow-xl shadow-black/5 dark:shadow-white/5 active:scale-[0.98] transition-all">
                         Continuar <ArrowRight className="ml-2" />
                     </Button>
                 </div>
