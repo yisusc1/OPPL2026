@@ -218,7 +218,7 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
             const h = rowUpper[j];
             if (h.includes("ZONA")) idx.zona = j;
             if (h.includes("CLIENTE") || h.includes("NOMBRE")) idx.cliente = j;
-            if (h.includes("POWER") || h.includes("POWER GO")) idx.powergo = j;
+            if (h.includes("POWER") || h.includes("POWE")) idx.powergo = j;
         }
         if (idx.zona !== -1 || idx.cliente !== -1) {
             headerIdx = i;
@@ -326,7 +326,7 @@ export async function parseExcelForDashboard(textData: string) {
             if (h.includes("MES")) idx.mes = j;
             if (h.includes("ZONA")) idx.zona = j;
             if (h.includes("SECTOR") || h.includes("NODO")) idx.sector = j;
-            if (h.includes("POWER") || h.includes("POWER GO")) idx.powergo = j;
+            if (h.includes("POWER") || h.includes("POWE")) idx.powergo = j;
             if (h.includes("CLIENTE") || h.includes("NOMBRE")) idx.cliente = j;
             if (h.includes("CEDULA") || h.includes("RIF") || h.includes("C.I")) idx.cedula = j;
             if (h.includes("ROUTER") || h.includes("EQUIPO") || h.includes("SERIAL")) idx.router = j;

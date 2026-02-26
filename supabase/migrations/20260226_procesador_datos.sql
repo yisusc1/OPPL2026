@@ -31,6 +31,26 @@ CREATE TABLE IF NOT EXISTS public.historial_reportes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Tabla 3: Instalaciones (Base de Datos en Crudo)
+CREATE TABLE IF NOT EXISTS public.installations (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  fecha DATE,
+  mes TEXT,
+  tecnico_1 TEXT,
+  tecnico_2 TEXT,
+  router TEXT,
+  nombre_cliente TEXT,
+  cedula TEXT,
+  zona TEXT,
+  sector TEXT,
+  asesor TEXT,
+  estatus TEXT,
+  plan TEXT,
+  power_go TEXT,
+  servicio TEXT
+);
+
 -- --------------------------------------------------------
 -- Políticas de Seguridad de Nivel de Fila (RLS)
 -- Opcional: Descomentar si requieres proteger estas tablas a usuarios autenticados
