@@ -27,6 +27,15 @@ export interface MetricChart {
     fill?: string;
 }
 
+export interface DetailedDailyMetric {
+    name: string;
+    fullDate: string;
+    instalaciones: number;
+    solicitudes: number;
+    asesor_top: string;
+    sector_principal: string;
+}
+
 export interface DashboardMetrics {
     counters: {
         totalSolicitudes: number;
@@ -43,6 +52,7 @@ export interface DashboardMetrics {
     charts: {
         byMonth: MetricChart[];
         byDay: MetricChart[];
+        detailedByDay: DetailedDailyMetric[];
         byStatus: MetricChart[];
         byService: MetricChart[];
         byPlan: MetricChart[];
@@ -184,19 +194,49 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
     const byMonth = countBy('mes');
     byMonth.sort((a, b) => monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name));
 
-    // By Day (Sort by date)
-    const dayMap = new Map<string, number>();
+    // By Day (Detailed for TradingView Chart)
+    const detailedDayMap = new Map<string, Installation[]>();
     data.forEach(item => {
         if (!item.fecha) return;
-        dayMap.set(item.fecha, (dayMap.get(item.fecha) || 0) + 1);
+        if (!detailedDayMap.has(item.fecha)) {
+            detailedDayMap.set(item.fecha, []);
+        }
+        detailedDayMap.get(item.fecha)!.push(item);
     });
-    const byDay = Array.from(dayMap.entries())
+
+    const detailedByDay: DetailedDailyMetric[] = Array.from(detailedDayMap.entries())
         .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([dateStr, value]) => {
+        .map(([dateStr, itemsForDay]) => {
             const parts = dateStr.split('-');
             const name = parts.length === 3 ? `${parts[2]}-${parts[1]}` : dateStr;
-            return { name, value };
+
+            const solicitudes = itemsForDay.length;
+            const instalaciones = itemsForDay.filter(d => d.power_go === "SI").length;
+
+            // Top Asesor
+            const advisorCounts: Record<string, number> = {};
+            // Top Sector
+            const sectorCounts: Record<string, number> = {};
+
+            itemsForDay.forEach(d => {
+                if (d.asesor) advisorCounts[d.asesor] = (advisorCounts[d.asesor] || 0) + 1;
+                if (d.sector) sectorCounts[d.sector] = (sectorCounts[d.sector] || 0) + 1;
+            });
+
+            const topAsesorDaily = Object.entries(advisorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+            const topSectorDaily = Object.entries(sectorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
+
+            return {
+                name,
+                fullDate: dateStr,
+                instalaciones,
+                solicitudes,
+                asesor_top: topAsesorDaily,
+                sector_principal: topSectorDaily
+            };
         });
+
+    const byDay = detailedByDay.map(d => ({ name: d.name, value: d.instalaciones })); // Keep standard byDay pointing to 'value' for backward compatibility or replace
 
     return {
         counters: {
@@ -214,6 +254,7 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
         charts: {
             byMonth,
             byDay,
+            detailedByDay,
             byStatus: countBy('estatus'),
             byService: countBy('servicio'),
             byPlan: countBy('plan'),

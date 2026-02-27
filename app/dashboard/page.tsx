@@ -27,6 +27,7 @@ import {
 import { KPICard } from "@/components/dashboard/kpi-card";
 import { SummaryCard } from "@/components/dashboard/summary-card";
 import { ReportChart } from "@/components/dashboard/report-chart";
+import { DetailedInstallationsChart } from "@/components/dashboard/detailed-installations-chart";
 import { SlicerPanel } from "@/components/dashboard/slicer-panel";
 import { Switch } from "@/components/ui/switch";
 import { BackgroundPaths } from "@/components/ui/background-paths";
@@ -355,12 +356,8 @@ export default function DashboardPage() {
                 );
             case 'daily':
                 return (
-                    <ReportChart
-                        title="Instalaciones por Día (Mes Actual)"
-                        icon={Calendar}
-                        data={metrics?.charts?.byDay || []}
-                        type="area"
-                        xAxisAngle={-45}
+                    <DetailedInstallationsChart
+                        data={metrics?.charts?.detailedByDay || []}
                     />
                 );
             case 'monthly':
