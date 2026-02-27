@@ -298,7 +298,7 @@ export default function DashboardPage() {
                         title="Sector"
                         icon={MapPinned}
                         data={metrics?.charts?.bySector.slice(0, 10) || []}
-                        type="bar"
+                        type="horizontal-bar"
                         action={<Switch checked={getView('sector') === 'chart'} onCheckedChange={() => toggleView('sector')} />}
                     />
                 );
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                         title="Tipo de Solicitud"
                         icon={FileText}
                         data={metrics?.charts?.byStatus || []}
-                        type="pie"
+                        type="donut"
                         action={<Switch checked={getView('status') === 'chart'} onCheckedChange={() => toggleView('status')} />}
                     />
                 );
@@ -349,7 +349,7 @@ export default function DashboardPage() {
                         title="Plan"
                         icon={CreditCard}
                         data={metrics?.charts?.byPlan || []}
-                        type="pie"
+                        type="donut"
                         action={<Switch checked={getView('plan') === 'chart'} onCheckedChange={() => toggleView('plan')} />}
                     />
                 );
