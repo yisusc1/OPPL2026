@@ -130,7 +130,7 @@ export default function Home() {
       cta: "Procesar",
       bgImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=60&w=500", // Chips/Tech
       className: "col-span-1",
-      show: isAdmin || hasRole("procesador") || canAccess("tecnico", "Instalación") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente')))
+      show: isModuleEnabled("module_procesador") && (isAdmin || hasRole("procesador") || canAccess("tecnico", "Instalación") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente'))))
     },
     {
       key: "module_transporte",
@@ -174,7 +174,7 @@ export default function Home() {
       cta: "Ver Informes",
       bgImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=60&w=500", // Business/Charts
       className: "col-span-1",
-      show: (isAdmin || hasRole("gerencia") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente') || profile.job_title.toLowerCase().includes('admin'))))
+      show: isModuleEnabled("module_gerencia") && (isAdmin || hasRole("gerencia") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente') || profile.job_title.toLowerCase().includes('admin'))))
     },
     {
       key: "module_almacen",

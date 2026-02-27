@@ -99,4 +99,6 @@ export const INITIAL_MODULES_CONFIG = [
     { key: "module_almacen", label: "Almacén", path: "/almacen", default: false },
     { key: "module_control", label: "Auditoría / Control", path: "/control", default: true },
     { key: "module_combustible", label: "Combustible", path: "/control/combustible", default: true },
+    { key: "module_procesador", label: "Procesador de Datos", path: "/instalaciones", default: true },
+    { key: "module_gerencia", label: "Gerencia", path: "/gerencia", default: true },
 ] as const

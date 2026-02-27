@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { format } from "date-fns"
-import { CalendarIcon, Upload, Loader2, Save, ArrowLeft, Fuel, Car, Gauge, User, FileText } from "lucide-react"
+import { CalendarIcon, Upload, Loader2, Save, ArrowLeft, Fuel, Car, Gauge, User, FileText, ShieldAlert } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { createClient } from "@/lib/supabase/client"
+import { Checkbox } from "@/components/ui/checkbox"
 
 import { createFuelLog, getVehicles, getVehicleDetailsAction } from "../actions"
 import Link from "next/link"
@@ -49,7 +50,8 @@ const formSchema = z.object({
     liters: z.coerce.number().min(0.01, "Litros deben ser mayor a 0"),
     mileage: z.coerce.number().min(0, "Kilometraje requerido"),
     ticket_url: z.string().optional(),
-    notes: z.string().optional()
+    notes: z.string().optional(),
+    forceCorrection: z.boolean().optional()
 })
 
 function NewFuelLogContent() {
@@ -63,6 +65,10 @@ function NewFuelLogContent() {
 
     // [NEW] State for detailed scanned info
     const [scannedVehicle, setScannedVehicle] = useState<any>(null)
+
+    // [NEW] States for Force Correction
+    const [requiresCorrection, setRequiresCorrection] = useState(false)
+    const [systemKmInfo, setSystemKmInfo] = useState<number | null>(null)
 
     const supabase = createClient()
 
@@ -84,7 +90,8 @@ function NewFuelLogContent() {
             liters: 0,
             mileage: 0,
             ticket_url: "",
-            notes: ""
+            notes: "",
+            forceCorrection: false
         },
     })
 
@@ -160,7 +167,13 @@ function NewFuelLogContent() {
                 toast.success("Registro guardado correctamente")
                 router.push("/control/combustible")
             } else {
-                toast.error("Error: " + res.error)
+                if (res.requiresCorrection) {
+                    setRequiresCorrection(true)
+                    setSystemKmInfo(res.currentSystemKm)
+                    toast.error("Discrepancia de Kilometraje detectada.")
+                } else {
+                    toast.error("Error: " + res.error)
+                }
             }
         } catch (error) {
             toast.error("Error inesperado")
@@ -412,6 +425,40 @@ function NewFuelLogContent() {
                                     {uploading && <Loader2 className="animate-spin text-blue-500" />}
                                 </div>
                             </div>
+
+                            {/* [NEW] FORCE CORRECTION ALERT */}
+                            {requiresCorrection && (
+                                <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex gap-4 items-start">
+                                    <div className="shrink-0 mt-0.5">
+                                        <ShieldAlert className="h-5 w-5 text-red-500" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-red-500 mb-1">¡Alerta de Kilometraje Inconsistente!</h4>
+                                        <p className="text-sm text-red-200 mb-4">
+                                            El kilometraje ingresado ({form.getValues('mileage')}) es menor al registrado en el sistema ({systemKmInfo}).
+                                            ¿Deseas forzar la corrección y reescribir el historial a partir de este punto? (Requiere ser supervisor).
+                                        </p>
+                                        <FormField
+                                            control={form.control}
+                                            name="forceCorrection"
+                                            render={({ field }) => (
+                                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 text-white">
+                                                    <FormControl>
+                                                        <Checkbox
+                                                            checked={field.value}
+                                                            onCheckedChange={field.onChange}
+                                                            className="border-white/20 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                                                        />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal text-sm cursor-pointer hover:underline text-red-200 hover:text-red-100">
+                                                        Sí, confirmo y deseo FORZAR la corrección del kilometraje de la FLOTA.
+                                                    </FormLabel>
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="pt-4">
                                 <Button type="submit" size="lg" className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-emerald-500/20 bg-emerald-500 hover:bg-emerald-600 text-white" disabled={loading || uploading}>

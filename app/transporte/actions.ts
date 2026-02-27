@@ -57,6 +57,31 @@ export async function crearSalida(formData: FormData) {
         escalera_salida: formData.get('escalera_salida') === 'on',
     };
 
+    // [NEW] Hard Limit Validation (300km)
+    // We need to fetch the last mileage to validate strictly even for FormData actions
+    const { data: lastKmData } = await supabase
+        .from('vista_ultimos_kilometrajes')
+        .select('ultimo_kilometraje')
+        .eq('vehiculo_id', rawData.vehiculo_id)
+        .single();
+
+    const lastKm = lastKmData?.ultimo_kilometraje || 0;
+    const kmSalida = Number(rawData.km_salida);
+
+    // Fetch vehicle status for odometer break check
+    const { data: vData } = await supabase.from('vehiculos').select('odometro_averiado').eq('id', rawData.vehiculo_id).single();
+    const isBroken = vData?.odometro_averiado || false;
+
+    if (!isBroken) {
+        if (kmSalida <= lastKm) {
+            return { success: false, error: `El kilometraje (${kmSalida}) debe ser mayor al actual (${lastKm}).` };
+        }
+        // [MODIFIED] Allow initialization if lastKm is 0
+        if (lastKm > 0 && kmSalida > lastKm + 300) {
+            return { success: false, error: `Error: El kilometraje ingresado (${kmSalida}) excede el límite de 300km respecto al anterior (${lastKm}). Verifica si hay un error de escritura.` };
+        }
+    }
+
     const { data, error } = await supabase.from('reportes').insert(rawData).select().single();
     if (error) {
         return { success: false, error: error.message };
@@ -81,6 +106,23 @@ export async function crearSalida(formData: FormData) {
 export async function registrarEntrada(formData: FormData) {
     const supabase = await createClient();
     const reporte_id = formData.get('reporte_id') as string;
+
+    // Fetch Report to validate ranges
+    const { data: currentReport } = await supabase.from('reportes').select('km_salida, vehiculo_id, vehiculos(odometro_averiado)').eq('id', reporte_id).single();
+    if (!currentReport) return { success: false, error: "Reporte no encontrado" };
+
+    const kmEntrada = Number(formData.get('km_entrada'));
+    // @ts-ignore
+    const isBroken = currentReport.vehiculos?.odometro_averiado || false;
+
+    if (!isBroken) {
+        if (kmEntrada <= currentReport.km_salida) {
+            return { success: false, error: `El KM de entrada debe ser mayor al de salida (${currentReport.km_salida}).` };
+        }
+        if (kmEntrada > currentReport.km_salida + 300) {
+            return { success: false, error: `Error: El recorrido (${kmEntrada - currentReport.km_salida} km) excede el límite permitido de 300km.` };
+        }
+    }
 
     const updateData = {
         fecha_entrada: new Date().toISOString(),
@@ -126,7 +168,29 @@ export async function registrarEntrada(formData: FormData) {
         }
     }
 
+    // [NEW] Auto-Generate Fault: Filter Trivial Observations
+    const obsEntrada = updateData.observaciones_entrada?.toString() || '';
+    const trivialKeywords = ['ninguna', 'ninguno', 'todo bien', 'ok', 'sin novedad', 'nada', 'n/a', 'bien', 'fino', 'sin observaciones'];
+
+    const isTrivial = trivialKeywords.some(keyword =>
+        obsEntrada.toLowerCase().trim() === keyword ||
+        obsEntrada.toLowerCase().trim() === keyword + '.' // Handle simple punctuation
+    );
+
+    if (obsEntrada.trim().length > 3 && !isTrivial) {
+        // Create Fault
+        await supabase.from('fallas').insert({
+            vehiculo_id: data.vehiculo_id, // Get from updated report data
+            descripcion: `[Reporte Entrada] ${obsEntrada}`,
+            tipo_falla: 'Mecánica', // Default
+            prioridad: 'Media',
+            estado: 'Pendiente',
+            created_at: new Date().toISOString()
+        });
+    }
+
     revalidatePath('/transporte');
+    revalidatePath('/taller'); // Update Taller
     revalidatePath('/gerencia'); // [NEW] Revalidate Administration Panel
     return { success: true, data };
 }
@@ -158,5 +222,38 @@ export async function updateVehicleFuel(vehicleId: string, fuelText: string, kil
 
     revalidatePath('/transporte');
     revalidatePath('/gerencia');
+    return { success: true };
+}
+
+// [NEW] Assign Vehicle to Driver (Securely via RPC)
+export async function assignVehicleToDriver(vehicleId: string) {
+    const supabase = await createClient();
+
+    // Call the RPC function logic
+    const { error } = await supabase.rpc('assign_vehicle_to_me', {
+        target_vehicle_id: vehicleId
+    });
+
+    if (error) {
+        console.error("Error signing vehicle (RPC):", error);
+        return { success: false, error: error.message };
+    }
+
+    // [DEBUG] Verify the change stuck
+    const { data: verifyData } = await supabase
+        .from('vehiculos')
+        .select('assigned_driver_id')
+        .eq('id', vehicleId)
+        .single();
+
+    // Check if the user ID matches (Supabase user ID from auth.getUser())
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (verifyData?.assigned_driver_id !== user?.id) {
+        console.error("Verification Failed: DB did not update.", verifyData);
+        return { success: false, error: "La base de datos no confirmó el cambio. (RLS Error?)" };
+    }
+
+    revalidatePath('/transporte');
     return { success: true };
 }
