@@ -58,10 +58,6 @@ const ROLE_GROUPS = [
         roles: ["transporte", "taller", "almacen", "mecánico"]
     },
     {
-        title: "Acceso a Departamentos",
-        roles: ["soporte", "planificacion", "distribucion", "afectaciones", "comercializacion", "rrhh", "tecnologico"]
-    },
-    {
         title: "Control y Auditoría",
         roles: ["auditoria", "combustible"]
     }
