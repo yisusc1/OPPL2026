@@ -92,18 +92,11 @@ export const ALL_JOB_TITLES = Array.from(new Set(
 // Module Feature Flags (Initial State)
 export const INITIAL_MODULES_CONFIG = [
     { key: "module_tecnicos", label: "Técnicos (Instalaciones)", path: "/tecnicos", default: true },
-    { key: "module_soporte", label: "Soporte Técnico", path: "/soporte", default: true },
     { key: "module_map", label: "Mapa de Red", path: "/map", default: true },
     { key: "module_dashboard", label: "Dashboard Interactivo", path: "/dashboard", default: true },
-    { key: "module_planificacion", label: "Planificación", path: "/planificacion", default: true },
-    { key: "module_distribucion", label: "Distribución", path: "/distribucion", default: true },
-    { key: "module_afectaciones", label: "Afectaciones", path: "/afectaciones", default: true },
-    { key: "module_comercializacion", label: "Comercialización", path: "/comercializacion", default: true },
     { key: "module_transporte", label: "Transporte / Chofer", path: "/transporte", default: true },
-    { key: "module_taller", label: "Taller Mecánico", path: "/taller", default: false }, // Request: "varios sin construir" -> likely Taller/Almacen
+    { key: "module_taller", label: "Taller Mecánico", path: "/taller", default: false },
     { key: "module_almacen", label: "Almacén", path: "/almacen", default: false },
     { key: "module_control", label: "Auditoría / Control", path: "/control", default: true },
     { key: "module_combustible", label: "Combustible", path: "/control/combustible", default: true },
-    { key: "module_rrhh", label: "Recursos Humanos", path: "/rrhh", default: true },
-    { key: "module_tecnologico", label: "Tecnológico", path: "/tecnologico", default: true },
 ] as const

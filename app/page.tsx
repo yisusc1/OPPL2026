@@ -187,28 +187,7 @@ export default function Home() {
       className: "col-span-1",
       show: isModuleEnabled("module_almacen") && canAccess("almacen", "Almacén")
     },
-    {
-      key: "module_rrhh",
-      title: "RRHH",
-      description: "Gestión de personal y nómina.",
-      icon: Users2,
-      href: "/rrhh",
-      cta: "Gestionar",
-      bgImage: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=60&w=500", // People
-      className: "col-span-1",
-      show: isModuleEnabled("module_rrhh") && canAccess("rrhh", "Recursos Humanos")
-    },
-    {
-      key: "module_soporte",
-      title: "Soporte Técnico",
-      description: "Tickets y atención remota.",
-      icon: Headset,
-      href: "/soporte",
-      cta: "Atender",
-      bgImage: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&q=60&w=500", // Computer/Typing
-      className: "col-span-1",
-      show: isModuleEnabled("module_soporte") && canAccess("soporte", "Soporte Técnico")
-    },
+    // The other empty modules (rrhh, soporte, comercializacion, etc) have been removed
     // Adding other modules with simple patterns if not high priority
     {
       key: "module_taller",
