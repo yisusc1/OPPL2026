@@ -60,6 +60,10 @@ const ROLE_GROUPS = [
     {
         title: "Control y Auditoría",
         roles: ["auditoria", "combustible"]
+    },
+    {
+        title: "Visualización y Gerencia",
+        roles: ["dashboard", "mapa", "procesador", "gerencia"]
     }
 ]
 

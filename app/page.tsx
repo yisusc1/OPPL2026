@@ -97,7 +97,7 @@ export default function Home() {
       cta: "Ver Mapa",
       bgImage: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=60&w=500", // Map/Abstract
       className: "col-span-1 md:col-span-2", // Feature item
-      show: isModuleEnabled("module_map")
+      show: isModuleEnabled("module_map") && (isAdmin || hasRole("mapa"))
     },
     {
       key: "module_dashboard",
@@ -108,7 +108,7 @@ export default function Home() {
       cta: "Ver Dashboard",
       bgImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=60&w=500", // Data/Charts
       className: "col-span-1",
-      show: isModuleEnabled("module_dashboard")
+      show: isModuleEnabled("module_dashboard") && (isAdmin || hasRole("dashboard"))
     },
     {
       key: "module_tecnicos",
@@ -130,7 +130,7 @@ export default function Home() {
       cta: "Procesar",
       bgImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=60&w=500", // Chips/Tech
       className: "col-span-1",
-      show: isAdmin || canAccess("tecnico", "Instalación") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente')))
+      show: isAdmin || hasRole("procesador") || canAccess("tecnico", "Instalación") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente')))
     },
     {
       key: "module_transporte",
@@ -174,7 +174,7 @@ export default function Home() {
       cta: "Ver Informes",
       bgImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=60&w=500", // Business/Charts
       className: "col-span-1",
-      show: (isAdmin || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente') || profile.job_title.toLowerCase().includes('admin'))))
+      show: (isAdmin || hasRole("gerencia") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente') || profile.job_title.toLowerCase().includes('admin'))))
     },
     {
       key: "module_almacen",

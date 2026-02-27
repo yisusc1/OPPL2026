@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { User } from "@supabase/supabase-js"
 
-type UserRole = "admin" | "transporte" | "taller" | "tecnico" | "invitado" | "almacen" | "chofer" | "supervisor" | "soporte" | "planificacion" | "distribucion" | "afectaciones" | "rrhh" | "tecnologico" | "comercializacion" | "auditoria" | "combustible"
+type UserRole = "admin" | "transporte" | "taller" | "tecnico" | "invitado" | "almacen" | "chofer" | "supervisor" | "auditoria" | "combustible" | "dashboard" | "mapa" | "procesador" | "gerencia"
 
 interface UserProfile {
     id: string
