@@ -56,6 +56,24 @@ export function DetailedInstallationsChart({ data }: Props) {
         return null;
     };
 
+    const MiniTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const dayData = payload[0].payload as DetailedDailyMetric;
+            return (
+                <div className="bg-popover border border-border p-2 rounded-md shadow-lg !text-foreground min-w-[120px]">
+                    <p className="font-semibold text-xs mb-1 text-muted-foreground">{dayData.fullDate}</p>
+                    <div className="flex justify-between items-center text-sm">
+                        <span>Instalaciones:</span>
+                        <span className="font-bold text-[#EAB308]">
+                            {dayData.instalaciones}
+                        </span>
+                    </div>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <>
             {/* MINI CHART (Dashboard Card) */}
@@ -81,7 +99,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                         <Maximize2 className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                     </div>
 
-                    <div className="flex-1 p-2 min-h-0 pointer-events-none mt-2">
+                    <div className="flex-1 p-2 min-h-0 mt-2">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
@@ -100,7 +118,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                                     textAnchor="end"
                                     height={60}
                                 />
-                                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#EAB308', strokeWidth: 1 }} />
+                                <Tooltip content={<MiniTooltip />} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
                                 <Area
                                     type="monotone"
                                     dataKey="instalaciones"
@@ -116,7 +134,7 @@ export function DetailedInstallationsChart({ data }: Props) {
 
             {/* EXPANDED CHART MODAL (TradingView Style) */}
             {isOpen && (
-                <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-xl flex flex-col animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[999] bg-background flex flex-col animate-in fade-in duration-200">
                     {/* Modal Header */}
                     <div className="h-14 border-b border-border/50 bg-background/50 px-6 flex items-center justify-between shadow-sm">
                         <div className="flex items-center gap-3">
@@ -153,7 +171,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                         <div className="flex-[7] min-h-0 border border-border/60 rounded-xl p-4 bg-background/60 shadow-sm relative backdrop-blur-md">
                             <h3 className="absolute top-4 left-6 text-[11px] text-muted-foreground font-bold font-sans tracking-tight z-10 flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-[#EAB308]"></span>
-                                INSTALACIONES (POWER GO)
+                                INSTALACIONES (COMPLETADAS)
                             </h3>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={data} syncId="tradingViewChart" margin={{ top: 30, right: 30, left: 0, bottom: 0 }}>
@@ -173,7 +191,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                                     />
                                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--muted-foreground)', strokeWidth: 1, strokeDasharray: '3 3' }} />
                                     <Area
-                                        type="step"
+                                        type="monotone"
                                         dataKey="instalaciones"
                                         stroke="#EAB308"
                                         fillOpacity={1}
