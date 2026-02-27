@@ -281,7 +281,7 @@ export default function DashboardPage() {
                         title="Zona"
                         icon={MapIcon}
                         data={metrics?.charts?.byZone || []}
-                        type="bar"
+                        type="horizontal-bar"
                         action={<Switch checked={getView('zone') === 'chart'} onCheckedChange={() => toggleView('zone')} />}
                     />
                 );
