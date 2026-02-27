@@ -105,7 +105,7 @@ export async function fetchInstallations(): Promise<DashboardMetrics> {
 }
 
 
-export function calculateAdvancedMetrics(data: Installation[]): DashboardMetrics {
+export function calculateAdvancedMetrics(data: Installation[], trendData: Installation[] = data): DashboardMetrics {
     const total = data.length;
 
     // 1. Counters
@@ -126,9 +126,35 @@ export function calculateAdvancedMetrics(data: Installation[]): DashboardMetrics
     const topAsesor = topAsesorEntry ? topAsesorEntry[0] : "N/A";
     const maxVentas = topAsesorEntry ? topAsesorEntry[1] : 0;
 
-    // 2. Trend (Mock or Real)
-    // Needs previous month data to be real. For now, mock based on something or return 0.
-    const percentageChange = 12; // Placeholder
+    // 2. Trend (Real calculation based on month sequence)
+    let percentageChange = 0;
+    const monthOrder = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+    if (trendData.length > 0 && data.length > 0) {
+        // Find all unique months in the CURRENT view (data), sorted chronologically
+        const monthsInData = Array.from(new Set(data.map(d => d.mes))).sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+
+        if (monthsInData.length > 0) {
+            // The "current" month is the latest month present in the current filter view
+            const currentMonth = monthsInData[monthsInData.length - 1];
+            const currentMonthIdx = monthOrder.indexOf(currentMonth);
+
+            if (currentMonthIdx > 0) {
+                // The previous month is the one immediately preceding it chronologically in the year
+                const previousMonth = monthOrder[currentMonthIdx - 1];
+
+                // Count totals in the robust `trendData` (which has all months, but preserves other user filters)
+                const currentMonthTotal = trendData.filter(d => d.mes === currentMonth).length;
+                const previousMonthTotal = trendData.filter(d => d.mes === previousMonth).length;
+
+                if (previousMonthTotal > 0) {
+                    percentageChange = Math.round(((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100);
+                } else if (currentMonthTotal > 0) {
+                    percentageChange = 100; // From 0 to something is a 100% baseline increase symbol
+                }
+            }
+        }
+    }
 
     // 3. Charts
     const countBy = (key: keyof Installation) => {
@@ -155,9 +181,7 @@ export function calculateAdvancedMetrics(data: Installation[]): DashboardMetrics
     // Month & Day ordering (reusing logic from calculateMetrics or simplifying)
     // We can reuse the aggregations.
 
-    // By Month
     const byMonth = countBy('mes');
-    const monthOrder = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
     byMonth.sort((a, b) => monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name));
 
     // By Day (Sort by date)

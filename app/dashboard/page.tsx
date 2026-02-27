@@ -148,23 +148,28 @@ export default function DashboardPage() {
     }, []);
 
     // Filter Logic
-    const filteredData = useMemo(() => {
+    const filteredDataWithoutMonth = useMemo(() => {
         return rawData.filter(item => {
             const matchAdvisor = filters.advisors.length === 0 || filters.advisors.includes(item.asesor);
             const matchZone = filters.zones.length === 0 || filters.zones.includes(item.zona);
             const matchStatus = filters.statuses.length === 0 || filters.statuses.includes(item.estatus);
-            const matchMonth = filters.months.length === 0 || filters.months.includes(item.mes);
             const matchSector = filters.sectors.length === 0 || filters.sectors.includes(item.sector);
             const matchTechnician = filters.technicians.length === 0 ||
                 filters.technicians.includes(item.tecnico_1) ||
                 filters.technicians.includes(item.tecnico_2 || "");
 
-            return matchAdvisor && matchZone && matchStatus && matchMonth && matchSector && matchTechnician;
+            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician;
         });
     }, [rawData, filters]);
 
+    const filteredData = useMemo(() => {
+        return filteredDataWithoutMonth.filter(item => {
+            return filters.months.length === 0 || filters.months.includes(item.mes);
+        });
+    }, [filteredDataWithoutMonth, filters]);
+
     // Calculate Metrics based on FILTERED data
-    const metrics = useMemo(() => calculateAdvancedMetrics(filteredData), [filteredData]);
+    const metrics = useMemo(() => calculateAdvancedMetrics(filteredData, filteredDataWithoutMonth), [filteredData, filteredDataWithoutMonth]);
 
     // Determine available options from RAW data
     const options = useMemo(() => {
