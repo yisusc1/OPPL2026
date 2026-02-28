@@ -104,18 +104,23 @@ export async function createFuelLog(data: FuelLogData) {
 
         if (error) throw error
 
-        revalidatePath("/control/combustible")
-        revalidatePath("/gerencia")
-        revalidatePath("/transporte")
-
-        // [NEW] Auto-reset vehicle fuel to 100% (Full) on refuel AND update Mileage (Write-Through)
+        // [CRITICAL] Update vehicle mileage & fuel level BEFORE revalidation
         const { error: updateError } = await supabase.from("vehiculos").update({
             current_fuel_level: 100,
-            kilometraje: data.mileage, // [CRITICAL] Sync Master Record
+            kilometraje: data.mileage,
             last_fuel_update: new Date().toISOString()
         }).eq("id", data.vehicle_id)
 
-        if (updateError) throw updateError
+        if (updateError) {
+            console.error("Vehicle update error:", updateError)
+            // Don't fail the whole operation, log was already saved
+        }
+
+        revalidatePath("/control/combustible")
+        revalidatePath("/admin/vehiculos")
+        revalidatePath("/gerencia")
+        revalidatePath("/transporte")
+        revalidatePath("/taller")
 
         return { success: true }
     } catch (error: any) {
