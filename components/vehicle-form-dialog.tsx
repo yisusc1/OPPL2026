@@ -46,6 +46,7 @@ type Vehicle = {
     foto_url?: string
     department?: string
     assigned_driver_id?: string | null
+    odometro_averiado?: boolean
     maintenance_configs?: AdminVehicleMaintenanceConfig[]
     checklist_items?: ChecklistItem[]
 }
@@ -113,7 +114,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
         capacidad_tanque: "",
         foto_url: "",
         department: "",
-        assigned_driver_id: null
+        assigned_driver_id: null,
+        odometro_averiado: false
     })
     const [maintenanceConfigs, setMaintenanceConfigs] = useState<AdminVehicleMaintenanceConfig[]>([])
     const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
@@ -149,7 +151,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 capacidad_tanque: vehicleToEdit.capacidad_tanque || "",
                 foto_url: vehicleToEdit.foto_url || "",
                 department: vehicleToEdit.department || "",
-                assigned_driver_id: vehicleToEdit.assigned_driver_id || null
+                assigned_driver_id: vehicleToEdit.assigned_driver_id || null,
+                odometro_averiado: vehicleToEdit.odometro_averiado || false
             })
             if (vehicleToEdit.foto_url) {
                 setPhotoPreview(vehicleToEdit.foto_url)
@@ -172,7 +175,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 capacidad_tanque: "",
                 foto_url: "",
                 department: "",
-                assigned_driver_id: null
+                assigned_driver_id: null,
+                odometro_averiado: false
             })
             setPhotoPreview(null)
             // Default Configs
@@ -308,7 +312,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 capacidad_tanque: formData.capacidad_tanque || null,
                 foto_url: finalFotoUrl || null,
                 department: formData.department || null,
-                assigned_driver_id: formData.assigned_driver_id || null
+                assigned_driver_id: formData.assigned_driver_id || null,
+                odometro_averiado: formData.odometro_averiado || false
             }
 
             let vehicleId = vehicleToEdit?.id;
@@ -512,6 +517,19 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                     </Select>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* ODOMETRO AVERIADO TOGGLE */}
+                        <div className="flex items-center justify-between p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/30">
+                            <div>
+                                <Label htmlFor="odometro" className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer">Odómetro Averiado</Label>
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">Permite registrar entrada con el mismo KM de salida</p>
+                            </div>
+                            <Switch
+                                id="odometro"
+                                checked={formData.odometro_averiado || false}
+                                onCheckedChange={(checked) => setFormData({ ...formData, odometro_averiado: checked })}
+                            />
                         </div>
 
                         {/* MAINTENANCE CONFIGURATION */}
