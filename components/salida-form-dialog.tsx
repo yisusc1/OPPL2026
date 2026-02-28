@@ -108,7 +108,10 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
             return false
         }).map(v => ({
             ...v,
-            kilometraje: kData?.find(k => k.vehiculo_id === v.id)?.ultimo_kilometraje || 0
+            kilometraje: Math.max(
+                kData?.find(k => k.vehiculo_id === v.id)?.ultimo_kilometraje || 0,
+                v.kilometraje || 0
+            )
         })) || []
 
         setVehiculos(available)
