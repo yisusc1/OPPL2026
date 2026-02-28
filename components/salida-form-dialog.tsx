@@ -337,7 +337,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
         if (faultsToAdd.length > 0) {
             msg += `*Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `- ${f}\n`)
+            faultsToAdd.forEach(f => msg += `\u274C ${f}\n`)
             msg += `\n`
         }
 

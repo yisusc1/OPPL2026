@@ -257,3 +257,26 @@ export async function assignVehicleToDriver(vehicleId: string) {
     revalidatePath('/transporte');
     return { success: true };
 }
+
+// [NEW] Fetch Active Faults for a Vehicle
+export async function getActiveFaults(vehicleId: string) {
+    const supabase = await createClient();
+
+    try {
+        const { data, error } = await supabase
+            .from('fallas')
+            .select('descripcion, created_at, estado')
+            .eq('vehiculo_id', vehicleId)
+            .in('estado', ['Pendiente', 'En Revisión'])
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error("Error fetching active faults:", error);
+            return [];
+        }
+        return data || [];
+    } catch (err) {
+        console.error("Exception fetching active faults:", err);
+        return [];
+    }
+}

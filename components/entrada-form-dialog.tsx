@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CheckCircle, Send, Plus, Trash2, AlertCircle } from "lucide-react"
+import { CheckCircle, Send, Plus, Trash2, AlertCircle, AlertTriangle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { VehicleSelector, Vehicle } from "@/components/vehicle-selector"
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import { revalidateGerencia } from "@/app/transporte/actions"
+import { revalidateGerencia, getActiveFaults } from "@/app/transporte/actions"
 import type { ChecklistItem } from "@/components/vehicle-form-dialog"
 
 type Reporte = {
@@ -55,6 +55,7 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
     // Fault Reporting State
     const [faultsToAdd, setFaultsToAdd] = useState<string[]>([])
     const [newFaultText, setNewFaultText] = useState("")
+    const [activeFaults, setActiveFaults] = useState<any[]>([])
 
     useEffect(() => {
         if (isOpen) {
@@ -67,6 +68,10 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                         setSelectedReport(matchingReport as unknown as Reporte)
                         // Load checklist items for this vehicle
                         loadChecklistForVehicle(matchingReport.vehiculo_id)
+                        // Load active faults for this vehicle
+                        getActiveFaults(matchingReport.vehiculo_id)
+                            .then(faults => { if (faults) setActiveFaults(faults) })
+                            .catch(err => console.error("Error loading faults:", err))
                     }
                 }
             })
@@ -300,9 +305,15 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
             }
         })
 
+        if (activeFaults.length > 0) {
+            msg += `*Fallas Pendientes (Anteriores):*\n`
+            activeFaults.forEach(f => msg += `\u26A0\uFE0F ${f.descripcion.replace('[Reporte Salida] ', '').replace('[Reporte Entrada] ', '')}\n`)
+            msg += `\n`
+        }
+
         if (faultsToAdd.length > 0) {
-            msg += `*Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `- ${f}\n`)
+            msg += `*Nuevas Fallas Reportadas:*\n`
+            faultsToAdd.forEach(f => msg += `\u274C ${f}\n`)
             msg += `\n`
         }
 
@@ -458,6 +469,23 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                                     <AlertCircle size={16} />
                                     Reportar Fallas
                                 </h4>
+
+                                {/* Active Faults Warning */}
+                                {activeFaults.length > 0 && (
+                                    <div className="bg-yellow-50/50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800/30 rounded-xl p-3">
+                                        <p className="text-xs font-bold text-yellow-600 dark:text-yellow-500 mb-2 uppercase tracking-wide">
+                                            ⚠️ Ya reportado (No duplicar):
+                                        </p>
+                                        <ul className="space-y-1">
+                                            {activeFaults.map((f, i) => (
+                                                <li key={i} className="text-xs text-yellow-700/80 dark:text-yellow-400/70 flex items-start gap-1">
+                                                    <span className="shrink-0">•</span>
+                                                    <span className="line-clamp-1">{f.descripcion.replace('[Reporte Salida] ', '').replace('[Reporte Entrada] ', '')}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
                                 <div className="space-y-3">
                                     <div className="flex gap-2">
