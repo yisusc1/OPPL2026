@@ -154,19 +154,25 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
             setDepartamento(selected.department)
         }
 
+        // Use the merged mileage from the view (MAX of all sources) or vehiculos.kilometraje
         const supabase = createClient()
-        // Keep legacy logic for lastKm validation just in case
-        const { data } = await supabase
-            .from('reportes')
-            .select('km_entrada')
+        const { data: viewKm } = await supabase
+            .from('vista_ultimos_kilometrajes')
+            .select('ultimo_kilometraje')
             .eq('vehiculo_id', value)
-            .not('km_entrada', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(1)
             .single()
 
-        if (data) setLastKm(data.km_entrada)
-        else setLastKm(selected.kilometraje || 0) // Fallback to current mileage if no report found
+        const { data: vehData } = await supabase
+            .from('vehiculos')
+            .select('kilometraje')
+            .eq('id', value)
+            .single()
+
+        const viewValue = viewKm?.ultimo_kilometraje || 0
+        const masterValue = vehData?.kilometraje || 0
+        const bestKm = Math.max(viewValue, masterValue, selected.kilometraje || 0)
+
+        setLastKm(bestKm)
     }
 
     const toggleCheck = (key: keyof typeof checks) => {
