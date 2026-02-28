@@ -525,3 +525,58 @@ export async function getAdvancedStats(): Promise<AdvancedStats> {
         productivity: productivity.sort((a, b) => b.installs - a.installs).slice(0, 5)
     }
 }
+
+export type FuelAnalyticsData = {
+    vehicleId: string
+    plate: string
+    model: string
+    totalLiters: number
+    totalCost: number
+}
+
+export async function getFuelAnalytics(costPerLiter: number = 0.50): Promise<FuelAnalyticsData[]> {
+    noStore()
+    const supabase = await createClient()
+
+    // Fetch fuel logs with vehicle details
+    const { data: logs, error } = await supabase
+        .from("fuel_logs")
+        .select(`
+            liters,
+            vehicle_id,
+            vehicle:vehiculos(placa, modelo)
+        `)
+
+    if (error || !logs) {
+        console.error("Error fetching fuel logs for analytics:", error)
+        return []
+    }
+
+    const aggregated = new Map<string, FuelAnalyticsData>()
+
+    logs.forEach((log: any) => {
+        const vId = log.vehicle_id
+        if (!vId) return
+
+        const amount = Number(log.liters) || 0
+        if (!aggregated.has(vId)) {
+            const plate = log.vehicle?.placa || 'N/A'
+            const model = log.vehicle?.modelo || 'Desconocido'
+            aggregated.set(vId, {
+                vehicleId: vId,
+                plate,
+                model,
+                totalLiters: 0,
+                totalCost: 0
+            })
+        }
+
+        const current = aggregated.get(vId)!
+        current.totalLiters += amount
+        // Update total cost based on accumulated liters
+        current.totalCost = current.totalLiters * costPerLiter
+    })
+
+    // Sort by total liters descending
+    return Array.from(aggregated.values()).sort((a, b) => b.totalLiters - a.totalLiters)
+}

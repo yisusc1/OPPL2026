@@ -3,10 +3,11 @@ import { Suspense } from "react"
 import { AlertCircle, Activity, TrendingUp, Users, Wrench, AlertTriangle, LayoutGrid, BarChart3, Car, MapPin, Truck, Bike } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import { getDashboardStats, getFleetStatus, getAdvancedStats } from "./actions"
+import { getDashboardStats, getFleetStatus, getAdvancedStats, getFuelAnalytics } from "./actions"
 import { OperationsCharts, VehicleStatusChart } from "./components/operations-charts"
 import { RealtimeNotifications } from "./components/realtime-notifications"
 import { FleetGrid } from "./components/fleet-grid"
+import { FuelAnalytics } from "./components/fuel-analytics"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
@@ -23,10 +24,11 @@ export default async function GerenciaDashboard() {
     // TODO: Add Role Check (Admin/Manager only)
 
     // Parallel Data Fetching
-    const [stats, fleet, advanced] = await Promise.all([
+    const [stats, fleet, advanced, fuelData] = await Promise.all([
         getDashboardStats(),
         getFleetStatus(),
-        getAdvancedStats()
+        getAdvancedStats(),
+        getFuelAnalytics()
     ])
 
     return (
@@ -252,6 +254,10 @@ export default async function GerenciaDashboard() {
                                     ))}
                                 </div>
                             </PremiumCard>
+                        </div>
+
+                        <div className="mt-6">
+                            <FuelAnalytics data={fuelData} />
                         </div>
                     </TabsContent>
                 </Tabs>
