@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation"
 import { VehicleSelector, Vehicle } from "@/components/vehicle-selector"
 import { updateVehicleFuel } from "@/app/transporte/actions"
 import type { ChecklistItem } from "@/components/vehicle-form-dialog"
+import { useUser } from "@/components/providers/user-provider"
 
 // Use Vehicle type from component but extend if needed or just use it
 // The local type had 'department', let's extend
@@ -36,6 +37,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
     // Form State
     const [vehiculos, setVehiculos] = useState<Vehiculo[]>([])
+    const { profile } = useUser()
     const [vehiculoId, setVehiculoId] = useState("")
     const [selectedVehicle, setSelectedVehicle] = useState<Vehiculo | null>(null)
     const [kmSalida, setKmSalida] = useState("")
@@ -301,7 +303,8 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
     // Dynamic WhatsApp text generator
     const formatSalidaText = () => {
-        const check = (val: boolean) => val ? '✅' : '❌'
+        const noEmojis = profile?.no_emojis
+        const check = (val: boolean) => noEmojis ? (val ? '[OK]' : '[NO]') : (val ? '\u2705' : '\u274C')
         const vehiculoNombre = selectedVehicle ? selectedVehicle.modelo : 'Desconocido'
         const fecha = new Date().toLocaleDateString()
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -337,7 +340,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
         if (faultsToAdd.length > 0) {
             msg += `*Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `\u274C ${f}\n`)
+            faultsToAdd.forEach(f => msg += `${noEmojis ? '[FALLA]' : '\u274C'} ${f}\n`)
             msg += `\n`
         }
 

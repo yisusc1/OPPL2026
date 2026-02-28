@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { UserCog, Mail, Calendar, Settings2, Building2, Briefcase, User as UserIcon, ArrowLeft, Pencil, Shield, LogIn } from "lucide-react"
+import { UserCog, Mail, Calendar, Settings2, Building2, Briefcase, User as UserIcon, ArrowLeft, Pencil, Shield, LogIn, Smartphone } from "lucide-react"
 import Link from "next/link"
 import { updateProfileDetails, impersonateUserAction, createUserAction } from "./user-actions"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog"
@@ -41,6 +41,7 @@ type Profile = {
     last_name?: string
     department?: string
     job_title?: string
+    no_emojis?: boolean
 }
 
 // Grouped roles for UI
@@ -457,6 +458,45 @@ export default function AdminUsersPage() {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Emoji Preference */}
+                        <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4 mt-2">
+                            <h4 className="font-medium text-sm text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                <Smartphone size={14} />
+                                Preferencias de Dispositivo
+                            </h4>
+                            <div className="flex items-center space-x-2 p-2 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-lg transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800">
+                                <Checkbox
+                                    id="perm-no-emojis"
+                                    checked={permissionsUser?.no_emojis || false}
+                                    onCheckedChange={async () => {
+                                        if (!permissionsUser) return
+                                        const newVal = !permissionsUser.no_emojis
+                                        try {
+                                            const supabase = createClient()
+                                            const { error } = await supabase
+                                                .from('profiles')
+                                                .update({ no_emojis: newVal })
+                                                .eq('id', permissionsUser.id)
+                                            if (error) throw error
+                                            setPermissionsUser({ ...permissionsUser, no_emojis: newVal })
+                                            setProfiles(profiles.map(p => p.id === permissionsUser.id ? { ...p, no_emojis: newVal } : p))
+                                            toast.success(newVal ? "Emojis desactivados" : "Emojis activados")
+                                        } catch (err) {
+                                            console.error(err)
+                                            toast.error("Error al actualizar preferencia")
+                                        }
+                                    }}
+                                    className="border-zinc-300 dark:border-zinc-600 data-[state=checked]:bg-zinc-900 dark:data-[state=checked]:bg-white data-[state=checked]:text-white dark:data-[state=checked]:text-zinc-900"
+                                />
+                                <Label
+                                    htmlFor="perm-no-emojis"
+                                    className="text-sm font-medium leading-none cursor-pointer flex-1 text-zinc-700 dark:text-zinc-300"
+                                >
+                                    No usar emojis (texto plano en reportes WhatsApp)
+                                </Label>
+                            </div>
                         </div>
 
                         <DialogFooter>

@@ -15,6 +15,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { revalidateGerencia, getActiveFaults } from "@/app/transporte/actions"
 import type { ChecklistItem } from "@/components/vehicle-form-dialog"
+import { useUser } from "@/components/providers/user-provider"
 
 type Reporte = {
     id: string
@@ -40,6 +41,7 @@ type EntradaFormDialogProps = {
 }
 
 export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess }: EntradaFormDialogProps) {
+    const { profile } = useUser()
     const [loading, setLoading] = useState(false)
     const [reportes, setReportes] = useState<Reporte[]>([])
     const [reporteId, setReporteId] = useState("")
@@ -228,7 +230,7 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
 
             // WhatsApp Integration
             if (selectedReport) {
-                const text = formatEntradaText(km)
+                const text = formatEntradaText()
                 setWhatsappText(text)
                 setStep('success')
             }
@@ -257,8 +259,9 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
     }
 
     // Dynamic WhatsApp text generator
-    const formatEntradaText = (kmEntradaVal: number) => {
-        const check = (val: boolean) => val ? '✅' : '❌'
+    const formatEntradaText = () => {
+        const noEmojis = profile?.no_emojis
+        const check = (val: boolean) => noEmojis ? (val ? '[OK]' : '[NO]') : (val ? '✅' : '❌')
 
         if (!selectedReport) return ''
 
@@ -272,7 +275,7 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
         const vData = selectedReport.vehiculos
         const vehiculo = Array.isArray(vData) ? vData[0] : vData
         const vehiculoNombre = vehiculo ? vehiculo.modelo : 'Desconocido'
-        const kmRecorrido = kmEntradaVal - Number(selectedReport.km_salida)
+        const kmRecorrido = parseInt(kmEntrada) - Number(selectedReport.km_salida)
 
         let msg = `*Reporte de Entrada*\n\n`
         msg += `Fecha (Entrada): ${fechaEntrada}\n`
@@ -283,7 +286,7 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
         msg += `Vehículo: ${vehiculoNombre}\n`
         if (vehiculo?.placa) msg += `Placa: ${vehiculo.placa}\n`
         msg += `Kilometraje (Salida): ${selectedReport.km_salida}\n`
-        msg += `Kilometraje (Entrada): ${kmEntradaVal}\n`
+        msg += `Kilometraje (Entrada): ${parseInt(kmEntrada)}\n`
         msg += `Kilometraje Recorrido: ${kmRecorrido}\n`
         msg += `Nivel de Gasolina: ${gasolina}\n\n`
 
@@ -307,13 +310,13 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
 
         if (activeFaults.length > 0) {
             msg += `*Fallas Pendientes (Anteriores):*\n`
-            activeFaults.forEach(f => msg += `\u26A0\uFE0F ${f.descripcion.replace('[Reporte Salida] ', '').replace('[Reporte Entrada] ', '')}\n`)
+            activeFaults.forEach(f => msg += `${noEmojis ? '[PENDIENTE]' : '⚠️'} ${f.descripcion.replace('[Reporte Salida] ', '').replace('[Reporte Entrada] ', '')}\n`)
             msg += `\n`
         }
 
         if (faultsToAdd.length > 0) {
             msg += `*Nuevas Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `\u274C ${f}\n`)
+            faultsToAdd.forEach(f => msg += `${noEmojis ? '[FALLA]' : '❌'} ${f}\n`)
             msg += `\n`
         }
 

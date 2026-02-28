@@ -15,6 +15,7 @@ interface UserProfile {
     national_id?: string
     department?: string
     job_title?: string
+    no_emojis?: boolean
 }
 
 interface UserContextType {
