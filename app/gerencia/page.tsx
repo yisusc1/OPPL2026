@@ -4,11 +4,12 @@ import { AlertCircle, Activity, TrendingUp, Users, Wrench, AlertTriangle, Layout
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { getDashboardStats, getFleetStatus, getAdvancedStats, getFuelAnalytics } from "./actions"
-import { OperationsCharts, VehicleStatusChart } from "./components/operations-charts"
 import { RealtimeNotifications } from "./components/realtime-notifications"
 import { FleetGrid } from "./components/fleet-grid"
 import { FuelAnalytics } from "./components/fuel-analytics"
+import { BusinessMetrics } from "./components/business-metrics"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { fetchInstallations } from "@/lib/dashboard-data"
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
 import { PremiumContent } from "@/components/ui/premium-content"
@@ -24,11 +25,12 @@ export default async function GerenciaDashboard() {
     // TODO: Add Role Check (Admin/Manager only)
 
     // Parallel Data Fetching
-    const [stats, fleet, advanced, fuelData] = await Promise.all([
+    const [stats, fleet, advanced, fuelData, dashboardData] = await Promise.all([
         getDashboardStats(),
         getFleetStatus(),
         getAdvancedStats(),
-        getFuelAnalytics()
+        getFuelAnalytics(),
+        fetchInstallations()
     ])
 
     return (
@@ -199,65 +201,16 @@ export default async function GerenciaDashboard() {
 
                     {/* === ANALITICA TAB === */}
                     <TabsContent value="analytics" className="focus:outline-none mt-0">
-                        {/* CHARTS MOVED HERE */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 min-w-0">
-                            <div className="lg:col-span-2 min-h-[400px] min-w-0">
-                                <PremiumContent>
-                                    <OperationsCharts data={stats.chartData} />
-                                </PremiumContent>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            {/* Left Column: Business Metrics */}
+                            <div>
+                                <BusinessMetrics metrics={dashboardData} />
                             </div>
-                            <div className="min-h-[400px] min-w-0">
-                                <PremiumContent>
-                                    <VehicleStatusChart stats={stats.vehicleStats} />
-                                </PremiumContent>
+
+                            {/* Right Column: Fuel Analytics */}
+                            <div>
+                                <FuelAnalytics data={fuelData} />
                             </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Productivity Card */}
-                            <PremiumCard className="p-8">
-                                <h3 className="text-xl font-bold mb-6 text-foreground">Top Técnicos (Instalaciones)</h3>
-                                <div className="space-y-4">
-                                    {advanced.productivity.map((tech, i) => (
-                                        <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                                            <div className="flex items-center gap-4">
-                                                <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-muted text-muted-foreground'}`}>
-                                                    #{i + 1}
-                                                </span>
-                                                <span className="font-semibold text-foreground">{tech.team}</span>
-                                            </div>
-                                            <div className="font-bold text-lg text-foreground">{tech.installs}</div>
-                                        </div>
-                                    ))}
-                                    {advanced.productivity.length === 0 && <p className="text-muted-foreground italic">No hay datos suficientes.</p>}
-                                </div>
-                            </PremiumCard>
-
-                            {/* Material Efficiency */}
-                            <PremiumCard className="p-8">
-                                <h3 className="text-xl font-bold mb-6 text-foreground">Consumo Promedio Material</h3>
-                                <div className="space-y-4">
-                                    {advanced.materialWaste.map((item, i) => (
-                                        <div key={i} className="flex flex-col gap-2 p-4 bg-white/5 rounded-2xl border border-white/5">
-                                            <div className="flex justify-between font-semibold text-foreground">
-                                                <span>{item.item}</span>
-                                                <span>{item.avgPerInstall} / und</span>
-                                            </div>
-                                            <div className="w-full bg-muted rounded-full h-2">
-                                                <div
-                                                    className="bg-primary h-2 rounded-full"
-                                                    style={{ width: `${(item.avgPerInstall / 3) * 100}%` }}
-                                                ></div>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground mt-1">Promedio por instalación exitosa</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </PremiumCard>
-                        </div>
-
-                        <div className="mt-6">
-                            <FuelAnalytics data={fuelData} />
                         </div>
                     </TabsContent>
                 </Tabs>
