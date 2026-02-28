@@ -225,7 +225,7 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 capacidad_tanque: formData.capacidad_tanque || null,
                 foto_url: finalFotoUrl || null,
                 department: formData.department || null,
-                assigned_driver_id: formData.assigned_driver_id
+                assigned_driver_id: formData.assigned_driver_id || null
             }
 
             let vehicleId = vehicleToEdit?.id;
@@ -450,10 +450,10 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                                 <div className="grid grid-cols-2 gap-3 items-end">
                                                     <div className="space-y-1 col-span-2 sm:col-span-1">
                                                         <Label className="text-xs text-zinc-500">Frecuencia (Cada...)</Label>
-                                                        <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                                                        <div className="flex bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                                                             <Input
                                                                 type="number"
-                                                                className="h-9 text-xs border-0 rounded-none focus-visible:ring-0 flex-1 bg-transparent"
+                                                                className="h-9 text-xs border-0 rounded-none focus-visible:ring-0 flex-1 bg-transparent dark:text-white"
                                                                 value={config.interval_value}
                                                                 onChange={(e) => updateConfig(index, 'interval_value', Number(e.target.value))}
                                                             />
