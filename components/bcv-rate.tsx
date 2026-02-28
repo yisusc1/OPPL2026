@@ -40,7 +40,13 @@ export function BCVRate() {
         return () => clearInterval(interval);
     }, []);
 
-    if (error) return null; // Don't show anything if it fails, to keep UI clean
+    if (error) {
+        return (
+            <div className="flex items-center gap-3 bg-red-500/10 backdrop-blur-md border border-red-500/20 shadow-sm rounded-full px-4 py-1.5 w-fit">
+                <span className="text-xs text-red-500 font-medium">Error al cargar tasa BCV</span>
+            </div>
+        );
+    }
 
     return (
         <div className="flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit">
