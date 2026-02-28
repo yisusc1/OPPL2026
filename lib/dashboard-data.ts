@@ -121,7 +121,8 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
     // 1. Counters
     const powerGoCount = data.filter(d => d.power_go === "SI").length;
     const routerCount = data.filter(d => d.router).length; // Assuming router is not null/empty
-    const nuevosServicios = data.filter(d => d.estatus === "INSTALACION").length; // Approximation
+    const validNewStatuses = ["CONVENIO", "EMPLEADO", "INSTALACION", "MIGRACION"];
+    const nuevosServicios = data.filter(d => validNewStatuses.includes(d.estatus?.toUpperCase())).length;
 
     // Days worked (unique count of dates)
     const uniqueDays = new Set(data.map(d => d.fecha).filter(Boolean));
