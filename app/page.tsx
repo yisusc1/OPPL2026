@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { INITIAL_MODULES_CONFIG } from "@/lib/constants";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
+import { BCVRate } from "@/components/bcv-rate";
 
 export default function Home() {
   const { hasRole, isAdmin, isLoading: isUserLoading, profile } = useUser();
@@ -231,13 +232,16 @@ export default function Home() {
       </div>
 
       <div className="relative z-40 mx-auto max-w-7xl px-4 py-12 md:py-20 lg:py-24">
-        <div className="mb-8 md:mb-12 text-center md:text-left">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
-            Panel de Control
-          </h1>
-          <p className="mt-4 text-muted-foreground md:text-lg">
-            Bienvenido, {userName}
-          </p>
+        <div className="mb-8 md:mb-12 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+              Panel de Control
+            </h1>
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              Bienvenido, {userName}
+            </p>
+          </div>
+          <BCVRate />
         </div>
 
         <BentoGrid>
