@@ -73,15 +73,20 @@ export function MaintenanceRegistrationDialog({
         setLoadingVehicles(true)
         const supabase = createClient()
 
-        // Fetch vehicles, current mileage, and maintenance configs
-        const { data: vData } = await supabase.from('vehiculos').select('id, placa, modelo, tipo, vehicle_maintenance_configs(*)')
+        // Fetch vehicles and current mileage
+        const { data: vData } = await supabase.from('vehiculos').select('id, placa, modelo, tipo')
         const { data: kData } = await supabase.from('vista_ultimos_kilometrajes').select('*')
+        const { data: configsData } = await supabase.from('vehicle_maintenance_configs').select('*')
 
         if (vData) {
-            const merged = vData.map(v => ({
-                ...v,
-                kilometraje: kData?.find(k => k.vehiculo_id === v.id)?.ultimo_kilometraje || 0
-            }))
+            const merged = vData.map(v => {
+                const vConfigs = configsData?.filter(c => c.vehicle_id === v.id) || []
+                return {
+                    ...v,
+                    kilometraje: kData?.find(k => k.vehiculo_id === v.id)?.ultimo_kilometraje || 0,
+                    maintenance_configs: vConfigs
+                }
+            })
             setVehicles(merged)
 
             // Handle Pre-selection
