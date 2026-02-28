@@ -371,44 +371,63 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                             </div>
                                         </div>
 
-                                        {/* Checklist */}
+                                        {/* Checklist - Dynamic from checklist_data */}
                                         <div className="bg-white dark:bg-zinc-900/50 rounded-xl border border-blue-100 dark:border-blue-900/30 shadow-sm overflow-hidden">
                                             <div className="bg-blue-50/30 dark:bg-blue-950/30 px-4 py-2 border-b border-blue-100 dark:border-blue-900/30">
                                                 <span className="text-xs font-bold text-blue-800 dark:text-blue-300">Verificación de Salida</span>
                                             </div>
-                                            <div className="p-4 grid grid-cols-2 gap-y-3 gap-x-4">
-                                                {/* COMMON */}
-                                                <CheckItem label="Aceite" checked={vehicle.activeReport.aceite_salida} />
+                                            <div className="p-4 space-y-4">
+                                                {(() => {
+                                                    // Try dynamic checklist_data first
+                                                    let parsed: any = null
+                                                    try {
+                                                        const raw = vehicle.activeReport.checklist_data
+                                                        parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+                                                    } catch { }
 
-                                                {/* CAR SPECIFIC (Agua, Safety) */}
-                                                {!vehicle.tipo?.toLowerCase().includes('moto') && !vehicle.modelo?.toLowerCase().includes('moto') && (
-                                                    <>
-                                                        <CheckItem label="Agua / Refr." checked={vehicle.activeReport.agua_salida} />
-                                                        <CheckItem label="Caucho" checked={vehicle.activeReport.caucho_salida} />
-                                                        <CheckItem label="Gato" checked={vehicle.activeReport.gato_salida} />
-                                                        <CheckItem label="Triángulo" checked={vehicle.activeReport.triangulo_salida} />
-                                                        <CheckItem label="Cruz" checked={vehicle.activeReport.cruz_salida} />
-                                                        <CheckItem label="Carpeta" checked={vehicle.activeReport.carpeta_salida} />
-                                                    </>
-                                                )}
+                                                    if (parsed?.items && parsed.items.length > 0) {
+                                                        const cats = ['TECNICO', 'SEGURIDAD', 'EQUIPOS']
+                                                        const catLabels: Record<string, string> = { TECNICO: 'Chequeo Técnico', SEGURIDAD: 'Seguridad', EQUIPOS: 'Equipos' }
+                                                        return cats.map(cat => {
+                                                            const catItems = parsed.items.filter((i: any) => i.category === cat)
+                                                            if (catItems.length === 0) return null
+                                                            return (
+                                                                <div key={cat}>
+                                                                    <span className="text-[10px] uppercase font-bold text-zinc-400 block mb-2">{catLabels[cat]}</span>
+                                                                    <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                                                                        {catItems.map((item: any) => (
+                                                                            <CheckItem key={item.key} label={item.label} checked={item.checked} />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )
+                                                        })
+                                                    }
 
-                                                {/* MOTO SPECIFIC */}
-                                                {(vehicle.tipo?.toLowerCase().includes('moto') || vehicle.modelo?.toLowerCase().includes('moto')) && (
-                                                    <>
-                                                        <CheckItem label="Casco" checked={vehicle.activeReport.casco_salida} />
-                                                        <CheckItem label="Luces" checked={vehicle.activeReport.luces_salida} />
-                                                        <CheckItem label="Herramientas" checked={vehicle.activeReport.herramientas_salida} />
-                                                    </>
-                                                )}
-
-                                                {/* TECH STUFF - Only for Soporte/Instalación AND NOT MOTO */}
-                                                {(vehicle.department === 'Soporte' || vehicle.department === 'Instalación') && !vehicle.tipo?.toLowerCase().includes('moto') && !vehicle.modelo?.toLowerCase().includes('moto') && (
-                                                    <>
-                                                        <CheckItem label="ONU" checked={vehicle.activeReport.onu_salida === 1} />
-                                                        <CheckItem label="UPS" checked={vehicle.activeReport.ups_salida === 1} />
-                                                        <CheckItem label="Escalera" checked={vehicle.activeReport.escalera_salida} />
-                                                    </>
-                                                )}
+                                                    // Fallback: legacy hardcoded fields
+                                                    return (
+                                                        <div className="grid grid-cols-2 gap-y-3 gap-x-4">
+                                                            <CheckItem label="Aceite" checked={vehicle.activeReport.aceite_salida} />
+                                                            {!vehicle.tipo?.toLowerCase().includes('moto') && (
+                                                                <>
+                                                                    <CheckItem label="Agua / Refr." checked={vehicle.activeReport.agua_salida} />
+                                                                    <CheckItem label="Caucho" checked={vehicle.activeReport.caucho_salida} />
+                                                                    <CheckItem label="Gato" checked={vehicle.activeReport.gato_salida} />
+                                                                    <CheckItem label="Triángulo" checked={vehicle.activeReport.triangulo_salida} />
+                                                                    <CheckItem label="Cruz" checked={vehicle.activeReport.cruz_salida} />
+                                                                    <CheckItem label="Carpeta" checked={vehicle.activeReport.carpeta_salida} />
+                                                                </>
+                                                            )}
+                                                            {vehicle.tipo?.toLowerCase().includes('moto') && (
+                                                                <>
+                                                                    <CheckItem label="Casco" checked={vehicle.activeReport.casco_salida} />
+                                                                    <CheckItem label="Luces" checked={vehicle.activeReport.luces_salida} />
+                                                                    <CheckItem label="Herramientas" checked={vehicle.activeReport.herramientas_salida} />
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
