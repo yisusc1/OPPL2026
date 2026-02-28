@@ -24,6 +24,16 @@ export type AdminVehicleMaintenanceConfig = {
     last_service_value: number
 }
 
+export type ChecklistItem = {
+    id?: string
+    vehicle_id?: string
+    category: 'TECNICO' | 'SEGURIDAD' | 'EQUIPOS'
+    label: string
+    key: string
+    is_default: boolean
+    sort_order: number
+}
+
 type Vehicle = {
     id?: string
     codigo: string
@@ -37,6 +47,7 @@ type Vehicle = {
     department?: string
     assigned_driver_id?: string | null
     maintenance_configs?: AdminVehicleMaintenanceConfig[]
+    checklist_items?: ChecklistItem[]
 }
 
 type Profile = {
@@ -61,6 +72,32 @@ const SERVICE_TYPES = [
     { value: 'CUSTOM', label: 'Personalizado' },
 ]
 
+const CHECKLIST_CATEGORIES = [
+    { value: 'TECNICO', label: 'Chequeo Técnico' },
+    { value: 'SEGURIDAD', label: 'Seguridad' },
+    { value: 'EQUIPOS', label: 'Equipos' },
+]
+
+const DEFAULT_CHECKLIST_CAR: ChecklistItem[] = [
+    { category: 'TECNICO', label: 'Nivel de Aceite', key: 'aceite', is_default: true, sort_order: 1 },
+    { category: 'TECNICO', label: 'Agua / Refrigerante', key: 'agua', is_default: true, sort_order: 2 },
+    { category: 'SEGURIDAD', label: 'Gato Hidráulico', key: 'gato', is_default: true, sort_order: 3 },
+    { category: 'SEGURIDAD', label: 'Llave Cruz', key: 'cruz', is_default: true, sort_order: 4 },
+    { category: 'SEGURIDAD', label: 'Triángulo', key: 'triangulo', is_default: true, sort_order: 5 },
+    { category: 'SEGURIDAD', label: 'Caucho Repuesto', key: 'caucho', is_default: true, sort_order: 6 },
+    { category: 'SEGURIDAD', label: 'Carpeta / Permisos', key: 'carpeta', is_default: true, sort_order: 7 },
+    { category: 'EQUIPOS', label: 'ONU / Router', key: 'onu', is_default: true, sort_order: 8 },
+    { category: 'EQUIPOS', label: 'Mini-UPS', key: 'ups', is_default: true, sort_order: 9 },
+    { category: 'EQUIPOS', label: 'Escalera', key: 'escalera', is_default: true, sort_order: 10 },
+]
+
+const DEFAULT_CHECKLIST_MOTO: ChecklistItem[] = [
+    { category: 'TECNICO', label: 'Nivel de Aceite', key: 'aceite', is_default: true, sort_order: 1 },
+    { category: 'SEGURIDAD', label: 'Casco', key: 'casco', is_default: true, sort_order: 2 },
+    { category: 'SEGURIDAD', label: 'Luces', key: 'luces', is_default: true, sort_order: 3 },
+    { category: 'SEGURIDAD', label: 'Herramientas Básicas', key: 'herramientas', is_default: true, sort_order: 4 },
+]
+
 export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEdit }: VehicleFormDialogProps) {
     const [loading, setLoading] = useState(false)
     const [drivers, setDrivers] = useState<Profile[]>([])
@@ -79,6 +116,7 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
         assigned_driver_id: null
     })
     const [maintenanceConfigs, setMaintenanceConfigs] = useState<AdminVehicleMaintenanceConfig[]>([])
+    const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
 
     useEffect(() => {
         if (isOpen) {
@@ -120,6 +158,8 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
             }
             // Load existing configs
             setMaintenanceConfigs(vehicleToEdit.maintenance_configs || [])
+            // Load existing checklist items
+            loadChecklistItems(vehicleToEdit.id!)
         } else {
             // Reset for new creation
             setFormData({
@@ -140,8 +180,25 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 { service_type: 'OIL_CHANGE', interval_value: 5000, is_time_based: false, last_service_value: 0 },
                 { service_type: 'WASH', interval_value: 15, is_time_based: true, last_service_value: Date.now() }
             ])
+            // Default checklist items based on tipo
+            setChecklistItems([...DEFAULT_CHECKLIST_CAR])
         }
     }, [vehicleToEdit, isOpen])
+
+    async function loadChecklistItems(vehicleId: string) {
+        const supabase = createClient()
+        const { data } = await supabase
+            .from('vehicle_checklist_items')
+            .select('*')
+            .eq('vehicle_id', vehicleId)
+            .order('sort_order')
+        if (data && data.length > 0) {
+            setChecklistItems(data)
+        } else {
+            // Fallback: populate defaults if no items exist yet
+            setChecklistItems(formData.tipo === 'Moto' ? [...DEFAULT_CHECKLIST_MOTO] : [...DEFAULT_CHECKLIST_CAR])
+        }
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({
@@ -199,6 +256,32 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
         const newConfigs = [...maintenanceConfigs]
         newConfigs[index] = { ...newConfigs[index], [field]: value }
         setMaintenanceConfigs(newConfigs)
+    }
+
+    // Checklist Item CRUD
+    const addChecklistItem = () => {
+        const nextOrder = checklistItems.length > 0 ? Math.max(...checklistItems.map(i => i.sort_order)) + 1 : 1
+        const slug = `custom_${Date.now()}`
+        setChecklistItems([
+            ...checklistItems,
+            { category: 'SEGURIDAD', label: '', key: slug, is_default: false, sort_order: nextOrder }
+        ])
+    }
+
+    const removeChecklistItem = (index: number) => {
+        const items = [...checklistItems]
+        items.splice(index, 1)
+        setChecklistItems(items)
+    }
+
+    const updateChecklistItem = (index: number, field: keyof ChecklistItem, value: any) => {
+        const items = [...checklistItems]
+        items[index] = { ...items[index], [field]: value }
+        // Auto-generate key from label for custom items
+        if (field === 'label' && !items[index].is_default) {
+            items[index].key = value.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').substring(0, 30) || `custom_${index}`
+        }
+        setChecklistItems(items)
     }
 
     async function handleSubmit(e: React.FormEvent) {
@@ -276,6 +359,28 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                     if (configsError) {
                         console.error("Error saving maintenance configs:", configsError)
                         toast.error("El vehículo se guardó, pero hubo un error con sus configuraciones de mantenimiento.")
+                    }
+                }
+
+                // Save Checklist Items
+                await supabase.from("vehicle_checklist_items").delete().eq("vehicle_id", vehicleId)
+                if (checklistItems.length > 0) {
+                    const itemsToInsert = checklistItems.filter(i => i.label.trim()).map((item, idx) => ({
+                        vehicle_id: vehicleId,
+                        category: item.category,
+                        label: item.label,
+                        key: item.key,
+                        is_default: item.is_default,
+                        sort_order: idx + 1
+                    }))
+
+                    const { error: itemsError } = await supabase
+                        .from("vehicle_checklist_items")
+                        .insert(itemsToInsert)
+
+                    if (itemsError) {
+                        console.error("Error saving checklist items:", itemsError)
+                        toast.error("El vehículo se guardó, pero hubo un error con los items del checklist.")
                     }
                 }
             }
@@ -482,6 +587,49 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                 {maintenanceConfigs.length === 0 && (
                                     <div className="text-center p-6 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-500 dark:text-zinc-400 text-sm">
                                         No hay reglas de mantenimiento configuradas.
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* CHECKLIST ITEMS CONFIGURATION */}
+                        <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider">Items del Checklist</h3>
+                                <Button type="button" variant="outline" size="sm" onClick={addChecklistItem} className="gap-2 text-xs h-8 rounded-lg">
+                                    <Plus size={14} /> Añadir Item
+                                </Button>
+                            </div>
+
+                            <div className="space-y-2">
+                                {checklistItems.map((item, index) => (
+                                    <div key={index} className="flex items-center gap-2 p-3 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50">
+                                        <div className="flex-1 grid grid-cols-2 gap-2">
+                                            <Select value={item.category} onValueChange={(val) => updateChecklistItem(index, 'category', val)}>
+                                                <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    {CHECKLIST_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value} className="text-xs">{c.label}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                            <Input
+                                                className="h-9 text-xs"
+                                                value={item.label}
+                                                onChange={(e) => updateChecklistItem(index, 'label', e.target.value)}
+                                                placeholder="Nombre del item"
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeChecklistItem(index)}
+                                            className="w-8 h-8 flex items-center justify-center shrink-0 rounded-lg text-red-500 bg-red-50 dark:bg-red-950/30 hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                                {checklistItems.length === 0 && (
+                                    <div className="text-center p-6 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-500 dark:text-zinc-400 text-sm">
+                                        No hay items de checklist configurados.
                                     </div>
                                 )}
                             </div>

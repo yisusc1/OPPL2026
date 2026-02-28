@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { revalidateGerencia } from "@/app/transporte/actions"
+import type { ChecklistItem } from "@/components/vehicle-form-dialog"
 
 type Reporte = {
     id: string
@@ -48,48 +49,44 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
     const [step, setStep] = useState<'form' | 'success'>('form')
     const [whatsappText, setWhatsappText] = useState("")
     const router = useRouter()
-
-    // Checks
-    const [checks, setChecks] = useState({
-        aceite: false,
-        agua: false,
-        gato: false,
-        cruz: false,
-        triangulo: false,
-        caucho: false,
-        carpeta: false,
-        onu: false,
-        ups: false,
-        escalera: false,
-        // Moto specific
-        casco: false,
-        luces: false,
-        herramientas: false
-    })
+    const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
+    const [checks, setChecks] = useState<Record<string, boolean>>({})
 
     useEffect(() => {
         if (isOpen) {
-            setStep('form') // Reset step
+            setStep('form')
             loadPendingReports().then((data) => {
                 if (initialVehicleId && data) {
                     const matchingReport = data.find((r: any) => r.vehiculo_id === initialVehicleId)
                     if (matchingReport) {
-                        // [FIX] Set state directly from fetched data to avoid race condition with setReportes
                         setReporteId(matchingReport.id)
                         setSelectedReport(matchingReport as unknown as Reporte)
-
-                        // Reset checks on change
-                        setChecks({
-                            aceite: false, agua: false, gato: false, cruz: false,
-                            triangulo: false, caucho: false, carpeta: false,
-                            onu: false, ups: false, escalera: false,
-                            casco: false, luces: false, herramientas: false
-                        })
+                        // Load checklist items for this vehicle
+                        loadChecklistForVehicle(matchingReport.vehiculo_id)
                     }
                 }
             })
         }
     }, [isOpen, initialVehicleId])
+
+    async function loadChecklistForVehicle(vehicleId: string) {
+        const supabase = createClient()
+        const { data: items } = await supabase
+            .from('vehicle_checklist_items')
+            .select('*')
+            .eq('vehicle_id', vehicleId)
+            .order('sort_order')
+
+        if (items && items.length > 0) {
+            setChecklistItems(items)
+            const initialChecks: Record<string, boolean> = {}
+            items.forEach(i => { initialChecks[i.key] = false })
+            setChecks(initialChecks)
+        } else {
+            setChecklistItems([])
+            setChecks({})
+        }
+    }
 
     async function loadPendingReports() {
         const supabase = createClient()
@@ -116,16 +113,15 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
         setReporteId(value)
         const report = reportes.find(r => r.id === value) || null
         setSelectedReport(report)
-        // Reset checks on change
-        setChecks({
-            aceite: false, agua: false, gato: false, cruz: false,
-            triangulo: false, caucho: false, carpeta: false,
-            onu: false, ups: false, escalera: false,
-            casco: false, luces: false, herramientas: false
-        })
+        if (report) {
+            loadChecklistForVehicle(report.vehiculo_id)
+        } else {
+            setChecklistItems([])
+            setChecks({})
+        }
     }
 
-    const toggleCheck = (key: keyof typeof checks) => {
+    const toggleCheck = (key: string) => {
         setChecks(prev => ({ ...prev, [key]: !prev[key] }))
     }
 
@@ -151,24 +147,31 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                     gasolina_entrada: gasolina,
                     observaciones_entrada: observaciones,
 
-                    aceite_entrada: checks.aceite,
-                    agua_entrada: checks.agua,
-
-                    // Car specific
-                    gato_entrada: checks.gato,
-                    cruz_entrada: checks.cruz,
-                    triangulo_entrada: checks.triangulo,
-                    caucho_entrada: checks.caucho,
-                    carpeta_entrada: checks.carpeta,
-
-                    // Moto specific
-                    casco_entrada: checks.casco,
-                    luces_entrada: checks.luces,
-                    herramientas_entrada: checks.herramientas,
-
+                    // Legacy boolean fields
+                    aceite_entrada: checks.aceite || false,
+                    agua_entrada: checks.agua || false,
+                    gato_entrada: checks.gato || false,
+                    cruz_entrada: checks.cruz || false,
+                    triangulo_entrada: checks.triangulo || false,
+                    caucho_entrada: checks.caucho || false,
+                    carpeta_entrada: checks.carpeta || false,
+                    casco_entrada: checks.casco || false,
+                    luces_entrada: checks.luces || false,
+                    herramientas_entrada: checks.herramientas || false,
                     onu_entrada: checks.onu ? 1 : 0,
                     ups_entrada: checks.ups ? 1 : 0,
-                    escalera_entrada: checks.escalera,
+                    escalera_entrada: checks.escalera || false,
+
+                    // Dynamic checklist data
+                    checklist_data: JSON.stringify({
+                        type: 'entrada',
+                        items: checklistItems.map(item => ({
+                            key: item.key,
+                            label: item.label,
+                            category: item.category,
+                            checked: checks[item.key] || false
+                        }))
+                    }),
                 })
                 .eq('id', reporteId)
 
@@ -198,29 +201,9 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
 
             toast.success("Entrada registrada correctamente")
 
-            // --- WhatsApp Integration ---
+            // WhatsApp Integration
             if (selectedReport) {
-                const text = formatEntradaText({
-                    km_entrada: km,
-                    gasolina_entrada: gasolina,
-                    observaciones_entrada: observaciones,
-                    aceite_entrada: checks.aceite,
-                    agua_entrada: checks.agua,
-                    gato_entrada: checks.gato,
-                    cruz_entrada: checks.cruz,
-                    triangulo_entrada: checks.triangulo,
-                    caucho_entrada: checks.caucho,
-                    carpeta_entrada: checks.carpeta,
-                    // Moto
-                    casco_entrada: checks.casco,
-                    luces_entrada: checks.luces,
-                    herramientas_entrada: checks.herramientas,
-
-                    onu_entrada: checks.onu ? 1 : 0,
-                    ups_entrada: checks.ups ? 1 : 0,
-                    escalera_entrada: checks.escalera
-                }, selectedReport)
-
+                const text = formatEntradaText(km)
                 setWhatsappText(text)
                 setStep('success')
             }
@@ -236,12 +219,8 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
             setSelectedReport(null)
             setGasolina("Full")
             setObservaciones("")
-            setChecks({
-                aceite: false, agua: false, gato: false, cruz: false,
-                triangulo: false, caucho: false, carpeta: false,
-                onu: false, ups: false, escalera: false,
-                casco: false, luces: false, herramientas: false
-            })
+            setChecklistItems([])
+            setChecks({})
 
         } catch (error) {
             console.error(error)
@@ -251,85 +230,71 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
         }
     }
 
-    // Helpers
-    const formatEntradaText = (entradaData: any, reporteOriginal: Reporte) => {
-        const check = (val: boolean | number) => val ? '✅' : '❌'
+    // Dynamic WhatsApp text generator
+    const formatEntradaText = (kmEntradaVal: number) => {
+        const check = (val: boolean) => val ? '✅' : '❌'
 
-        // Calcular fechas y horas
-        const fechaSalidaObj = new Date(reporteOriginal.created_at)
+        if (!selectedReport) return ''
+
+        const fechaSalidaObj = new Date(selectedReport.created_at)
         const fechaEntradaObj = new Date()
-
         const fechaEntrada = fechaEntradaObj.toLocaleDateString()
         const horaSalida = fechaSalidaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         const horaEntrada = fechaEntradaObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-        // vehiculos is an object in Reporte type based on our interface, but Supabase may return an array if not 1:1 strictly enforced in types
         // @ts-ignore
-        const vData = reporteOriginal.vehiculos
+        const vData = selectedReport.vehiculos
         const vehiculo = Array.isArray(vData) ? vData[0] : vData
-
         const vehiculoNombre = vehiculo ? vehiculo.modelo : 'Desconocido'
-        const kmRecorrido = Number(entradaData.km_entrada) - Number(reporteOriginal.km_salida)
-
-        const isMoto = vehiculo?.codigo?.startsWith('M-') || vehiculo?.tipo === 'Moto' || vehiculo?.modelo?.toLowerCase().includes('moto') || false
-        // [FIX] Update check here too for whatsapp text
-        const isInstalacion = reporteOriginal.departamento === 'Instalación' || vehiculo?.department === 'Instalación'
+        const kmRecorrido = kmEntradaVal - Number(selectedReport.km_salida)
 
         let msg = `*Reporte de Entrada*\n\n`
-
         msg += `Fecha (Entrada): ${fechaEntrada}\n`
         msg += `Hora (Salida): ${horaSalida}\n`
         msg += `Hora (Entrada): ${horaEntrada}\n\n`
-
-        msg += `Conductor: ${reporteOriginal.conductor}\n`
-        msg += `Departamento: ${reporteOriginal.departamento}\n\n`
-
+        msg += `Conductor: ${selectedReport.conductor}\n`
+        msg += `Departamento: ${selectedReport.departamento}\n\n`
         msg += `Vehículo: ${vehiculoNombre}\n`
         if (vehiculo?.placa) msg += `Placa: ${vehiculo.placa}\n`
-        msg += `Kilometraje (Salida): ${reporteOriginal.km_salida}\n`
-        msg += `Kilometraje (Entrada): ${entradaData.km_entrada}\n`
+        msg += `Kilometraje (Salida): ${selectedReport.km_salida}\n`
+        msg += `Kilometraje (Entrada): ${kmEntradaVal}\n`
         msg += `Kilometraje Recorrido: ${kmRecorrido}\n`
-        msg += `Nivel de Gasolina: ${entradaData.gasolina_entrada}\n\n`
+        msg += `Nivel de Gasolina: ${gasolina}\n\n`
 
-        msg += `*Chequeo Técnico:*\n`
-        msg += `Chequeo de Aceite: ${check(entradaData.aceite_entrada)}\n`
-
-        if (!isMoto) msg += `Chequeo de Agua/Refrigerante: ${check(entradaData.agua_entrada)}\n`
-
-        msg += `\n`
-
-        if (!isMoto) {
-            msg += `*Herramientas:*\n`
-            msg += `Gato: ${check(entradaData.gato_entrada)}\n`
-            msg += `Llave Cruz: ${check(entradaData.cruz_entrada)}\n`
-            msg += `Triángulo: ${check(entradaData.triangulo_entrada)}\n`
-            msg += `Caucho: ${check(entradaData.caucho_entrada)}\n`
-            msg += `Carpeta de Permisos: ${check(entradaData.carpeta_entrada)}\n`
-        } else {
-            msg += `*Seguridad (Moto):*\n`
-            msg += `Casco: ${check(entradaData.casco_entrada)}\n`
-            msg += `Luces: ${check(entradaData.luces_entrada)}\n`
-            msg += `Herramientas: ${check(entradaData.herramientas_entrada)}\n`
+        const categories = ['TECNICO', 'SEGURIDAD', 'EQUIPOS']
+        const categoryLabels: Record<string, string> = {
+            TECNICO: 'Chequeo Técnico',
+            SEGURIDAD: 'Herramientas',
+            EQUIPOS: 'Equipos Asignados'
         }
 
-        if (isInstalacion && !isMoto) {
-            msg += `\n*Equipos Asignados:*\n`
-            msg += `ONU/Router: ${check(entradaData.onu_entrada)}\n`
-            msg += `Mini-UPS: ${check(entradaData.ups_entrada)}\n`
-            msg += `Escalera: ${check(entradaData.escalera_entrada)}\n`
-        }
+        categories.forEach(cat => {
+            const catItems = checklistItems.filter(i => i.category === cat)
+            if (catItems.length > 0) {
+                msg += `*${categoryLabels[cat]}:*\n`
+                catItems.forEach(item => {
+                    msg += `${item.label}: ${check(checks[item.key] || false)}\n`
+                })
+                msg += `\n`
+            }
+        })
 
-        msg += `\nObservaciones: ${entradaData.observaciones_entrada || 'Ninguna'}`
+        msg += `Observaciones: ${observaciones || 'Ninguna'}`
         return msg
     }
 
-    // Helpers conditions
-    // Note: In Entrada, we use selectedReport.vehiculos which is an object
-    const v = selectedReport?.vehiculos
-    const isMoto = v?.codigo?.startsWith('M-') || v?.tipo === 'Moto' || v?.modelo?.toLowerCase().includes('moto')
-    // [FIX] Updated condition to include vehicle department
-    // @ts-ignore
-    const isInstalacion = selectedReport?.departamento === 'Instalación' || v?.department === 'Instalación'
+    // Group checklist items by category for rendering
+    const groupedItems = checklistItems.reduce((acc, item) => {
+        if (!acc[item.category]) acc[item.category] = []
+        acc[item.category].push(item)
+        return acc
+    }, {} as Record<string, ChecklistItem[]>)
+
+    const categoryLabelsMap: Record<string, string> = {
+        TECNICO: 'Chequeo Técnico (Llegada)',
+        SEGURIDAD: 'Herramientas (Verificar devolución)',
+        EQUIPOS: 'Equipos Asignados'
+    }
 
 
     return (
@@ -436,105 +401,30 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                                 </div>
                             </div>
 
-                            {/* Checks section */}
-                            <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-100 dark:border-white/5 shadow-sm space-y-6">
-
-                                {/* TÉCNICO */}
-                                <div>
-                                    <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                        Chequeo Técnico (Llegada)
-                                    </h4>
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                            <Label htmlFor="aceite" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Nivel de Aceite</Label>
-                                            <Switch id="aceite" checked={checks.aceite} onCheckedChange={() => toggleCheck('aceite')} />
-                                        </div>
-                                        {!isMoto && (
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="agua" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Agua / Refrigerante</Label>
-                                                <Switch id="agua" checked={checks.agua} onCheckedChange={() => toggleCheck('agua')} />
+                            {/* Dynamic Checks section */}
+                            {checklistItems.length > 0 && (
+                                <div className="bg-white dark:bg-zinc-900 p-5 rounded-[24px] border border-zinc-100 dark:border-white/5 shadow-sm space-y-6">
+                                    {['TECNICO', 'SEGURIDAD', 'EQUIPOS'].map(cat => {
+                                        const items = groupedItems[cat]
+                                        if (!items || items.length === 0) return null
+                                        return (
+                                            <div key={cat}>
+                                                <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                                                    {categoryLabelsMap[cat]}
+                                                </h4>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    {items.map(item => (
+                                                        <div key={item.key} className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
+                                                            <Label htmlFor={`e_${item.key}`} className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">{item.label}</Label>
+                                                            <Switch id={`e_${item.key}`} checked={checks[item.key] || false} onCheckedChange={() => toggleCheck(item.key)} />
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
+                                        )
+                                    })}
                                 </div>
-
-                                {/* SEGURIDAD - CARROS */}
-                                {!isMoto && selectedReport && (
-                                    <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
-                                            Herramientas (Verificar devolución)
-                                        </h4>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="gato" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Gato Hidráulico</Label>
-                                                <Switch id="gato" checked={checks.gato} onCheckedChange={() => toggleCheck('gato')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="cruz" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Llave Cruz</Label>
-                                                <Switch id="cruz" checked={checks.cruz} onCheckedChange={() => toggleCheck('cruz')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="triangulo" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Triángulo</Label>
-                                                <Switch id="triangulo" checked={checks.triangulo} onCheckedChange={() => toggleCheck('triangulo')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="caucho" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Caucho Repuesto</Label>
-                                                <Switch id="caucho" checked={checks.caucho} onCheckedChange={() => toggleCheck('caucho')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="carpeta" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Carpeta / Permisos</Label>
-                                                <Switch id="carpeta" checked={checks.carpeta} onCheckedChange={() => toggleCheck('carpeta')} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* SEGURIDAD - MOTO */}
-                                {isMoto && selectedReport && (
-                                    <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
-                                            Seguridad Moto (Verificar devolución)
-                                        </h4>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="casco" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Casco</Label>
-                                                <Switch id="casco" checked={checks.casco} onCheckedChange={() => toggleCheck('casco')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="luces" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Luces</Label>
-                                                <Switch id="luces" checked={checks.luces} onCheckedChange={() => toggleCheck('luces')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="herramientas" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Herramientas Básicas</Label>
-                                                <Switch id="herramientas" checked={checks.herramientas} onCheckedChange={() => toggleCheck('herramientas')} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* EQUIPOS - SOLO INSTALACION Y NO MOTO */}
-                                {isInstalacion && !isMoto && (
-                                    <div>
-                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2 border-t border-zinc-100 dark:border-white/5 pt-4">
-                                            Equipos Asignados
-                                        </h4>
-                                        <div className="grid grid-cols-1 gap-3">
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="onu" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">ONU / Router</Label>
-                                                <Switch id="onu" checked={checks.onu} onCheckedChange={() => toggleCheck('onu')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="ups" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Mini-UPS</Label>
-                                                <Switch id="ups" checked={checks.ups} onCheckedChange={() => toggleCheck('ups')} />
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all">
-                                                <Label htmlFor="escalera" className="text-sm font-medium text-zinc-700 dark:text-zinc-300 cursor-pointer">Escalera</Label>
-                                                <Switch id="escalera" checked={checks.escalera} onCheckedChange={() => toggleCheck('escalera')} />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label className="text-zinc-500 dark:text-zinc-400">Observaciones / Novedades</Label>
