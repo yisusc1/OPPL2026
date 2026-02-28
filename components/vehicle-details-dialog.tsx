@@ -78,6 +78,7 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
     const [assigning, setAssigning] = useState(false)
     const [faults, setFaults] = useState<Fault[]>([])
     const [loadingFaults, setLoadingFaults] = useState(false)
+    const [maintenanceConfigs, setMaintenanceConfigs] = useState<any[]>([])
 
     // Transfer Confirmation State
     const [pendingDriver, setPendingDriver] = useState<any>(null)
@@ -87,8 +88,19 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
         if (isOpen && vehicle) {
             loadFaults()
             loadDrivers()
+            loadMaintenanceConfigs()
         }
     }, [isOpen, vehicle])
+
+    async function loadMaintenanceConfigs() {
+        if (!vehicle) return
+        const supabase = createClient()
+        const { data } = await supabase
+            .from('vehicle_maintenance_configs')
+            .select('*')
+            .eq('vehicle_id', vehicle.id)
+        setMaintenanceConfigs(data || [])
+    }
 
     async function loadFaults() {
         if (!vehicle) return
@@ -410,8 +422,8 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                     </h3>
 
                                     <div className="space-y-4">
-                                        {vehicle.maintenance_configs && vehicle.maintenance_configs.length > 0 ? (
-                                            vehicle.maintenance_configs.map((config, index) => {
+                                        {maintenanceConfigs && maintenanceConfigs.length > 0 ? (
+                                            maintenanceConfigs.map((config, index) => {
                                                 // Icon & Label Mapping
                                                 let Icon = Wrench;
                                                 let iconColor = "text-purple-500";

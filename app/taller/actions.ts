@@ -42,20 +42,43 @@ export async function registerMaintenance(data: MaintenanceData) {
             }
         }
 
-        // [NEW] Map custom UUIDs to 'OTHER' for the maintenance_logs constraint
-        let logServiceType = data.service_type;
+        // 1. Fetch Maintenance Config FIRST to resolve custom name
         const isCustomUUID = data.service_type.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
-
+        let configQuery = supabase.from('vehicle_maintenance_configs').select('*').eq('vehicle_id', data.vehicle_id)
         if (isCustomUUID) {
-            logServiceType = 'OTHER'; // Assumes 'OTHER' or 'CUSTOM' is valid in the DB constraint. We will use 'OTHER' as it's common.
+            configQuery = configQuery.eq('id', data.service_type)
+        } else {
+            configQuery = configQuery.eq('service_type', data.service_type)
+        }
+        const { data: configRows } = await configQuery
+        const targetConfig = (configRows && configRows.length > 0) ? configRows[0] : null
+
+        // 2. Determine log service type and enrich notes with custom name
+        let logServiceType = data.service_type
+        let resolvedName = ''
+        if (targetConfig) {
+            if (targetConfig.service_type === 'OIL_CHANGE') resolvedName = 'Cambio de Aceite'
+            else if (targetConfig.service_type === 'WASH') resolvedName = 'Lavado y Aspirado'
+            else if (targetConfig.service_type === 'TIMING_BELT') resolvedName = 'Correa de Tiempo'
+            else if (targetConfig.service_type === 'CHAIN_KIT') resolvedName = 'Kit de Arrastre'
+            else resolvedName = targetConfig.custom_name || 'Servicio Personalizado'
         }
 
-        // 1. Insert Log
+        if (isCustomUUID) {
+            logServiceType = 'OTHER'
+        }
+
+        // Build final notes: prepend the resolved service name
+        const finalNotes = resolvedName
+            ? `${resolvedName}${data.notes ? ' - ' + data.notes : ''}`
+            : (data.notes || 'Mantenimiento Preventivo')
+
+        // 3. Insert Log
         const { error: logError } = await supabase.from('maintenance_logs').insert({
             vehicle_id: data.vehicle_id,
             service_type: logServiceType,
             mileage: data.mileage,
-            notes: data.notes,
+            notes: finalNotes,
             performed_by: data.performed_by,
             cost: totalCost,
             labor_cost: data.labor_cost || 0,
@@ -66,29 +89,13 @@ export async function registerMaintenance(data: MaintenanceData) {
 
         if (logError) throw logError
 
-        // 2. Update Maintenance Config Base value
-        // Assuming data.service_type maps to the ID of the config if it's a UUID, OR the type string if it's standard
-        let query = supabase.from('vehicle_maintenance_configs').select('*').eq('vehicle_id', data.vehicle_id)
-
-        // If data.service_type is a UUID, use it as ID, else use it as service_type
-        if (data.service_type.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
-            query = query.eq('id', data.service_type)
-        } else {
-            query = query.eq('service_type', data.service_type)
-        }
-
-        const { data: config, error: configError } = await query
-
-        if (config && config.length > 0) {
-            // Provide a fallback in case there are multiple (which shouldn't happen except for CUSTOM, handled by UUID)
-            const targetConfig = config[0];
+        // 4. Update Maintenance Config last_service_value
+        if (targetConfig) {
             const newValue = targetConfig.is_time_based ? new Date().getTime() : data.mileage
-
             const { error: updateError } = await supabase
                 .from('vehicle_maintenance_configs')
                 .update({ last_service_value: newValue })
                 .eq('id', targetConfig.id)
-
             if (updateError) throw updateError
         }
 

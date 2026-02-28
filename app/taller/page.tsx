@@ -576,12 +576,18 @@ export default function TallerPage() {
                                                                 ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
                                                                     log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
                                                                         log.category === 'CHAIN_KIT' ? 'Kit de Arrastre' :
-                                                                            log.category === 'WASH' ? 'Lavado' : log.category)
+                                                                            log.category === 'WASH' ? 'Lavado' :
+                                                                                log.category === 'OTHER' ? (log.description || 'Otro Servicio') :
+                                                                                    log.category)
                                                                 : `Reparación: ${log.category}`
                                                             }
                                                         </span>
-                                                        <span className="mx-2 text-muted-foreground/30">|</span>
-                                                        {log.description}
+                                                        {log.type === 'MAINTENANCE' && log.category === 'OTHER' ? null : (
+                                                            <>
+                                                                <span className="mx-2 text-muted-foreground/30">|</span>
+                                                                {log.description}
+                                                            </>
+                                                        )}
                                                         {log.mileage && <span className="text-muted-foreground ml-2">({log.mileage.toLocaleString()} km)</span>}
                                                     </div>
                                                 </div>
