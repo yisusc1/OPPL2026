@@ -18,6 +18,30 @@ export function DetailedInstallationsChart({ data }: Props) {
     // Meta diaria de instalaciones
     const GOAL_THRESHOLD = 5;
 
+    // Derived Monthly Data for the alternative View
+    const monthlyData = data.reduce((acc, curr) => {
+        const month = curr.name.split('-')[1]; // e.g. "01" from "02-01"
+        // Need a robust way to extract or map month, but 'curr.fullDate' has it like "FEBRERO 02"
+        const monthName = curr.fullDate ? curr.fullDate.split(' ')[0] : curr.name;
+
+        const existing = acc.find(item => item.name === monthName);
+        if (existing) {
+            existing.instalaciones += curr.instalaciones;
+            existing.solicitudes += curr.solicitudes;
+        } else {
+            acc.push({
+                ...curr,
+                name: monthName,
+                fullDate: monthName,
+                instalaciones: curr.instalaciones,
+                solicitudes: curr.solicitudes
+            });
+        }
+        return acc;
+    }, [] as DetailedDailyMetric[]);
+
+    const activeData = view === 'daily' ? data : monthlyData;
+
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const dayData = payload[0].payload as DetailedDailyMetric;
@@ -174,7 +198,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                                 INSTALACIONES (COMPLETADAS)
                             </h3>
                             <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={data} syncId="tradingViewChart" margin={{ top: 30, right: 30, left: 0, bottom: 0 }}>
+                                <AreaChart data={activeData} syncId="tradingViewChart" margin={{ top: 30, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="tvMainColor" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#EAB308" stopOpacity={0.3} />
@@ -209,7 +233,7 @@ export function DetailedInstallationsChart({ data }: Props) {
                                 VOLUMEN DE SOLICITUDES
                             </h3>
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={data} syncId="tradingViewChart" margin={{ top: 25, right: 30, left: 0, bottom: 0 }}>
+                                <BarChart data={activeData} syncId="tradingViewChart" margin={{ top: 25, right: 30, left: 0, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} vertical={false} />
                                     <XAxis
                                         dataKey="name"

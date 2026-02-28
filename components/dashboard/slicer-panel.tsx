@@ -140,11 +140,6 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
 
     return (
         <div className="w-full flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
-            {/* Label - minimal or removed based on preference. Let's keep a tiny muted icon */}
-            <div className="hidden md:flex items-center justify-center w-7 h-7 rounded-full bg-muted/50 border border-border/50 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-            </div>
-
             <FilterDropdown
                 title="Mes"
                 items={months.length > 0 ? months : ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]}
