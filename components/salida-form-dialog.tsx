@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { Car, CheckCircle, Send, X, Plus, Trash2, AlertCircle } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CheckCircle, Send } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -44,6 +44,10 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
     const [gasolina, setGasolina] = useState("Full")
     const [observaciones, setObservaciones] = useState("")
     const [lastKm, setLastKm] = useState<number | null>(null)
+
+    // Fault Reporting State
+    const [faultsToAdd, setFaultsToAdd] = useState<string[]>([])
+    const [newFaultText, setNewFaultText] = useState("")
     const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
     const [checks, setChecks] = useState<Record<string, boolean>>({})
 
@@ -78,7 +82,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
         // [NEW] Auto-fill Conductor Name
         if (profile?.first_name || profile?.last_name) {
-            const fullName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+            const fullName = `${profile.first_name || ''} ${profile.last_name || ''} `.trim()
             setConductor(fullName)
         }
 
@@ -192,7 +196,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
         const km = parseInt(kmSalida)
         if (lastKm !== null && km < lastKm) {
-            toast.error(`El kilometraje no puede ser menor al anterior (${lastKm} km)`)
+            toast.error(`El kilometraje no puede ser menor al anterior(${lastKm} km)`)
             return
         }
 
@@ -249,6 +253,19 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
 
             if (error) throw error
 
+            // Insert explicit faults into fallas table
+            if (faultsToAdd.length > 0) {
+                const faultsInsert = faultsToAdd.map(desc => ({
+                    vehiculo_id: vehiculoId,
+                    descripcion: `[Reporte Salida] ${desc} `,
+                    tipo_falla: 'Mecánica',
+                    prioridad: 'Media',
+                    estado: 'Pendiente',
+                    created_at: new Date().toISOString()
+                }))
+                await supabase.from('fallas').insert(faultsInsert)
+            }
+
             // Update Vehicle Fuel Level AND Mileage
             await updateVehicleFuel(vehiculoId, gasolina, km)
 
@@ -274,6 +291,8 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
             setLastKm(null)
             setChecklistItems([])
             setChecks({})
+            setFaultsToAdd([])
+            setNewFaultText("")
 
         } catch (error) {
             console.error(error)
@@ -290,15 +309,15 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         const fecha = new Date().toLocaleDateString()
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-        let msg = `*Reporte de Salida*\n\n`
-        msg += `Fecha: ${fecha}\n`
-        msg += `Hora: ${hora}\n\n`
-        msg += `Conductor: ${conductor}\n`
-        msg += `Departamento: ${departamento}\n\n`
-        msg += `Vehículo: ${vehiculoNombre}\n`
-        if (selectedVehicle?.placa) msg += `Placa: ${selectedVehicle.placa}\n`
-        msg += `Kilometraje (Salida): ${kmSalida}\n`
-        msg += `Nivel de Gasolina: ${gasolina}\n\n`
+        let msg = `* Reporte de Salida *\n\n`
+        msg += `Fecha: ${fecha} \n`
+        msg += `Hora: ${hora} \n\n`
+        msg += `Conductor: ${conductor} \n`
+        msg += `Departamento: ${departamento} \n\n`
+        msg += `Vehículo: ${vehiculoNombre} \n`
+        if (selectedVehicle?.placa) msg += `Placa: ${selectedVehicle.placa} \n`
+        msg += `Kilometraje(Salida): ${kmSalida} \n`
+        msg += `Nivel de Gasolina: ${gasolina} \n\n`
 
         // Group items by category
         const categories = ['TECNICO', 'SEGURIDAD', 'EQUIPOS']
@@ -311,15 +330,21 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         categories.forEach(cat => {
             const catItems = checklistItems.filter(i => i.category === cat)
             if (catItems.length > 0) {
-                msg += `*${categoryLabels[cat]}:*\n`
+                msg += `* ${categoryLabels[cat]}:*\n`
                 catItems.forEach(item => {
-                    msg += `${item.label}: ${check(checks[item.key] || false)}\n`
+                    msg += `${item.label}: ${check(checks[item.key] || false)} \n`
                 })
                 msg += `\n`
             }
         })
 
-        msg += `Observaciones: ${observaciones || 'Ninguna'}`
+        if (faultsToAdd.length > 0) {
+            msg += `* Fallas Reportadas:*\n`
+            faultsToAdd.forEach(f => msg += `• ${f} \n`)
+            msg += `\n`
+        }
+
+        msg += `Observaciones: ${observaciones || 'Ninguna'} `
         return msg
     }
 
@@ -369,12 +394,12 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                             >
                                 <Send size={24} className="mr-2" />
                                 Reportar en WhatsApp
-                            </Button>
+                            </Button >
                             <Button onClick={onClose} variant="ghost" className="w-full text-slate-400 dark:text-slate-500">
                                 Cerrar y Volver
                             </Button>
-                        </div>
-                    </div>
+                        </div >
+                    </div >
                 ) : (
                     <>
                         <DialogHeader className="bg-white dark:bg-zinc-900 p-6 pb-4 border-b border-zinc-100 dark:border-white/5">
@@ -478,13 +503,71 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                 </div>
                             )}
 
+                            {/* Explicit Fault Reporting Section */}
+                            <div className="bg-zinc-50/50 dark:bg-white/[0.02] p-5 rounded-[24px] border border-zinc-100 dark:border-white/5 space-y-4">
+                                <h4 className="text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    Reportar Fallas
+                                </h4>
+
+                                <div className="space-y-3">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={newFaultText}
+                                            onChange={(e) => setNewFaultText(e.target.value)}
+                                            placeholder="Ej: Luz de freno quemada..."
+                                            className="bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus-visible:ring-zinc-400"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    if (newFaultText.trim()) {
+                                                        setFaultsToAdd([...faultsToAdd, newFaultText.trim()])
+                                                        setNewFaultText("")
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                if (newFaultText.trim()) {
+                                                    setFaultsToAdd([...faultsToAdd, newFaultText.trim()])
+                                                    setNewFaultText("")
+                                                }
+                                            }}
+                                            className="bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-black rounded-xl aspect-square p-0 w-12 shrink-0"
+                                        >
+                                            <Plus size={20} />
+                                        </Button>
+                                    </div>
+
+                                    {faultsToAdd.length > 0 && (
+                                        <div className="space-y-2">
+                                            {faultsToAdd.map((fault, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-xl border border-zinc-100 dark:border-white/10 shadow-sm animate-in slide-in-from-top-1">
+                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{fault}</span>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        onClick={() => setFaultsToAdd(prev => prev.filter((_, i) => i !== idx))}
+                                                        className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones / Novedades</Label>
+                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones Adicionales</Label>
                                 <Textarea
                                     value={observaciones}
                                     onChange={e => setObservaciones(e.target.value)}
-                                    className="bg-white dark:bg-white/5 py-3 min-h-[80px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
-                                    placeholder="Detalle cualquier novedad encontrada..."
+                                    className="bg-white dark:bg-white/5 py-3 min-h-[60px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                                    placeholder="Observaciones extra (opcional)..."
                                 />
                             </div>
                         </div>
@@ -499,7 +582,7 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                         </DialogFooter>
                     </>
                 )}
-            </DialogContent>
-        </Dialog>
+            </DialogContent >
+        </Dialog >
     )
 }

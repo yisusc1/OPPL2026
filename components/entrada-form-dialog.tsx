@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { CheckCircle, Send } from "lucide-react"
+import { CheckCircle, Send, Plus, Trash2, AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { VehicleSelector, Vehicle } from "@/components/vehicle-selector"
@@ -52,6 +52,10 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
     const router = useRouter()
     const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
     const [checks, setChecks] = useState<Record<string, boolean>>({})
+
+    // Fault Reporting State
+    const [faultsToAdd, setFaultsToAdd] = useState<string[]>([])
+    const [newFaultText, setNewFaultText] = useState("")
 
     useEffect(() => {
         if (isOpen) {
@@ -204,6 +208,19 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
             // Force Dashboard Refresh
             await revalidateGerencia()
 
+            // Insert explicit faults into fallas table
+            if (faultsToAdd.length > 0 && selectedReport?.vehiculo_id) {
+                const faultsInsert = faultsToAdd.map(desc => ({
+                    vehiculo_id: selectedReport.vehiculo_id,
+                    descripcion: `[Reporte Entrada] ${desc}`,
+                    tipo_falla: 'Mecánica',
+                    prioridad: 'Media',
+                    estado: 'Pendiente',
+                    created_at: new Date().toISOString()
+                }))
+                await supabase.from('fallas').insert(faultsInsert)
+            }
+
             toast.success("Entrada registrada correctamente")
 
             // WhatsApp Integration
@@ -226,6 +243,8 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
             setObservaciones("")
             setChecklistItems([])
             setChecks({})
+            setFaultsToAdd([])
+            setNewFaultText("")
 
         } catch (error) {
             console.error(error)
@@ -283,6 +302,12 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                 msg += `\n`
             }
         })
+
+        if (faultsToAdd.length > 0) {
+            msg += `*Fallas Reportadas:*\n`
+            faultsToAdd.forEach(f => msg += `• ${f}\n`)
+            msg += `\n`
+        }
 
         msg += `Observaciones: ${observaciones || 'Ninguna'}`
         return msg
@@ -431,13 +456,71 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                                 </div>
                             )}
 
+                            {/* Explicit Fault Reporting Section */}
+                            <div className="bg-zinc-50/50 dark:bg-white/[0.02] p-5 rounded-[24px] border border-zinc-100 dark:border-white/5 space-y-4">
+                                <h4 className="text-sm font-bold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                                    <AlertCircle size={16} />
+                                    Reportar Fallas
+                                </h4>
+
+                                <div className="space-y-3">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={newFaultText}
+                                            onChange={(e) => setNewFaultText(e.target.value)}
+                                            placeholder="Ej: Luz de freno quemada..."
+                                            className="bg-white dark:bg-white/5 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white focus-visible:ring-zinc-400"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault()
+                                                    if (newFaultText.trim()) {
+                                                        setFaultsToAdd([...faultsToAdd, newFaultText.trim()])
+                                                        setNewFaultText("")
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={() => {
+                                                if (newFaultText.trim()) {
+                                                    setFaultsToAdd([...faultsToAdd, newFaultText.trim()])
+                                                    setNewFaultText("")
+                                                }
+                                            }}
+                                            className="bg-zinc-900 dark:bg-white hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-black rounded-xl aspect-square p-0 w-12 shrink-0"
+                                        >
+                                            <Plus size={20} />
+                                        </Button>
+                                    </div>
+
+                                    {faultsToAdd.length > 0 && (
+                                        <div className="space-y-2">
+                                            {faultsToAdd.map((fault, idx) => (
+                                                <div key={idx} className="flex items-center justify-between bg-white dark:bg-white/5 p-3 rounded-xl border border-zinc-100 dark:border-white/10 shadow-sm animate-in slide-in-from-top-1">
+                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{fault}</span>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        onClick={() => setFaultsToAdd(prev => prev.filter((_, i) => i !== idx))}
+                                                        className="h-8 w-8 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones / Novedades</Label>
+                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones Adicionales</Label>
                                 <Textarea
                                     value={observaciones}
                                     onChange={e => setObservaciones(e.target.value)}
-                                    className="bg-white dark:bg-white/5 py-3 min-h-[80px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
-                                    placeholder="Detalle cualquier novedad encontrada..."
+                                    className="bg-white dark:bg-white/5 py-3 min-h-[60px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
+                                    placeholder="Observaciones extra (opcional)..."
                                 />
                             </div>
                         </div>
