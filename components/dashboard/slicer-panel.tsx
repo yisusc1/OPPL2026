@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, ChevronDown, Filter, X } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Filter, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +22,13 @@ interface FilterDropdownProps {
 }
 
 function FilterDropdown({ title, items, selectedItems, onChange }: FilterDropdownProps) {
+    const [searchTerm, setSearchTerm] = useState("");
     const count = selectedItems.length;
     const isActive = count > 0;
+
+    const filteredItems = items.filter(item =>
+        item.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <DropdownMenu>
@@ -31,53 +37,68 @@ function FilterDropdown({ title, items, selectedItems, onChange }: FilterDropdow
                     variant={isActive ? "secondary" : "outline"}
                     size="sm"
                     className={cn(
-                        "h-7 rounded-full px-3 text-xs border-dashed transition-all",
+                        "h-8 rounded-lg px-3 text-xs border border-zinc-200 dark:border-zinc-800 transition-all shadow-sm font-medium",
                         isActive
-                            ? "bg-primary/10 border-primary/50 text-foreground font-semibold"
-                            : "bg-background/50 border-border md:hover:bg-muted/50 text-muted-foreground"
+                            ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
+                            : "bg-white dark:bg-zinc-900/50 md:hover:bg-zinc-100 dark:md:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                     )}
                 >
                     {title}
                     {count > 0 && (
-                        <span className="ml-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-primary px-1 text-[9px] text-primary-foreground font-bold">
+                        <span className="ml-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-white/20 px-1 text-[10px] text-white font-bold">
                             {count}
                         </span>
                     )}
-                    <ChevronDown className={cn("ml-1 h-3 w-3 opacity-50 transition-transform", isActive && "opacity-100")} />
+                    <ChevronDown className={cn("ml-1.5 h-3.5 w-3.5 opacity-50 transition-transform", isActive && "opacity-100")} />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[200px] bg-popover/95 backdrop-blur-md">
-                <DropdownMenuLabel className="text-xs font-bold uppercase text-muted-foreground">{title}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                    {items.map((item) => (
-                        <DropdownMenuCheckboxItem
-                            key={item}
-                            checked={selectedItems.includes(item)}
-                            onCheckedChange={() => onChange(item)}
-                            className="text-xs cursor-pointer focus:bg-accent focus:text-accent-foreground"
-                        >
-                            {item}
-                        </DropdownMenuCheckboxItem>
-                    ))}
+            <DropdownMenuContent align="start" className="w-[220px] bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl rounded-xl custom-scrollbar" onCloseAutoFocus={(e) => e.preventDefault()}>
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-zinc-900 z-10">
+                    <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <input
+                        type="text"
+                        placeholder={`Buscar...`}
+                        className="flex-1 bg-transparent text-xs text-foreground placeholder:text-muted-foreground focus:outline-none"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => e.stopPropagation()}
+                    />
                 </div>
-                {isActive && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <div className="p-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="w-full text-xs h-6 justify-center text-muted-foreground hover:text-foreground"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    selectedItems.forEach(i => onChange(i)); // Deselect all
-                                }}
+
+                <div className="max-h-[250px] overflow-y-auto p-1 custom-scrollbar">
+                    {filteredItems.length === 0 ? (
+                        <div className="p-3 text-xs text-center text-muted-foreground">No se encontraron resultados</div>
+                    ) : (
+                        filteredItems.map((item) => (
+                            <DropdownMenuCheckboxItem
+                                key={item}
+                                checked={selectedItems.includes(item)}
+                                onCheckedChange={() => onChange(item)}
+                                onSelect={(e) => e.preventDefault()}
+                                className="text-xs cursor-pointer rounded-md focus:bg-zinc-100 dark:focus:bg-zinc-800/50 focus:text-foreground pl-8 py-2"
                             >
-                                Limpiar filtros
-                            </Button>
-                        </div>
-                    </>
+                                <span className="truncate">{item}</span>
+                            </DropdownMenuCheckboxItem>
+                        ))
+                    )}
+                </div>
+
+                {isActive && (
+                    <div className="p-2 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 sticky bottom-0 z-10">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-xs h-7 justify-center text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-md"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                selectedItems.forEach(i => onChange(i)); // Deselect all
+                                setSearchTerm("");
+                            }}
+                        >
+                            <X className="w-3 h-3 mr-1" />
+                            Limpiar seleccion
+                        </Button>
+                    </div>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>
@@ -133,7 +154,7 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
 
             <FilterDropdown
                 title="Estatus"
-                items={statuses.length > 0 ? statuses : ["Activo", "Pendiente", "Cancelado"]}
+                items={statuses.length > 0 ? statuses : ["Activo", "Pendiente", "Cancelado"].sort()}
                 selectedItems={currentFilters.statuses}
                 onChange={(item) => handleToggle('statuses', item)}
             />

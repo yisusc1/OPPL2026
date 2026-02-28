@@ -184,14 +184,24 @@ export default function DashboardPage() {
         });
 
         return {
-            advisors: unique('asesor'),
-            zones: unique('zona'),
-            sectors: unique('sector'),
-            statuses: unique('estatus'),
+            advisors: unique('asesor').sort(),
+            zones: unique('zona').sort(),
+            sectors: unique('sector').sort(),
+            statuses: unique('estatus').sort(),
             months: unique('mes'), // Ensure 'months' is available if used
             technicians: Array.from(allTechs).sort()
         };
     }, [rawData]);
+
+    // Cascading options (e.g. Sectors depend on Zones)
+    const dynamicSectors = useMemo(() => {
+        if (filters.zones.length === 0) {
+            return options.sectors;
+        }
+
+        const filteredByZone = rawData.filter(i => filters.zones.includes(i.zona));
+        return Array.from(new Set(filteredByZone.map(i => String(i.sector || "")))).filter(Boolean).sort();
+    }, [rawData, filters.zones, options.sectors]);
 
     const handleFilterChange = (type: keyof typeof filters, value: string) => {
         setFilters(prev => {
@@ -441,7 +451,7 @@ export default function DashboardPage() {
                 <SlicerPanel
                     advisors={options.advisors}
                     zones={options.zones}
-                    sectors={options.sectors}
+                    sectors={dynamicSectors}
                     statuses={options.statuses}
                     months={options.months || []}
                     technicians={options.technicians}
