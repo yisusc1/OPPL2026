@@ -28,6 +28,7 @@ type Reporte = {
         placa: string
         codigo: string
         tipo: string
+        odometro_averiado?: boolean
     }
 }
 
@@ -99,7 +100,7 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                 conductor,
                 departamento,
                 created_at,
-                vehiculos ( modelo, placa, codigo, tipo, department )
+                vehiculos ( modelo, placa, codigo, tipo, department, odometro_averiado )
             `)
             .is('km_entrada', null)
             .order('created_at', { ascending: false })
@@ -132,8 +133,12 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
         }
 
         const km = parseInt(kmEntrada)
-        if (selectedReport && km < selectedReport.km_salida) {
-            toast.error(`Error: El KM de entrada (${km}) es menor al de salida (${selectedReport.km_salida})`)
+        // @ts-ignore
+        const veh = selectedReport?.vehiculos
+        const isBrokenOdometer = (Array.isArray(veh) ? veh[0] : veh)?.odometro_averiado || false
+
+        if (!isBrokenOdometer && selectedReport && km <= selectedReport.km_salida) {
+            toast.error(`Error: El KM de entrada (${km}) debe ser mayor al de salida (${selectedReport.km_salida})`)
             return
         }
 
