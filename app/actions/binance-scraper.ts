@@ -24,7 +24,7 @@ export async function scrapeBinanceRate(): Promise<BinanceRate | null> {
                 tradeType: "BUY", // "BUY" means user is buying USDT with VES
                 fiat: "VES"
             }),
-            next: { revalidate: 300, tags: ['binance-rate'] } // Cache for 5 minutes
+            next: { revalidate: 86400, tags: ['binance-rate'] } // Cache for 24 hours
         });
 
         if (!res.ok) {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DollarSign, Clock, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { scrapeBCVRate, ExchangeRate } from "@/app/actions/bcv-scraper";
+import { scrapeBCVRate, ExchangeRate, forceRevalidateRates } from "@/app/actions/bcv-scraper";
 import { scrapeBinanceRate, BinanceRate } from "@/app/actions/binance-scraper";
 
 export function BCVRate() {
@@ -12,10 +12,32 @@ export function BCVRate() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
-    const fetchRate = async () => {
+    const loadRates = async (force = false) => {
         try {
             setLoading(true);
             setError(false);
+
+            if (!force) {
+                const cached = localStorage.getItem("dashboard_exchange_rates");
+                if (cached) {
+                    try {
+                        const parsed = JSON.parse(cached);
+                        // 86400000 = 24 hours
+                        if (Date.now() - parsed.timestamp < 86400000) {
+                            setRate(parsed.bcv);
+                            setBinanceRate(parsed.binance);
+                            setLoading(false);
+                            return;
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse cached rates", e);
+                    }
+                }
+            } else {
+                // Manually dropping Next.js cache so the next calls actually hit the servers
+                await forceRevalidateRates();
+            }
+
             const [bcvData, binanceData] = await Promise.all([
                 scrapeBCVRate(),
                 scrapeBinanceRate()
@@ -27,6 +49,12 @@ export function BCVRate() {
             if (binanceData) {
                 setBinanceRate(binanceData);
             }
+
+            localStorage.setItem("dashboard_exchange_rates", JSON.stringify({
+                timestamp: Date.now(),
+                bcv: bcvData,
+                binance: binanceData
+            }));
         } catch (err) {
             console.error("Error fetching rates:", err);
             setError(true);
@@ -36,10 +64,7 @@ export function BCVRate() {
     };
 
     useEffect(() => {
-        fetchRate();
-        // Optional: refresh every 1 hour (3600000 ms)
-        const interval = setInterval(fetchRate, 3600000);
-        return () => clearInterval(interval);
+        loadRates();
     }, []);
 
     if (error) {
@@ -53,7 +78,14 @@ export function BCVRate() {
     return (
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
             {/* BCV Rate */}
-            <div className="flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit">
+            <div
+                onClick={() => loadRates(true)}
+                className={cn(
+                    "flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit",
+                    "cursor-pointer hover:bg-muted/50 transition-colors group"
+                )}
+                title="Haz clic para actualizar"
+            >
                 <div className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-500">
                     {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <DollarSign className="w-3.5 h-3.5" />}
                 </div>
@@ -82,8 +114,15 @@ export function BCVRate() {
             </div>
 
             {/* Binance Rate */}
-            {binanceRate && !loading && !error && (
-                <div className="flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit">
+            {binanceRate && !error && (
+                <div
+                    onClick={() => loadRates(true)}
+                    className={cn(
+                        "flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit",
+                        "cursor-pointer hover:bg-muted/50 transition-colors group"
+                    )}
+                    title="Haz clic para actualizar"
+                >
                     <div className="flex items-center justify-center w-6 h-6 rounded-full bg-yellow-500/20 text-yellow-500">
                         {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <DollarSign className="w-3.5 h-3.5" />}
                     </div>

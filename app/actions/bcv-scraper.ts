@@ -17,7 +17,7 @@ export async function scrapeBCVRate(): Promise<ExchangeRate | null> {
 
     try {
         const res = await fetch("https://www.bcv.org.ve/", {
-            next: { revalidate: 3600, tags: ['bcv-rate'] }, // Cache for 1 hour
+            next: { revalidate: 86400, tags: ['bcv-rate'] }, // Cache for 24 hours
             headers: {
                 // BCV sometimes blocks requests without a standard User-Agent
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -76,4 +76,9 @@ export async function scrapeBCVRate(): Promise<ExchangeRate | null> {
             delete process.env.NODE_TLS_REJECT_UNAUTHORIZED;
         }
     }
+}
+
+export async function forceRevalidateRates() {
+    revalidateTag('bcv-rate');
+    revalidateTag('binance-rate');
 }
