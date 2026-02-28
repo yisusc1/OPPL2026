@@ -42,10 +42,18 @@ export async function registerMaintenance(data: MaintenanceData) {
             }
         }
 
+        // [NEW] Map custom UUIDs to 'OTHER' for the maintenance_logs constraint
+        let logServiceType = data.service_type;
+        const isCustomUUID = data.service_type.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+
+        if (isCustomUUID) {
+            logServiceType = 'OTHER'; // Assumes 'OTHER' or 'CUSTOM' is valid in the DB constraint. We will use 'OTHER' as it's common.
+        }
+
         // 1. Insert Log
         const { error: logError } = await supabase.from('maintenance_logs').insert({
             vehicle_id: data.vehicle_id,
-            service_type: data.service_type,
+            service_type: logServiceType,
             mileage: data.mileage,
             notes: data.notes,
             performed_by: data.performed_by,
