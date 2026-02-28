@@ -44,6 +44,14 @@ type Vehicle = {
         tipo_falla: string
     }
     activeReport?: any // [NEW]
+    maintenance_configs?: {
+        id: string
+        service_type: string
+        custom_name?: string
+        interval_value: number
+        is_time_based: boolean
+        last_service_value: number
+    }[]
 }
 
 type Fault = {
@@ -394,7 +402,7 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                     </div>
                                 )}
 
-                                {/* Maintenance Section */}
+                                {/* Dynamic Maintenance Section */}
                                 <div className="mt-6 mb-6">
                                     <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-3 flex items-center gap-2">
                                         <Wrench className="text-zinc-400" size={16} />
@@ -402,175 +410,104 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                     </h3>
 
                                     <div className="space-y-4">
-                                        {/* Oil Change */}
-                                        <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Droplets size={16} className="text-amber-500" />
-                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Cambio de Aceite</span>
-                                                </div>
-                                                <span className="text-xs text-zinc-400 font-mono">
-                                                    Último: {vehicle.last_oil_change_km ? vehicle.last_oil_change_km.toLocaleString() + ' km' : 'N/A'}
-                                                </span>
-                                            </div>
+                                        {vehicle.maintenance_configs && vehicle.maintenance_configs.length > 0 ? (
+                                            vehicle.maintenance_configs.map((config, index) => {
+                                                // Icon & Label Mapping
+                                                let Icon = Wrench;
+                                                let iconColor = "text-purple-500";
+                                                let label = config.custom_name || "Mantenimiento";
 
-                                            {vehicle.last_oil_change_km && vehicle.kilometraje ? (() => {
-                                                const interval = 5000 // 5k for oil
-                                                const driven = (vehicle.kilometraje || 0) - vehicle.last_oil_change_km
-                                                const progress = Math.min(100, (driven / interval) * 100)
-                                                const remaining = Math.max(0, interval - driven)
-                                                const statusColor = progress >= 90 ? 'bg-red-500' : progress >= 75 ? 'bg-yellow-500' : 'bg-emerald-500'
+                                                if (config.service_type === 'OIL_CHANGE') { Icon = Droplets; iconColor = "text-amber-500"; label = "Cambio de Aceite"; }
+                                                else if (config.service_type === 'TIMING_BELT') { Icon = Gauge; iconColor = "text-blue-500"; label = "Correa de Tiempo"; }
+                                                else if (config.service_type === 'CHAIN_KIT') { Icon = Bike; iconColor = "text-zinc-600 dark:text-zinc-400"; label = "Kit de Arrastre"; }
+                                                else if (config.service_type === 'WASH') { Icon = Droplets; iconColor = "text-cyan-500"; label = "Lavado y Aspirado"; }
+
+                                                const isTimeBased = config.is_time_based;
 
                                                 return (
-                                                    <div>
-                                                        <div className="flex justify-between text-xs mb-1.5">
-                                                            <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
-                                                            <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                                                                {remaining.toLocaleString()} km restantes
+                                                    <div key={config.id || index} className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
+                                                        <div className="flex justify-between items-center mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <Icon size={16} className={iconColor} />
+                                                                <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</span>
+                                                            </div>
+                                                            <span className="text-xs text-zinc-400 font-mono">
+                                                                Último: {config.last_service_value ? (
+                                                                    isTimeBased
+                                                                        ? new Date(Number(config.last_service_value)).toLocaleDateString()
+                                                                        : Number(config.last_service_value).toLocaleString() + ' km'
+                                                                ) : 'N/A'}
                                                             </span>
                                                         </div>
-                                                        <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
-                                                            <div
-                                                                className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
-                                                                style={{ width: `${progress}%` }}
-                                                            />
-                                                        </div>
+
+                                                        {config.last_service_value ? (() => {
+                                                            if (isTimeBased) {
+                                                                const lastService = new Date(Number(config.last_service_value))
+                                                                const today = new Date()
+                                                                const diffTime = Math.abs(today.getTime() - lastService.getTime())
+                                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+                                                                // Progress based on interval
+                                                                const intervalDays = config.interval_value || 15
+                                                                const progress = Math.min(100, (diffDays / intervalDays) * 100)
+                                                                const remainingDays = Math.max(0, intervalDays - diffDays)
+
+                                                                const statusColor = progress >= 100 ? 'bg-red-500' : progress >= 75 ? 'bg-yellow-500' : 'bg-cyan-500'
+
+                                                                return (
+                                                                    <div>
+                                                                        <div className="flex justify-between text-xs mb-1.5">
+                                                                            <span className="text-zinc-500 dark:text-zinc-400">Hace: {diffDays} días</span>
+                                                                            <span className={`font-bold ${progress >= 100 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                                                                                {remainingDays > 0 ? `${remainingDays} días restantes` : 'Vencido'}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
+                                                                                style={{ width: `${progress}%` }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            } else {
+                                                                // Mileage based
+                                                                if (!vehicle.kilometraje) return <div className="text-xs text-zinc-400 italic">Kilometraje de vehículo desconocido</div>
+
+                                                                const interval = config.interval_value || 5000
+                                                                const driven = vehicle.kilometraje - Number(config.last_service_value)
+                                                                const progress = Math.min(100, (driven / interval) * 100)
+                                                                const remaining = Math.max(0, interval - driven)
+                                                                const statusColor = progress >= 100 ? 'bg-red-500' : progress >= 75 ? 'bg-yellow-500' : 'bg-emerald-500'
+
+                                                                return (
+                                                                    <div>
+                                                                        <div className="flex justify-between text-xs mb-1.5">
+                                                                            <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
+                                                                            <span className={`font-bold ${progress >= 100 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
+                                                                                {remaining > 0 ? `${remaining.toLocaleString()} km restantes` : 'Vencido'}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
+                                                                            <div
+                                                                                className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
+                                                                                style={{ width: `${progress}%` }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                )
+                                                            }
+                                                        })() : (
+                                                            <div className="text-xs text-zinc-400 italic">Sin información de servicio</div>
+                                                        )}
                                                     </div>
                                                 )
-                                            })() : (
-                                                <div className="text-xs text-zinc-400 italic">Sin información de servicio</div>
-                                            )}
-                                        </div>
-
-                                        {/* Timing Belt - Hide for Motos & Chain/Gear Vehicles */}
-                                        {(() => {
-                                            const model = vehicle.modelo?.toUpperCase() || ''
-                                            const type = vehicle.tipo?.toLowerCase() || (model.includes('MOTO') ? 'moto' : '')
-                                            const hideFor = ['HILUX', 'TRITON', 'DONFENG', 'RICH', 'NKR'] // Vehicles with Chains or Gears
-
-                                            if (type === 'moto') return null
-                                            if (hideFor.some(keyword => model.includes(keyword))) return null
-
-                                            return (
-                                                <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                                                    <div className="flex justify-between items-center mb-2">
-                                                        <div className="flex items-center gap-2">
-                                                            <Gauge size={16} className="text-blue-500" />
-                                                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Correa de Tiempo</span>
-                                                        </div>
-                                                        <span className="text-xs text-zinc-400 font-mono">
-                                                            Último: {vehicle.last_timing_belt_km ? vehicle.last_timing_belt_km.toLocaleString() + ' km' : 'N/A'}
-                                                        </span>
-                                                    </div>
-
-                                                    {vehicle.last_timing_belt_km && vehicle.kilometraje ? (() => {
-                                                        const interval = 50000 // 50k for belt
-                                                        const driven = (vehicle.kilometraje || 0) - vehicle.last_timing_belt_km
-                                                        const progress = Math.min(100, (driven / interval) * 100)
-                                                        const remaining = Math.max(0, interval - driven)
-                                                        const statusColor = progress >= 90 ? 'bg-red-500' : progress >= 75 ? 'bg-yellow-500' : 'bg-blue-500'
-
-                                                        return (
-                                                            <div>
-                                                                <div className="flex justify-between text-xs mb-1.5">
-                                                                    <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
-                                                                    <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                                                                        {remaining.toLocaleString()} km restantes
-                                                                    </span>
-                                                                </div>
-                                                                <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
-                                                                    <div
-                                                                        className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
-                                                                        style={{ width: `${progress}%` }}
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    })() : (
-                                                        <div className="text-xs text-zinc-400 italic">Sin información de servicio</div>
-                                                    )}
-                                                </div>
-                                            )
-                                        })()}
-
-                                        {/* Chain Kit - Only for Motos */}
-                                        {(vehicle.tipo?.toLowerCase() === 'moto' || vehicle.modelo?.toLowerCase().includes('moto')) && (
-                                            <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <Bike size={16} className="text-zinc-600 dark:text-zinc-400" />
-                                                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Kit de Arrastre</span>
-                                                    </div>
-                                                    <span className="text-xs text-zinc-400 font-mono">
-                                                        Último: {vehicle.last_chain_kit_km ? vehicle.last_chain_kit_km.toLocaleString() + ' km' : 'N/A'}
-                                                    </span>
-                                                </div>
-
-                                                {vehicle.last_chain_kit_km && vehicle.kilometraje ? (() => {
-                                                    const interval = 20000 // 20k for chain kit
-                                                    const driven = (vehicle.kilometraje || 0) - vehicle.last_chain_kit_km
-                                                    const progress = Math.min(100, (driven / interval) * 100)
-                                                    const remaining = Math.max(0, interval - driven)
-                                                    const statusColor = progress >= 90 ? 'bg-red-500' : progress >= 75 ? 'bg-yellow-500' : 'bg-blue-500'
-
-                                                    return (
-                                                        <div>
-                                                            <div className="flex justify-between text-xs mb-1.5">
-                                                                <span className="text-zinc-500 dark:text-zinc-400">Recorrido: {driven.toLocaleString()} km</span>
-                                                                <span className={`font-bold ${progress >= 90 ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-300'}`}>
-                                                                    {remaining.toLocaleString()} km restantes
-                                                                </span>
-                                                            </div>
-                                                            <div className="h-2 w-full bg-zinc-100 dark:bg-zinc-700/50 rounded-full overflow-hidden">
-                                                                <div
-                                                                    className={`h-full rounded-full transition-all duration-500 ${statusColor}`}
-                                                                    style={{ width: `${progress}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })() : (
-                                                    <div className="text-xs text-zinc-400 italic dark:text-zinc-500">Sin información de servicio</div>
-                                                )}
+                                            })
+                                        ) : (
+                                            <div className="text-center p-4 border border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-500 dark:text-zinc-400 text-xs">
+                                                No hay configuraciones de mantenimiento.
                                             </div>
                                         )}
-
-                                        {/* Washing - For All */}
-                                        <div className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-700 shadow-sm">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <Droplets size={16} className="text-cyan-500" />
-                                                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Lavado y Aspirado</span>
-                                                </div>
-                                            </div>
-
-                                            {vehicle.last_wash_date ? (() => {
-                                                const lastWash = new Date(vehicle.last_wash_date)
-                                                const today = new Date()
-                                                const diffTime = Math.abs(today.getTime() - lastWash.getTime())
-                                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-                                                const statusColor = diffDays > 15 ? 'text-red-500 bg-red-50 border-red-100 dark:bg-red-900/20 dark:border-red-900/30' : diffDays > 7 ? 'text-yellow-600 bg-yellow-50 border-yellow-100 dark:bg-yellow-900/20 dark:border-yellow-900/30 dark:text-yellow-400' : 'text-cyan-600 bg-cyan-50 border-cyan-100 dark:bg-cyan-900/20 dark:border-cyan-900/30 dark:text-cyan-400'
-                                                const statusText = diffDays > 15 ? 'Necesita Lavado' : diffDays > 7 ? 'Aceptable' : 'Limpio'
-
-                                                return (
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                                                            Hace {diffDays} días ({lastWash.toLocaleDateString()})
-                                                        </span>
-                                                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${statusColor}`}>
-                                                            {statusText}
-                                                        </span>
-                                                    </div>
-                                                )
-                                            })() : (
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-xs text-zinc-400 italic">Sin registro de lavado</span>
-                                                    <span className="text-[10px] font-bold px-2 py-1 rounded-full border bg-zinc-50 border-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:border-zinc-700">
-                                                        Desconocido
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
 

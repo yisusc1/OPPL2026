@@ -18,6 +18,13 @@ type Vehicle = {
     modelo: string
     tipo: string
     kilometraje?: number
+    maintenance_configs?: {
+        id: string
+        service_type: string
+        custom_name?: string
+        interval_value: number
+        is_time_based: boolean
+    }[]
 }
 
 interface MaintenanceRegistrationDialogProps {
@@ -66,8 +73,8 @@ export function MaintenanceRegistrationDialog({
         setLoadingVehicles(true)
         const supabase = createClient()
 
-        // Fetch vehicles and current mileage
-        const { data: vData } = await supabase.from('vehiculos').select('id, placa, modelo, tipo')
+        // Fetch vehicles, current mileage, and maintenance configs
+        const { data: vData } = await supabase.from('vehiculos').select('id, placa, modelo, tipo, vehicle_maintenance_configs(*)')
         const { data: kData } = await supabase.from('vista_ultimos_kilometrajes').select('*')
 
         if (vData) {
@@ -275,45 +282,54 @@ export function MaintenanceRegistrationDialog({
                         <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                             <Label className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tipo de Servicio</Label>
                             <div className="grid grid-cols-2 gap-3">
-                                {[
-                                    { id: 'OIL_CHANGE', label: 'Cambio de Aceite', icon: Droplets },
-                                    { id: 'TIMING_BELT', label: 'Correa de Tiempo', icon: Timer },
-                                    { id: 'CHAIN_KIT', label: 'Kit de Arrastre', icon: Bike },
-                                    { id: 'WASH', label: 'Lavado', icon: Droplets },
-                                ].map((service) => {
-                                    // Filter logic (Motorcycles etc)
-                                    if (selectedVehicle) {
-                                        const model = selectedVehicle.modelo.toUpperCase()
-                                        const isMoto = model.includes('MOTO') || selectedVehicle.tipo?.toLowerCase() === 'moto'
-                                        const hasChainOrGear = ['HILUX', 'TRITON', 'DONFENG', 'RICH', 'NKR'].some(k => model.includes(k))
+                                {(() => {
+                                    const configs = selectedVehicle.maintenance_configs || []
+                                    const options = configs.map(config => {
+                                        let icon = Command;
+                                        let label = config.custom_name || "Mantenimiento";
 
-                                        if (service.id === 'TIMING_BELT' && (isMoto || hasChainOrGear)) return null
-                                        if (service.id === 'CHAIN_KIT' && !isMoto) return null
+                                        if (config.service_type === 'OIL_CHANGE') { icon = Droplets; label = "Cambio de Aceite"; }
+                                        else if (config.service_type === 'TIMING_BELT') { icon = Timer; label = "Correa de Tiempo"; }
+                                        else if (config.service_type === 'CHAIN_KIT') { icon = Bike; label = "Kit de Arrastre"; }
+                                        else if (config.service_type === 'WASH') { icon = Droplets; label = "Lavado y Aspirado"; }
+
+                                        return { id: config.id, label, icon }
+                                    });
+
+                                    if (options.length === 0) {
+                                        return <div className="col-span-2 text-center text-zinc-500 text-xs py-4 border border-dashed rounded-xl border-zinc-200 dark:border-white/10">Este vehículo no tiene mantenimientos configurados. Configurelos en el panel de Administración.</div>
                                     }
 
-                                    const isSelected = serviceType === service.id
-                                    const isDisabled = lockServiceType && initialServiceType !== service.id
+                                    return options.map((service) => {
+                                        const isSelected = serviceType === service.id || (initialServiceType && service.id === initialServiceType)
+                                        const isDisabled = lockServiceType && initialServiceType !== service.id
 
-                                    if (isDisabled && !isSelected) return null
+                                        if (isDisabled && !isSelected) return null
 
-                                    return (
-                                        <button
-                                            key={service.id}
-                                            onClick={() => !lockServiceType && setServiceType(service.id)}
-                                            disabled={lockServiceType}
-                                            className={`p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all
-                                                ${isSelected
-                                                    ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-white/10 text-zinc-900 dark:text-white'
-                                                    : 'border-zinc-100 dark:border-white/5 bg-white dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-white/10'
-                                                }
-                                                ${lockServiceType ? 'cursor-default opacity-70' : ''}
-                                            `}
-                                        >
-                                            <service.icon size={24} className={isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'} />
-                                            <span className="font-medium text-sm">{service.label}</span>
-                                        </button>
-                                    )
-                                })}
+                                        // Auto-select if predefined
+                                        if (isSelected && serviceType !== service.id && !lockServiceType) {
+                                            setTimeout(() => setServiceType(service.id), 0)
+                                        }
+
+                                        return (
+                                            <button
+                                                key={service.id}
+                                                onClick={() => !lockServiceType && setServiceType(service.id)}
+                                                disabled={lockServiceType}
+                                                className={`p-4 rounded-xl border-2 flex flex-col items-center gap-3 transition-all
+                                                    ${isSelected
+                                                        ? 'border-zinc-900 dark:border-white bg-zinc-50 dark:bg-white/10 text-zinc-900 dark:text-white'
+                                                        : 'border-zinc-100 dark:border-white/5 bg-white dark:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:border-zinc-200 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-white/10'
+                                                    }
+                                                    ${lockServiceType ? 'cursor-default opacity-70' : ''}
+                                                `}
+                                            >
+                                                <service.icon size={24} className={isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'} />
+                                                <span className="font-medium text-sm text-center leading-tight">{service.label}</span>
+                                            </button>
+                                        )
+                                    })
+                                })()}
                             </div>
                         </div>
                     )}

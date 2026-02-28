@@ -108,10 +108,10 @@ export default function TallerPage() {
 
             if (error) throw error
 
-            // 2. Fetch Vehicles & Mileage for Maintenance Checks
+            // 2. Fetch Vehicles, Mileage, and Maintenance Configs
             const { data: vehiclesData } = await supabase
                 .from('vehiculos')
-                .select('*')
+                .select('*, vehicle_maintenance_configs(*)')
                 .order('modelo', { ascending: true })
 
             setVehicles(vehiclesData || [])
@@ -124,62 +124,72 @@ export default function TallerPage() {
 
             vehicles?.forEach(v => {
                 const km = mileageData?.find(m => m.vehiculo_id === v.id)?.ultimo_kilometraje || 0
-                const model = v.modelo.toUpperCase()
-                const isMoto = model.includes('MOTO') || v.tipo?.toLowerCase() === 'moto'
-                const hasChainOrGear = ['HILUX', 'TRITON', 'DONFENG', 'RICH', 'NKR'].some(k => model.includes(k))
 
                 // Check for existing active maintenance to avoid duplicates
                 // We check if there is any active fault for this vehicle with 'Mantenimiento' type
-                // and a matching description keyword (Aceite, Correa, Kit)
                 const activeFaults = faultsData?.filter(f =>
                     f.vehiculo_id === v.id &&
                     f.tipo_falla === 'Mantenimiento' &&
                     (f.estado === 'Pendiente' || f.estado === 'En Revisión')
                 ) || []
 
-                // Rules
-                // [Modified] Dynamic Oil Limit: 2000km for Motos, 5000km for others
-                const OIL_LIMIT = isMoto ? 2000 : 5000
-                const OIL_WARN = isMoto ? 1800 : 4500
+                // Iterate over each maintenance configuration for this vehicle
+                const configs = v.vehicle_maintenance_configs || []
 
-                const BELT_LIMIT = 50000
-                const BELT_WARN = 49000
-                const CHAIN_LIMIT = 20000
-                const CHAIN_WARN = 19000
+                configs.forEach((config: any) => {
+                    const isTimeBased = config.is_time_based
+                    const interval = config.interval_value
+                    if (!interval) return
 
-                // Check Oil
-                const distOil = km - (v.last_oil_change_km || 0)
-                if (distOil >= OIL_WARN) {
-                    const alreadyExists = activeFaults.some(f => f.descripcion.includes('Aceite'))
-                    if (!alreadyExists) {
-                        maintenanceAlerts.push({
-                            id: `maint-oil-${v.id}`,
-                            vehiculo_id: v.id,
-                            descripcion: `Mantenimiento Preventivo Requerido: Cambio de Aceite (Uso: ${distOil.toLocaleString()} km)`,
-                            tipo_falla: 'Mantenimiento',
-                            prioridad: distOil >= OIL_LIMIT ? 'Crítica' : 'Alta',
-                            created_at: new Date().toISOString(),
-                            estado: 'Pendiente',
-                            placa: v.placa,
-                            modelo: v.modelo,
-                            foto_url: v.foto_url,
-                            isMaintenance: true
-                        })
+                    let needsService = false
+                    let priority = 'Alta'
+                    let usageText = ''
+                    let keyword = config.custom_name || 'Mantenimiento'
+                    if (config.service_type === 'OIL_CHANGE') keyword = 'Aceite'
+                    if (config.service_type === 'TIMING_BELT') keyword = 'Correa'
+                    if (config.service_type === 'CHAIN_KIT') keyword = 'Kit de Arrastre'
+                    if (config.service_type === 'WASH') keyword = 'Lavado'
+
+                    if (isTimeBased) {
+                        const lastService = config.last_service_value ? new Date(Number(config.last_service_value)) : new Date()
+                        const today = new Date()
+                        const diffDays = Math.max(0, Math.ceil((today.getTime() - lastService.getTime()) / (1000 * 60 * 60 * 24)))
+
+                        if (diffDays >= interval) {
+                            needsService = true;
+                            priority = 'Crítica'
+                            usageText = `${diffDays} días`
+                        } else if (diffDays >= interval * 0.9) { // 90% threshold for warning
+                            needsService = true;
+                            priority = 'Alta'
+                            usageText = `${diffDays} días`
+                        }
+                    } else {
+                        // Mileage based
+                        const lastServiceKm = Number(config.last_service_value) || 0
+                        const diffKm = km - lastServiceKm
+
+                        // Example: warn at 90% of interval
+                        const warnThreshold = interval * 0.9
+
+                        if (diffKm >= warnThreshold) {
+                            needsService = true
+                            priority = diffKm >= interval ? 'Crítica' : 'Alta'
+                            usageText = `${diffKm.toLocaleString()} km`
+                        }
                     }
-                }
 
-                // Check Belt
-                if (!isMoto && !hasChainOrGear) {
-                    const distBelt = km - (v.last_timing_belt_km || 0)
-                    if (distBelt >= BELT_WARN) {
-                        const alreadyExists = activeFaults.some(f => f.descripcion.includes('Correa'))
+                    if (needsService) {
+                        // Check if it's already active to avoid duplicates
+                        const alreadyExists = activeFaults.some(f => f.descripcion.includes(keyword))
                         if (!alreadyExists) {
+                            const descName = config.custom_name && config.service_type === 'CUSTOM' ? config.custom_name : keyword
                             maintenanceAlerts.push({
-                                id: `maint-belt-${v.id}`,
+                                id: `maint-${config.id}`,
                                 vehiculo_id: v.id,
-                                descripcion: `Mantenimiento Preventivo Requerido: Correa de Tiempo (Uso: ${distBelt.toLocaleString()} km)`,
+                                descripcion: `Mantenimiento Preventivo Requerido: ${descName} (Uso: ${usageText})`,
                                 tipo_falla: 'Mantenimiento',
-                                prioridad: distBelt >= BELT_LIMIT ? 'Crítica' : 'Alta',
+                                prioridad: priority,
                                 created_at: new Date().toISOString(),
                                 estado: 'Pendiente',
                                 placa: v.placa,
@@ -189,30 +199,7 @@ export default function TallerPage() {
                             })
                         }
                     }
-                }
-
-                // Check Chain
-                if (isMoto) {
-                    const distChain = km - (v.last_chain_kit_km || 0)
-                    if (distChain >= CHAIN_WARN) {
-                        const alreadyExists = activeFaults.some(f => f.descripcion.includes('Kit de Arrastre'))
-                        if (!alreadyExists) {
-                            maintenanceAlerts.push({
-                                id: `maint-chain-${v.id}`,
-                                vehiculo_id: v.id,
-                                descripcion: `Mantenimiento Preventivo Requerido: Kit de Arrastre (Uso: ${distChain.toLocaleString()} km)`,
-                                tipo_falla: 'Mantenimiento',
-                                prioridad: distChain >= CHAIN_LIMIT ? 'Crítica' : 'Alta',
-                                created_at: new Date().toISOString(),
-                                estado: 'Pendiente',
-                                placa: v.placa,
-                                modelo: v.modelo,
-                                foto_url: v.foto_url,
-                                isMaintenance: true
-                            })
-                        }
-                    }
-                }
+                })
             })
 
             // 4. Merge
@@ -334,14 +321,17 @@ export default function TallerPage() {
             setSelectedVehicleId(fault.vehiculo_id)
             setPendingResolveId(fault.id)
 
-            // Determine Service Type from Description
+            // Determine Service Type from Alert ID if it's synthetic
             let serviceCode: string | undefined = undefined
-            const desc = (fault.descripcion || "").toLowerCase()
-
-            if (desc.includes('aceite')) serviceCode = 'OIL_CHANGE'
-            else if (desc.includes('correa')) serviceCode = 'TIMING_BELT'
-            else if (desc.includes('arrastre') || desc.includes('cadena') || desc.includes('kit')) serviceCode = 'CHAIN_KIT'
-            else if (desc.includes('lavado')) serviceCode = 'WASH'
+            if (fault.id.startsWith('maint-')) {
+                serviceCode = fault.id.replace('maint-', '')
+            } else {
+                const desc = (fault.descripcion || "").toLowerCase()
+                if (desc.includes('aceite')) serviceCode = 'OIL_CHANGE'
+                else if (desc.includes('correa')) serviceCode = 'TIMING_BELT'
+                else if (desc.includes('arrastre') || desc.includes('cadena') || desc.includes('kit')) serviceCode = 'CHAIN_KIT'
+                else if (desc.includes('lavado')) serviceCode = 'WASH'
+            }
 
             setSelectedServiceType(serviceCode)
             setMaintenanceOpen(true)

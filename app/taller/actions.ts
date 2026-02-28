@@ -58,24 +58,28 @@ export async function registerMaintenance(data: MaintenanceData) {
 
         if (logError) throw logError
 
-        // 2. Update Vehicle Columns based on Service Type
-        let updateData: any = {}
+        // 2. Update Maintenance Config Base value
+        // Assuming data.service_type maps to the ID of the config if it's a UUID, OR the type string if it's standard
+        let query = supabase.from('vehicle_maintenance_configs').select('*').eq('vehicle_id', data.vehicle_id)
 
-        if (data.service_type === 'OIL_CHANGE') {
-            updateData.last_oil_change_km = data.mileage
-        } else if (data.service_type === 'TIMING_BELT') {
-            updateData.last_timing_belt_km = data.mileage
-        } else if (data.service_type === 'CHAIN_KIT') {
-            updateData.last_chain_kit_km = data.mileage
-        } else if (data.service_type === 'WASH') {
-            updateData.last_wash_date = new Date().toISOString()
+        // If data.service_type is a UUID, use it as ID, else use it as service_type
+        if (data.service_type.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i)) {
+            query = query.eq('id', data.service_type)
+        } else {
+            query = query.eq('service_type', data.service_type)
         }
 
-        if (Object.keys(updateData).length > 0) {
+        const { data: config, error: configError } = await query
+
+        if (config && config.length > 0) {
+            // Provide a fallback in case there are multiple (which shouldn't happen except for CUSTOM, handled by UUID)
+            const targetConfig = config[0];
+            const newValue = targetConfig.is_time_based ? new Date().getTime() : data.mileage
+
             const { error: updateError } = await supabase
-                .from('vehiculos')
-                .update(updateData)
-                .eq('id', data.vehicle_id)
+                .from('vehicle_maintenance_configs')
+                .update({ last_service_value: newValue })
+                .eq('id', targetConfig.id)
 
             if (updateError) throw updateError
         }

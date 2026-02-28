@@ -38,18 +38,30 @@ export type AdminVehicle = {
         medium: number
         low: number
     }
+    maintenance_configs?: AdminVehicleMaintenanceConfig[] // [NEW]
+}
+
+export type AdminVehicleMaintenanceConfig = {
+    id?: string
+    vehicle_id: string
+    service_type: string
+    custom_name?: string
+    interval_value: number
+    is_time_based: boolean
+    last_service_value: number
 }
 
 export async function getAdminFleetVehicles(): Promise<AdminVehicle[]> {
     noStore()
     const supabase = await createClient()
 
-    // 1. Fetch Vehicles with Driver Profile
+    // 1. Fetch Vehicles with Driver Profile and Maintenance Configs
     const { data: vehicles, error } = await supabase
         .from("vehiculos")
         .select(`
             *,
-            assigned_driver:profiles(first_name, last_name)
+            assigned_driver:profiles(first_name, last_name),
+            vehicle_maintenance_configs(*)
         `)
         .order('modelo')
 
@@ -125,7 +137,8 @@ export async function getAdminFleetVehicles(): Promise<AdminVehicle[]> {
             computedStatus,
             driverName: v.assigned_driver ? `${v.assigned_driver.first_name} ${v.assigned_driver.last_name}` : null,
             lastExit: tripsDateMap.get(v.id),
-            faultsSummary: summary
+            faultsSummary: summary,
+            maintenance_configs: v.vehicle_maintenance_configs || [] // [NEW] Attach configs
         }
     })
 }
