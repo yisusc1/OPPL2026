@@ -157,10 +157,13 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
                 const currentMonthTotal = trendData.filter(d => d.mes === currentMonth).length;
                 const previousMonthTotal = trendData.filter(d => d.mes === previousMonth).length;
 
-                if (previousMonthTotal > 0) {
-                    percentageChange = Math.round(((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100);
-                } else if (currentMonthTotal > 0) {
-                    percentageChange = 100; // From 0 to something is a 100% baseline increase symbol
+                if (currentMonthTotal > 0 && previousMonthTotal > 0) {
+                    // Margen de aumento sobre el total actual: ((Actual - Anterior) / Actual) * 100
+                    percentageChange = Math.round(((currentMonthTotal - previousMonthTotal) / currentMonthTotal) * 100);
+                } else if (previousMonthTotal > 0 && currentMonthTotal === 0) {
+                    percentageChange = -100;
+                } else if (currentMonthTotal > 0 && previousMonthTotal === 0) {
+                    percentageChange = 100;
                 }
             }
         }
