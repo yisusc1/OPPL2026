@@ -3,14 +3,7 @@
 import { useEffect, useState } from "react";
 import { DollarSign, Clock, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface ExchangeRate {
-    moneda: string;
-    fuente: string;
-    nombre: string;
-    valor: number;
-    fechaActualizacion: string;
-}
+import { scrapeBCVRate, ExchangeRate } from "@/app/actions/bcv-scraper";
 
 export function BCVRate() {
     const [rate, setRate] = useState<ExchangeRate | null>(null);
@@ -21,9 +14,8 @@ export function BCVRate() {
         try {
             setLoading(true);
             setError(false);
-            const res = await fetch("https://ve.dolarapi.com/v1/dolares/bcv");
-            if (!res.ok) throw new Error("Failed to fetch BCV rate");
-            const data: ExchangeRate = await res.json();
+            const data = await scrapeBCVRate();
+            if (!data) throw new Error("Failed to fetch BCV rate");
             setRate(data);
         } catch (err) {
             console.error("Error fetching BCV rate:", err);
