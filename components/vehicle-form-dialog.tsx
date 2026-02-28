@@ -219,12 +219,12 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                 codigo: formData.codigo,
                 placa: formData.placa,
                 modelo: formData.modelo,
-                año: formData.año,
+                año: formData.año || null,
                 color: formData.color,
                 tipo: formData.tipo,
-                capacidad_tanque: formData.capacidad_tanque,
-                foto_url: finalFotoUrl,
-                department: formData.department,
+                capacidad_tanque: formData.capacidad_tanque || null,
+                foto_url: finalFotoUrl || null,
+                department: formData.department || null,
                 assigned_driver_id: formData.assigned_driver_id
             }
 
@@ -448,19 +448,19 @@ export function VehicleFormDialog({ isOpen, onClose, onVehicleSaved, vehicleToEd
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-3 items-end">
-                                                    <div className="space-y-1">
+                                                    <div className="space-y-1 col-span-2 sm:col-span-1">
                                                         <Label className="text-xs text-zinc-500">Frecuencia (Cada...)</Label>
-                                                        <div className="flex bg-white dark:bg-black rounded-md border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                                                        <div className="flex bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
                                                             <Input
                                                                 type="number"
-                                                                className="h-9 text-xs border-0 rounded-none focus-visible:ring-0 w-24"
+                                                                className="h-9 text-xs border-0 rounded-none focus-visible:ring-0 flex-1 bg-transparent"
                                                                 value={config.interval_value}
                                                                 onChange={(e) => updateConfig(index, 'interval_value', Number(e.target.value))}
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateConfig(index, 'is_time_based', !config.is_time_based)}
-                                                                className="bg-zinc-100 dark:bg-zinc-800 px-3 text-xs font-semibold text-zinc-600 dark:text-zinc-300 border-l border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                                                                className="bg-zinc-200 dark:bg-zinc-800 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border-l border-zinc-300 dark:border-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-700 transition"
                                                             >
                                                                 {config.is_time_based ? 'Días' : 'Km'}
                                                             </button>
