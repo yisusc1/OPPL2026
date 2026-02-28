@@ -46,7 +46,6 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
     const [kmEntrada, setKmEntrada] = useState("")
     const [selectedReport, setSelectedReport] = useState<Reporte | null>(null)
     const [gasolina, setGasolina] = useState("Full")
-    const [observaciones, setObservaciones] = useState("")
     const [step, setStep] = useState<'form' | 'success'>('form')
     const [whatsappText, setWhatsappText] = useState("")
     const router = useRouter()
@@ -154,7 +153,6 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                 .update({
                     km_entrada: km,
                     gasolina_entrada: gasolina,
-                    observaciones_entrada: observaciones,
 
                     // Legacy boolean fields
                     aceite_entrada: checks.aceite || false,
@@ -240,7 +238,6 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
             setKmEntrada("")
             setSelectedReport(null)
             setGasolina("Full")
-            setObservaciones("")
             setChecklistItems([])
             setChecks({})
             setFaultsToAdd([])
@@ -305,11 +302,10 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
 
         if (faultsToAdd.length > 0) {
             msg += `*Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `• ${f}\n`)
+            faultsToAdd.forEach(f => msg += `- ${f}\n`)
             msg += `\n`
         }
 
-        msg += `Observaciones: ${observaciones || 'Ninguna'}`
         return msg
     }
 
@@ -512,16 +508,6 @@ export function EntradaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones Adicionales</Label>
-                                <Textarea
-                                    value={observaciones}
-                                    onChange={e => setObservaciones(e.target.value)}
-                                    className="bg-white dark:bg-white/5 py-3 min-h-[60px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
-                                    placeholder="Observaciones extra (opcional)..."
-                                />
                             </div>
                         </div>
 

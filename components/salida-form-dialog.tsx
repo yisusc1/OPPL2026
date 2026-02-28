@@ -42,7 +42,6 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
     const [conductor, setConductor] = useState("")
     const [departamento, setDepartamento] = useState("")
     const [gasolina, setGasolina] = useState("Full")
-    const [observaciones, setObservaciones] = useState("")
     const [lastKm, setLastKm] = useState<number | null>(null)
 
     // Fault Reporting State
@@ -220,7 +219,6 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                     conductor,
                     departamento,
                     gasolina_salida: gasolina,
-                    observaciones_salida: observaciones,
 
                     // Legacy boolean fields for backward compat
                     aceite_salida: checks.aceite || false,
@@ -287,7 +285,6 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
             setConductor("")
             setDepartamento("")
             setGasolina("Full")
-            setObservaciones("")
             setLastKm(null)
             setChecklistItems([])
             setChecks({})
@@ -309,15 +306,15 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         const fecha = new Date().toLocaleDateString()
         const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 
-        let msg = `* Reporte de Salida *\n\n`
-        msg += `Fecha: ${fecha} \n`
-        msg += `Hora: ${hora} \n\n`
-        msg += `Conductor: ${conductor} \n`
-        msg += `Departamento: ${departamento} \n\n`
-        msg += `Vehículo: ${vehiculoNombre} \n`
-        if (selectedVehicle?.placa) msg += `Placa: ${selectedVehicle.placa} \n`
-        msg += `Kilometraje(Salida): ${kmSalida} \n`
-        msg += `Nivel de Gasolina: ${gasolina} \n\n`
+        let msg = `*Reporte de Salida*\n\n`
+        msg += `Fecha: ${fecha}\n`
+        msg += `Hora: ${hora}\n\n`
+        msg += `Conductor: ${conductor}\n`
+        msg += `Departamento: ${departamento}\n\n`
+        msg += `Vehículo: ${vehiculoNombre}\n`
+        if (selectedVehicle?.placa) msg += `Placa: ${selectedVehicle.placa}\n`
+        msg += `Kilometraje (Salida): ${kmSalida}\n`
+        msg += `Nivel de Gasolina: ${gasolina}\n\n`
 
         // Group items by category
         const categories = ['TECNICO', 'SEGURIDAD', 'EQUIPOS']
@@ -330,21 +327,20 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
         categories.forEach(cat => {
             const catItems = checklistItems.filter(i => i.category === cat)
             if (catItems.length > 0) {
-                msg += `* ${categoryLabels[cat]}:*\n`
+                msg += `*${categoryLabels[cat]}:*\n`
                 catItems.forEach(item => {
-                    msg += `${item.label}: ${check(checks[item.key] || false)} \n`
+                    msg += `${item.label}: ${check(checks[item.key] || false)}\n`
                 })
                 msg += `\n`
             }
         })
 
         if (faultsToAdd.length > 0) {
-            msg += `* Fallas Reportadas:*\n`
-            faultsToAdd.forEach(f => msg += `• ${f} \n`)
+            msg += `*Fallas Reportadas:*\n`
+            faultsToAdd.forEach(f => msg += `- ${f}\n`)
             msg += `\n`
         }
 
-        msg += `Observaciones: ${observaciones || 'Ninguna'} `
         return msg
     }
 
@@ -559,16 +555,6 @@ export function SalidaFormDialog({ isOpen, onClose, initialVehicleId, onSuccess 
                                         </div>
                                     )}
                                 </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 dark:text-zinc-400">Observaciones Adicionales</Label>
-                                <Textarea
-                                    value={observaciones}
-                                    onChange={e => setObservaciones(e.target.value)}
-                                    className="bg-white dark:bg-white/5 py-3 min-h-[60px] border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white placeholder:text-zinc-400"
-                                    placeholder="Observaciones extra (opcional)..."
-                                />
                             </div>
                         </div>
 
