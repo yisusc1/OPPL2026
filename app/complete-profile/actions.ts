@@ -29,8 +29,7 @@ export async function updateProfile(formData: FormData) {
             id: user.id,
             first_name: first_name,
             last_name: last_name,
-            cedula: national_id, // Map national_id from form to cedula in DB
-            national_id: national_id, // Keep national_id for backward compatibility if needed
+            national_id: national_id,
             phone: phone,
             email: user.email, // Ensure email is synchronized
             updated_at: new Date().toISOString()

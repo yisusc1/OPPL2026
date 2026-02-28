@@ -20,7 +20,6 @@ export async function updateProfileData(data: {
             first_name: data.first_name,
             last_name: data.last_name,
             national_id: data.national_id,
-            cedula: data.national_id, // keep it in sync
             phone: data.phone,
             updated_at: new Date().toISOString()
         })
