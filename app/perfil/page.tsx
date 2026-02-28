@@ -7,6 +7,8 @@ import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
 import { PremiumContent } from "@/components/ui/premium-content"
 import { LogoutButton } from "@/components/ui/logout-button"
+import { ProfileDetails } from "./profile-details"
+import { ChangePassword } from "./change-password"
 
 export default async function PerfilPage() {
   const supabase = await createClient()
@@ -59,37 +61,8 @@ export default async function PerfilPage() {
         </PremiumCard>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* INFO PERSONAL */}
-          <PremiumContent className="p-0 overflow-hidden h-full">
-            <div className="p-6 border-b border-white/5 bg-white/5">
-              <h3 className="font-bold flex items-center gap-2">
-                <CircleUser className="text-primary" size={20} />
-                Información Personal
-              </h3>
-            </div>
-            <div className="p-6 space-y-6">
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Nombre Completo</label>
-                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent">
-                  {profile?.first_name} {profile?.last_name || '(No registrado)'}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Correo Electrónico</label>
-                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent flex items-center gap-2">
-                  <Mail size={16} className="text-muted-foreground" />
-                  {user.email}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Rol de Sistema</label>
-                <div className="text-foreground font-medium p-3 bg-zinc-100 dark:bg-zinc-800/50 rounded-xl border border-transparent flex items-center gap-2">
-                  <Shield size={16} className="text-muted-foreground" />
-                  {profile?.role || 'User'}
-                </div>
-              </div>
-            </div>
-          </PremiumContent>
+          {/* INFO PERSONAL EXTRACTED COMPONENT */}
+          <ProfileDetails profile={profile} email={user.email || ""} />
 
           {/* SECURITY & ACTIONS */}
           <PremiumContent className="p-0 overflow-hidden h-full flex flex-col">
@@ -101,11 +74,7 @@ export default async function PerfilPage() {
             </div>
             <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800" disabled>
-                  <Key className="mr-3 text-muted-foreground" size={18} />
-                  Cambiar Contraseña
-                  <span className="ml-auto text-xs text-muted-foreground">(Próximamente)</span>
-                </Button>
+                <ChangePassword />
                 {/* Add more security options here later */}
               </div>
 

@@ -84,7 +84,7 @@ export async function middleware(request: NextRequest) {
     // We need to fetch the user profile to check roles
     const { data: profile } = await supabase
         .from("profiles")
-        .select("roles, national_id, phone")
+        .select("roles, national_id, phone, first_name, last_name")
         .eq("id", user.id)
         .single()
 
@@ -95,7 +95,7 @@ export async function middleware(request: NextRequest) {
     // Allow access to /complete-profile to avoid loop
     if (!path.startsWith("/complete-profile")) {
         // If profile is missing vital info, redirect
-        if (!profile?.national_id || !profile?.phone) {
+        if (!profile?.national_id || !profile?.phone || !profile?.first_name || !profile?.last_name) {
             return NextResponse.redirect(new URL("/complete-profile", request.url))
         }
     }

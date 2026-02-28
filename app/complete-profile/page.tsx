@@ -54,6 +54,40 @@ export default function CompleteProfilePage() {
                         className="w-full space-y-4 pt-2 text-left"
                     >
                         <div className="space-y-2">
+                            <label htmlFor="first_name" className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">
+                                Nombre
+                            </label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                                <input
+                                    id="first_name"
+                                    name="first_name"
+                                    type="text"
+                                    required
+                                    placeholder="Juan"
+                                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/50 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-gray-900 placeholder:text-gray-400"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="last_name" className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">
+                                Apellido
+                            </label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
+                                <input
+                                    id="last_name"
+                                    name="last_name"
+                                    type="text"
+                                    required
+                                    placeholder="Pérez"
+                                    className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/50 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all outline-none text-gray-900 placeholder:text-gray-400"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
                             <label htmlFor="national_id" className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">
                                 Cédula de Identidad
                             </label>
