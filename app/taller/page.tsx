@@ -378,7 +378,7 @@ export default function TallerPage() {
 
     return (
         <PremiumPageLayout title="Taller Mecánico" description="Gestión de Fallas y Mantenimiento">
-            <div className="max-w-5xl mx-auto space-y-4">
+            <div className="max-w-7xl mx-auto space-y-4">
 
                 {/* 1. HEADER & SEARCH BAR */}
                 <PremiumCard className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-3 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5 w-full sm:w-auto mx-auto sm:mx-0 max-w-md sm:max-w-none">

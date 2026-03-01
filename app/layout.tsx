@@ -69,7 +69,19 @@ export default async function RootLayout({
             <VoiceProvider>
               {children}
               {isVoiceEnabled && <VoiceAssistant />}
-              <Toaster richColors position="top-center" />
+              <Toaster
+                position="top-center"
+                toastOptions={{
+                  classNames: {
+                    toast: 'bg-background/80 backdrop-blur-md border border-[0.75px] border-border shadow-sm rounded-xl',
+                    description: 'text-muted-foreground',
+                    title: 'text-foreground font-medium',
+                    actionButton: 'bg-primary text-primary-foreground',
+                    cancelButton: 'bg-muted text-muted-foreground',
+                    icon: 'text-foreground'
+                  }
+                }}
+              />
             </VoiceProvider>
           </ThemeProvider>
         </UserProvider>

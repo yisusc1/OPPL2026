@@ -168,7 +168,7 @@ export default function CombustiblePage() {
 
                 {/* KPI CARDS */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <PremiumCard className="p-6">
+                    <PremiumCard>
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-green-500/10 rounded-2xl text-green-500"><DollarSign size={24} /></div>
                         </div>
@@ -176,7 +176,7 @@ export default function CombustiblePage() {
                         <div className="text-sm text-muted-foreground font-medium mt-1">Gasto Total (Periodo)</div>
                     </PremiumCard>
 
-                    <PremiumCard className="p-6">
+                    <PremiumCard>
                         <div className="flex justify-between items-start mb-4">
                             <div className="p-3 bg-blue-500/10 rounded-2xl text-blue-500"><Droplet size={24} /></div>
                         </div>
@@ -261,7 +261,7 @@ export default function CombustiblePage() {
                         logs.map((log) => (
                             <PremiumCard
                                 key={log.id}
-                                className="p-4 active:scale-[0.98] transition-transform cursor-pointer"
+                                className="active:scale-[0.98] transition-transform cursor-pointer"
                                 onClick={() => handleLogClick(log)}
                             >
                                 <div className="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
