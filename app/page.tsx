@@ -96,7 +96,7 @@ export default function Home() {
       icon: MapIcon,
       href: "/map",
       cta: "Ver Mapa",
-      bgImage: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=60&w=500",
+      bgImage: "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1 md:col-span-2", // Feature item
       show: isModuleEnabled("module_map") && (isAdmin || hasRole("mapa"))
     },
@@ -140,7 +140,7 @@ export default function Home() {
       icon: Truck,
       href: "/transporte",
       cta: "Ver Flota",
-      bgImage: "https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?auto=format&fit=crop&q=60&w=500",
+      bgImage: "/transport-salida.png",
       className: "col-span-1",
       show: isModuleEnabled("module_transporte") && (canAccess("transporte", "Transporte") || hasRole("chofer"))
     },
