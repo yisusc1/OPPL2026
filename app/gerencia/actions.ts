@@ -580,3 +580,115 @@ export async function getFuelAnalytics(costPerLiter: number = 0.50): Promise<Fue
     // Sort by total liters descending
     return Array.from(aggregated.values()).sort((a, b) => b.totalLiters - a.totalLiters)
 }
+
+// =========================================================
+// NEW: Monthly Business Metrics for Gerencia Resumen Tab
+// =========================================================
+
+export type MonthlyMetrics = {
+    monthLabel: string
+    totalInstallations: number
+    powerGoCount: number
+    topTechnicians: { name: string; count: number }[]
+    topAdvisors: { name: string; count: number }[]
+    topZones: { name: string; count: number }[]
+    allSectors: { name: string; count: number }[]
+    distritoCapitalSectors: { name: string; count: number }[]
+    fuelTotalLiters: number
+    fuelEstimatedCost: number
+}
+
+export async function getMonthlyMetrics(costPerLiter: number = 0.50): Promise<MonthlyMetrics> {
+    noStore()
+    const supabase = await createClient()
+
+    const now = new Date()
+    const monthOrder = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO",
+        "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]
+    const currentMonthLabel = monthOrder[now.getMonth()]
+
+    // 1. Fetch current month installations
+    const { data: installData } = await supabase
+        .from("installations")
+        .select("tecnico_1, tecnico_2, asesor, zona, sector, power_go")
+        .eq("mes", currentMonthLabel)
+
+    const rows = installData || []
+
+    // Technician counts (tecnico_1 + tecnico_2)
+    const techMap = new Map<string, number>()
+    rows.forEach(r => {
+        if (r.tecnico_1) techMap.set(r.tecnico_1, (techMap.get(r.tecnico_1) || 0) + 1)
+        if (r.tecnico_2) techMap.set(r.tecnico_2, (techMap.get(r.tecnico_2) || 0) + 1)
+    })
+    const topTechnicians = Array.from(techMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 4)
+
+    // Advisor counts
+    const advisorMap = new Map<string, number>()
+    rows.forEach(r => {
+        if (r.asesor) advisorMap.set(r.asesor, (advisorMap.get(r.asesor) || 0) + 1)
+    })
+    const topAdvisors = Array.from(advisorMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 3)
+
+    // Zone counts
+    const zoneMap = new Map<string, number>()
+    rows.forEach(r => {
+        if (r.zona) zoneMap.set(r.zona, (zoneMap.get(r.zona) || 0) + 1)
+    })
+    const topZones = Array.from(zoneMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+
+    // Sector counts (all, top 5)
+    const sectorMap = new Map<string, number>()
+    rows.forEach(r => {
+        if (r.sector) sectorMap.set(r.sector, (sectorMap.get(r.sector) || 0) + 1)
+    })
+    const allSectors = Array.from(sectorMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+
+    // Distrito Capital sector breakdown
+    const dcZones = ["CARACAS", "BARUTA", "CHACAO", "EL HATILLO", "LIBERTADOR", "SUCRE", "DISTRITO CAPITAL"]
+    const { data: dcData } = await supabase
+        .from("installations")
+        .select("sector")
+        .eq("mes", currentMonthLabel)
+        .or(dcZones.map(z => `zona.ilike.%${z}%`).join(","))
+
+    const dcSectorMap = new Map<string, number>()
+        ; (dcData || []).forEach((r: any) => {
+            if (r.sector) dcSectorMap.set(r.sector, (dcSectorMap.get(r.sector) || 0) + 1)
+        })
+    const distritoCapitalSectors = Array.from(dcSectorMap.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+
+    // Power GO count
+    const powerGoCount = rows.filter(r => r.power_go === "SI").length
+
+    // 2. Fuel totals (all time, since it's cumulative)
+    const { data: fuelLogs } = await supabase.from("fuel_logs").select("liters")
+    const fuelTotalLiters = (fuelLogs || []).reduce((sum, l) => sum + (Number(l.liters) || 0), 0)
+    const fuelEstimatedCost = fuelTotalLiters * costPerLiter
+
+    return {
+        monthLabel: currentMonthLabel,
+        totalInstallations: rows.length,
+        powerGoCount,
+        topTechnicians,
+        topAdvisors,
+        topZones,
+        allSectors,
+        distritoCapitalSectors,
+        fuelTotalLiters,
+        fuelEstimatedCost
+    }
+}
