@@ -134,9 +134,9 @@ export default function CombustiblePage() {
                         </Select>
                     </div>
 
-                    <div className="flex w-full md:w-auto gap-2">
-                        <Link href="/control/combustible/scan">
-                            <Button variant="outline" className="w-full md:w-auto h-10 rounded-xl bg-white/5 border-white/10 hover:bg-white/10">
+                    <div className="flex flex-col sm:flex-row w-full md:w-auto gap-2">
+                        <Link href="/control/combustible/scan" className="w-full sm:w-auto">
+                            <Button variant="outline" className="w-full h-10 rounded-xl bg-white/5 border-white/10 hover:bg-white/10">
                                 <div className="mr-2 h-4 w-4">
                                     {/* QR Icon */}
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -157,8 +157,8 @@ export default function CombustiblePage() {
                                 Escanear QR
                             </Button>
                         </Link>
-                        <Link href="/control/combustible/new">
-                            <Button className="w-full md:w-auto h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20">
+                        <Link href="/control/combustible/new" className="w-full sm:w-auto">
+                            <Button className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-500/20">
                                 <Fuel className="mr-2 h-4 w-4" />
                                 Registrar Ticket
                             </Button>
