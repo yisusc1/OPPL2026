@@ -1,35 +1,26 @@
-'use client'
+"use client";
 
-import { useToast } from '@/hooks/use-toast'
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from '@/components/ui/toast'
+import { useTheme } from "next-themes";
+import { Toaster as Sonner } from "sonner";
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { theme } = useTheme();
 
   return (
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        )
-      })}
-      <ToastViewport />
-    </ToastProvider>
-  )
+    <Sonner
+      theme={theme as "light" | "dark" | "system"}
+      className="toaster group"
+      toastOptions={{
+        classNames: {
+          toast:
+            "group toast group-[.toaster]:bg-background/80 group-[.toaster]:backdrop-blur-md group-[.toaster]:text-foreground group-[.toaster]:border-white/10 group-[.toaster]:border-[0.5px] group-[.toaster]:shadow-2xl group-[.toaster]:rounded-2xl font-sans",
+          description: "group-[.toast]:text-muted-foreground",
+          actionButton:
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+          cancelButton:
+            "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+        },
+      }}
+    />
+  );
 }

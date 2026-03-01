@@ -381,7 +381,7 @@ export default function TallerPage() {
             <div className="max-w-7xl mx-auto space-y-4">
 
                 {/* 1. HEADER & SEARCH BAR */}
-                <PremiumCard className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-3 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5 w-full sm:w-auto mx-auto sm:mx-0 max-w-md sm:max-w-none">
+                <PremiumCard className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-3">
                     <div className="relative w-full sm:w-96 flex-1">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                         <input
