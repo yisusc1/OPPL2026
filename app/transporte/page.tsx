@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Home as HomeIcon, Truck, LogOut, ArrowRight, AlertTriangle, Car, Fuel, MapPin, QrCode, FileText } from "lucide-react"
+import { Truck, LogOut, ArrowRight, AlertTriangle, Car, Fuel, MapPin, QrCode, FileText } from "lucide-react"
 import { LogoutButton } from "@/components/ui/logout-button"
 import { useSearchParams, useRouter } from "next/navigation"
 import { SalidaFormDialog } from "@/components/salida-form-dialog"
@@ -181,12 +181,6 @@ export default function TransportePage() {
             title={`Hola, ${profile?.first_name || 'Usuario'}`}
             description={assignedVehicle ? "Modo Chofer" : "Panel de Operaciones"}
         >
-            <div className="mb-8">
-                <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4">
-                    <HomeIcon size={20} />
-                    <span>Volver al inicio</span>
-                </Link>
-            </div>
 
             <div className="max-w-5xl mx-auto space-y-8">
 

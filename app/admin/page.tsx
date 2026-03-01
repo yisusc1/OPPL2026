@@ -2,7 +2,7 @@
 
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
-import { ArrowLeft, UserCog, ShieldCheck, LayoutGrid, ArrowRight, Database } from "lucide-react"
+import { UserCog, ShieldCheck, LayoutGrid, ArrowRight, Database } from "lucide-react"
 import Link from "next/link"
 
 export default function AdminDashboard() {
@@ -11,12 +11,6 @@ export default function AdminDashboard() {
             title="Panel de Administración"
             description="Configuración global del sistema y accesos."
         >
-            <div className="mb-6">
-                <Link href="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4">
-                    <ArrowLeft size={20} />
-                    <span>Volver al inicio</span>
-                </Link>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 

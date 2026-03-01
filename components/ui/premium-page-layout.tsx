@@ -25,27 +25,16 @@ export function PremiumPageLayout({
         <div className="relative min-h-screen w-full overflow-y-auto bg-background selection:bg-primary/20">
             {/* Floating top navigation bar */}
             <div className="fixed top-4 left-0 right-0 z-50 flex items-center justify-between px-4 pointer-events-none">
-                {/* Left: Back / Home buttons */}
+                {/* Left: Back to home button */}
                 <div className="flex items-center gap-2 pointer-events-auto">
-                    {showBack && (
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => router.back()}
-                            className="rounded-full bg-background/60 backdrop-blur-md border-[0.75px] border-border shadow-sm hover:bg-background/90 transition-colors"
-                            aria-label="Volver"
-                        >
-                            <ArrowLeft className="h-4 w-4" />
-                        </Button>
-                    )}
                     <Button
                         variant="outline"
-                        size="icon"
                         onClick={() => router.push("/")}
-                        className="rounded-full bg-background/60 backdrop-blur-md border-[0.75px] border-border shadow-sm hover:bg-background/90 transition-colors"
-                        aria-label="Inicio"
+                        className="flex items-center gap-2 h-9 px-4 rounded-full bg-background/60 backdrop-blur-md border-[0.75px] border-border shadow-sm hover:bg-background/90 transition-colors text-sm font-medium"
+                        aria-label="Volver al inicio"
                     >
-                        <Home className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" />
+                        Volver al inicio
                     </Button>
                 </div>
 
