@@ -27,6 +27,7 @@ import { createClient } from "@/lib/supabase/client";
 import { INITIAL_MODULES_CONFIG } from "@/lib/constants";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { BCVRate } from "@/components/bcv-rate";
+import { EllielLogo } from "@/components/ui/elliel-logo";
 
 export default function Home() {
   const { hasRole, isAdmin, isLoading: isUserLoading, profile } = useUser();
@@ -234,6 +235,7 @@ export default function Home() {
       <div className="relative z-40 mx-auto max-w-7xl px-4 py-12 md:py-20 lg:py-24">
         <div className="mb-8 md:mb-12 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-center md:text-left">
+            <EllielLogo layout="horizontal" iconSize={44} textSize="text-3xl" className="mb-4 justify-center md:justify-start" />
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl md:text-5xl">
               Panel de Control
             </h1>
