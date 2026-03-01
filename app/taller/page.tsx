@@ -512,13 +512,13 @@ export default function TallerPage() {
                         )}
                     </>
                 ) : (
-                    <PremiumCard className="max-w-3xl mx-auto p-3 sm:p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3 pb-3 border-b border-white/5">
+                    <div className="max-w-3xl mx-auto">
+                        {/* Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-3">
                             <h2 className="text-base font-bold text-foreground">Historial de Operaciones</h2>
-
                             <div className="w-full sm:w-56">
                                 <Select value={historyFilter} onValueChange={setHistoryFilter}>
-                                    <SelectTrigger className="bg-background/50 backdrop-blur-sm border-white/10 rounded-lg h-9 text-xs text-foreground transition-colors hover:bg-white/5">
+                                    <SelectTrigger className="bg-background/50 backdrop-blur-sm border-white/10 rounded-lg h-9 text-xs text-foreground">
                                         <div className="flex items-center gap-2">
                                             <Filter size={14} className="text-muted-foreground" />
                                             <SelectValue placeholder="Filtrar por..." />
@@ -536,62 +536,64 @@ export default function TallerPage() {
                             </div>
                         </div>
 
-                        {loadingHistory ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
-                                <p className="font-medium text-sm">Cargando...</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {historyLogs
-                                    .filter(log => historyFilter === "all" || log.placa === historyFilter)
-                                    .map((log: any) => (
-                                        <PremiumCard key={log.id} className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-3 bg-white/5 border-white/5 shadow-none rounded-lg">
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className={`w-10 h-10 flex items-center justify-center shrink-0 rounded-lg border border-white/5 bg-background/50 ${log.type === 'REPAIR' ? 'text-green-500 shadow-[inset_0_0_15px_rgba(34,197,94,0.1)]' : 'text-blue-500 shadow-[inset_0_0_15px_rgba(59,130,246,0.1)]'}`}>
-                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} /> : <Wrench size={18} />}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center flex-wrap gap-2 mb-0.5">
-                                                        <span className="font-semibold text-sm text-foreground">{log.vehicle}</span>
-                                                        <span className="text-[10px] text-muted-foreground font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{log.placa}</span>
+                        {/* Log rows */}
+                        <PremiumCard>
+                            {loadingHistory ? (
+                                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                                    <div className="h-7 w-7 animate-spin rounded-full border-4 border-primary border-t-transparent mb-3" />
+                                    <p className="text-sm">Cargando...</p>
+                                </div>
+                            ) : historyLogs.filter(log => historyFilter === "all" || log.placa === historyFilter).length === 0 ? (
+                                <div className="py-16 text-center text-muted-foreground text-sm">
+                                    No hay registros en el historial
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-border/50">
+                                    {historyLogs
+                                        .filter(log => historyFilter === "all" || log.placa === historyFilter)
+                                        .map((log: any) => {
+                                            const serviceLabel = log.type === 'MAINTENANCE'
+                                                ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
+                                                    log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
+                                                        log.category === 'CHAIN_KIT' ? 'Kit de Arrastre' :
+                                                            log.category === 'WASH' ? 'Lavado' :
+                                                                log.description || log.category)
+                                                : `Reparación`;
+
+                                            return (
+                                                <div key={log.id} className="flex items-start gap-3 px-1 py-3 hover:bg-white/5 transition-colors rounded-lg">
+                                                    {/* Icon */}
+                                                    <div className={`w-9 h-9 flex items-center justify-center shrink-0 rounded-lg ${log.type === 'REPAIR' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'}`}>
+                                                        {log.type === 'REPAIR' ? <CheckCircle size={16} /> : <Wrench size={16} />}
                                                     </div>
-                                                    <div className="text-xs text-foreground/80 leading-snug">
-                                                        <span className="font-medium text-foreground">
-                                                            {log.type === 'MAINTENANCE'
-                                                                ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
-                                                                    log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
-                                                                        log.category === 'CHAIN_KIT' ? 'Kit de Arrastre' :
-                                                                            log.category === 'WASH' ? 'Lavado' :
-                                                                                log.category === 'OTHER' ? (log.description || 'Otro Servicio') :
-                                                                                    log.category)
-                                                                : `Reparación: ${log.category}`
-                                                            }
-                                                        </span>
-                                                        {log.type === 'MAINTENANCE' && log.category === 'OTHER' ? null : (
-                                                            <>
-                                                                <span className="mx-2 text-white/10">|</span>
-                                                                <span className="text-muted-foreground">{log.description}</span>
-                                                            </>
+
+                                                    {/* Main info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                            <span className="font-semibold text-sm text-foreground">{log.vehicle}</span>
+                                                            <span className="text-[10px] text-muted-foreground font-mono bg-white/5 px-1.5 py-0.5 rounded border border-white/5">{log.placa}</span>
+                                                        </div>
+                                                        <p className="text-sm text-foreground/90 font-medium truncate">{serviceLabel}</p>
+                                                        {log.description && log.category !== 'OTHER' && (
+                                                            <p className="text-xs text-muted-foreground mt-0.5 truncate">{log.description}</p>
                                                         )}
-                                                        {log.mileage && <span className="text-muted-foreground ml-2 font-mono bg-white/5 border border-white/5 px-1.5 py-0.5 rounded text-xs">KM: {log.mileage.toLocaleString()}</span>}
+                                                        {log.mileage && (
+                                                            <span className="text-[10px] text-muted-foreground font-mono mt-1 inline-block">KM {log.mileage.toLocaleString()}</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Date */}
+                                                    <div className="text-right text-xs text-muted-foreground font-mono shrink-0">
+                                                        <div>{new Date(log.date).toLocaleDateString()}</div>
+                                                        <div className="text-muted-foreground/60">{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="text-left sm:text-right text-xs text-muted-foreground/50 font-mono font-medium border-t border-white/5 sm:border-none pt-3 sm:pt-0 mt-3 sm:mt-0 flex gap-3 sm:block">
-                                                <div>{new Date(log.date).toLocaleDateString()}</div>
-                                                <div>{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                            </div>
-                                        </PremiumCard>
-                                    ))}
-                                {historyLogs.length === 0 && (
-                                    <PremiumContent className="p-8 text-center text-muted-foreground border-dashed text-sm">
-                                        No hay registros en el historial
-                                    </PremiumContent>
-                                )}
-                            </div>
-                        )}
-                    </PremiumCard>
+                                            );
+                                        })}
+                                </div>
+                            )}
+                        </PremiumCard>
+                    </div>
                 )}
             </div>
 
