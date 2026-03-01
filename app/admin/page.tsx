@@ -59,16 +59,16 @@ export default function AdminDashboard() {
                         href={s.href}
                         cta={s.cta}
                         Icon={s.icon}
-                        className={s.className}
+                        className={`${s.className} !bg-zinc-950`}
                         background={
                             <div className="absolute inset-0">
                                 <Image
                                     src={s.bg}
                                     alt={s.name}
                                     fill
-                                    className="object-cover opacity-40 group-hover:opacity-55 transition-opacity duration-500 group-hover:scale-105 transition-transform"
+                                    className="object-cover opacity-55 group-hover:opacity-70 transition-all duration-500 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/30 to-transparent" />
                             </div>
                         }
                     />
