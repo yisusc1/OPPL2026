@@ -14,7 +14,7 @@ interface KPICardProps {
 export function KPICard({ label, value, icon: Icon, subValue, className }: KPICardProps) {
     return (
         <div className={cn(
-            "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-background/50 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 backdrop-blur-sm",
+            "group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border/50 bg-background/50 p-3 md:p-4 min-h-[90px] shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 backdrop-blur-sm",
             className
         )}>
             {/* Top Row: Label & Icon */}
@@ -32,9 +32,9 @@ export function KPICard({ label, value, icon: Icon, subValue, className }: KPICa
                 <span
                     className={cn(
                         "font-extrabold text-foreground tracking-tight leading-none transition-all",
-                        String(value).length > 20 ? "text-lg md:text-xl whitespace-normal break-words" :
-                            String(value).length > 12 ? "text-xl md:text-2xl whitespace-normal break-words" :
-                                "text-3xl"
+                        String(value).length > 20 ? "text-base md:text-xl whitespace-normal break-words" :
+                            String(value).length > 12 ? "text-lg md:text-2xl whitespace-normal break-words" :
+                                "text-3xl md:text-3xl"
                     )}
                     title={String(value)}
                 >

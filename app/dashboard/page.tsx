@@ -400,13 +400,13 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-background p-4 font-sans text-foreground flex flex-col gap-4 relative">
+        <div className="min-h-screen bg-background px-3 pt-3 pb-6 md:p-4 font-sans text-foreground flex flex-col gap-3 md:gap-4 relative">
             <div className="fixed inset-0 z-0 pointer-events-none">
                 <BackgroundPaths />
             </div>
 
             {/* TOP ROW: KPI CARDS */}
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 relative z-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3 relative z-10">
                 <KPICard
                     label="Solicitudes"
                     value={metrics?.counters?.totalSolicitudes || 0}
@@ -424,10 +424,12 @@ export default function DashboardPage() {
                 />
                 <KPICard
                     label="Asesor Top"
-                    value={metrics?.counters?.topAsesor?.split(" ")[0] || "N/A"}
+                    value={metrics?.counters?.topAsesor
+                        ? metrics.counters.topAsesor.split(" ").slice(0, 2).join(" ")
+                        : "N/A"}
                     subValue="Mejor Rendimiento"
                     icon={User}
-                    className="col-span-1"
+                    className="col-span-2 sm:col-span-1"
                 />
                 <KPICard
                     label="Routers"
@@ -470,7 +472,7 @@ export default function DashboardPage() {
                     items={items}
                     strategy={rectSortingStrategy}
                 >
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative z-10 h-[calc(100vh-250px)] overflow-y-auto pr-2 pb-4 content-start [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/50">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 relative z-10 md:h-[calc(100vh-260px)] md:overflow-y-auto pr-1 pb-4 content-start [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-zinc-700/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-zinc-700/50">
                         {items.map((id) => (
                             <SortableCard key={id} id={id} className={cardConfig[id]}>
                                 {renderCard(id)}

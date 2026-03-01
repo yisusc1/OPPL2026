@@ -37,7 +37,7 @@ function FilterDropdown({ title, items, selectedItems, onChange }: FilterDropdow
                     variant={isActive ? "secondary" : "outline"}
                     size="sm"
                     className={cn(
-                        "h-8 rounded-lg px-3 text-xs border border-zinc-200 dark:border-zinc-800 transition-all shadow-sm font-medium",
+                        "h-9 rounded-xl px-3.5 text-xs border border-zinc-200 dark:border-zinc-800 transition-all shadow-sm font-medium gap-1",
                         isActive
                             ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
                             : "bg-white dark:bg-zinc-900/50 md:hover:bg-zinc-100 dark:md:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
@@ -139,7 +139,7 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
     const hasActiveFilters = Object.values(currentFilters).some(arr => arr.length > 0);
 
     return (
-        <div className="w-full flex items-center gap-2 overflow-x-auto no-scrollbar py-2">
+        <div className="w-full flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 pb-2">
             <FilterDropdown
                 title="Mes"
                 items={months.length > 0 ? months : ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]}
