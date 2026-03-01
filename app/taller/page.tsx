@@ -5,7 +5,7 @@ import { VoiceHint } from "@/components/voice-hint"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Search, Wrench, CheckCircle, Clock, AlertTriangle, ArrowRight, Home as HomeIcon, Zap, Filter } from "lucide-react"
+import { Search, Wrench, CheckCircle, Clock, AlertTriangle, ArrowRight, Home as HomeIcon, Zap, Filter, LayoutGrid, AlertCircle, History } from "lucide-react"
 import { LogoutButton } from "@/components/ui/logout-button"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -377,171 +377,156 @@ export default function TallerPage() {
     const inProgress = filteredFaults.filter(f => f.estado === 'En Revisión')
 
     return (
-        <PremiumPageLayout title="Taller Mecánico" description="Gestión de Fallas y Mantenimiento">
-            <div className="max-w-7xl mx-auto space-y-8">
-                {/* PC CONTROLS (Top Right) */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="hidden md:flex gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
-                        <VoiceHint command="Tablero" side="bottom">
-                            <Button
-                                variant={view === 'board' ? 'secondary' : 'ghost'}
-                                onClick={() => setView('board')}
-                                className="text-xs h-9 rounded-lg px-4"
-                            >
-                                Tablero Completo
-                            </Button>
-                        </VoiceHint>
-                        <VoiceHint command="Historial" side="bottom">
-                            <Button
-                                variant={view === 'history' ? 'secondary' : 'ghost'}
-                                onClick={() => setView('history')}
-                                className="text-xs h-9 rounded-lg px-4"
-                            >
-                                Historial
-                            </Button>
-                        </VoiceHint>
+        <PremiumPageLayout title="INTELIGENCIA OPERACIONAL" description="TALLER MECÁNICO / PANEL GENERAL">
+            <div className="max-w-7xl mx-auto space-y-6 font-sans text-white">
+
+                {/* 1. HEADER & SEARCH BAR */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#141414] p-4 border border-[#222222] rounded-[12px]">
+                    <div className="relative w-full md:w-96 flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A3A3A3]" size={16} strokeWidth={2.5} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por placa o falla..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full h-10 pl-11 pr-4 bg-black border border-[#222222] rounded-[8px] text-white font-bold placeholder:text-[#555555] focus:outline-none focus:border-[#FFB000] focus:ring-1 focus:ring-[#FFB000] transition-colors uppercase text-sm"
+                            suppressHydrationWarning
+                        />
                     </div>
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <Button
-                            onClick={() => {
-                                setSelectedVehicleId(undefined)
-                                setSelectedServiceType(undefined)
-                                setPendingResolveId(null)
-                                setMaintenanceOpen(true)
-                            }}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 px-4 rounded-xl text-sm font-medium w-full md:w-auto"
-                        >
-                            <Wrench size={16} />
-                            Registrar Mantenimiento
-                        </Button>
+
+                    <Button
+                        onClick={() => {
+                            setSelectedVehicleId(undefined)
+                            setSelectedServiceType(undefined)
+                            setPendingResolveId(null)
+                            setMaintenanceOpen(true)
+                        }}
+                        className="bg-[#FFB000] text-black hover:bg-[#E59E00] gap-2 h-10 px-6 rounded-[8px] text-xs font-bold uppercase tracking-wider w-full md:w-auto shadow-none transition-none shrink-0"
+                    >
+                        <Wrench size={16} strokeWidth={2.5} />
+                        NUEVO SERVICIO
+                    </Button>
+                </div>
+
+                {/* 2. UNIFIED SEGMENTED CONTROL (TABS) */}
+                <div className="flex justify-center overflow-x-auto pb-2 -mx-4 px-4 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0">
+                    <div className="inline-flex bg-black border border-[#222222] p-1 rounded-[8px] shrink-0">
+                        {[
+                            { id: 'board', label: 'TABLERO', icon: LayoutGrid },
+                            { id: 'pending', label: `PENDIENTES (${pending.length})`, icon: AlertCircle },
+                            { id: 'review', label: `EN TALLER (${inProgress.length})`, icon: Zap },
+                            { id: 'history', label: 'HISTORIAL', icon: History }
+                        ].map(tab => {
+                            const Icon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setView(tab.id as any)}
+                                    className={`flex items-center gap-2 px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-[6px] transition-colors shrink-0 ${view === tab.id
+                                        ? 'bg-[#1E1E1E] text-[#FFB000]'
+                                        : 'text-[#A3A3A3] hover:text-white hover:bg-[#141414]'
+                                        }`}
+                                >
+                                    <Icon size={14} strokeWidth={2.5} />
+                                    {tab.label}
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
 
-                {/* MOBILE CONTROLS (Stacked) */}
-                <div className="md:hidden flex flex-col gap-3">
-                    {/* 1. Toggle Filter (3-way) */}
-                    <div className="bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl flex">
-                        <button
-                            onClick={() => setView('pending')}
-                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === 'pending' || view === 'board' ? 'bg-white dark:bg-zinc-700 shadow-sm text-foreground' : 'text-muted-foreground'}`}
-                        >
-                            Pendientes
-                        </button>
-                        <button
-                            onClick={() => setView('review')}
-                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === 'review' ? 'bg-white dark:bg-zinc-700 shadow-sm text-foreground' : 'text-muted-foreground'}`}
-                        >
-                            En Revisión
-                        </button>
-                        <button
-                            onClick={() => setView('history')}
-                            className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${view === 'history' ? 'bg-white dark:bg-zinc-700 shadow-sm text-foreground' : 'text-muted-foreground'}`}
-                        >
-                            Historial
-                        </button>
-                    </div>
-                </div>
-
+                {/* 3. CONTENT AREA */}
                 {view !== 'history' ? (
                     <>
-                        {/* CONTROLS (Search) */}
-                        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-4 top-3.5 text-muted-foreground" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar por placa o falla..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full h-12 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-sm"
-                                    suppressHydrationWarning
-                                />
-                            </div>
-                            <div className="flex items-center justify-end gap-2 text-sm text-muted-foreground">
-                                <span className="font-bold text-foreground">{filteredFaults.length}</span> fallas activas
-                            </div>
-                        </div>
-
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
-                                <p>Cargando taller...</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-[#A3A3A3]">
+                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FFB000] border-t-transparent mb-4" />
+                                <p className="font-bold uppercase tracking-wider text-sm">CARGANDO DATOS...</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className={view === 'board' ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start" : "max-w-3xl mx-auto space-y-4"}>
 
                                 {/* PENDIENTES */}
                                 {(view === 'board' || view === 'pending') && (
-                                    <div className={`space-y-4 ${view !== 'board' ? 'lg:col-span-2' : ''}`}>
-                                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
-                                            Pendientes ({pending.length})
-                                        </h2>
+                                    <div className="space-y-4 bg-[#141414] p-4 rounded-[12px] border border-[#222222]">
+                                        <div className="flex items-center justify-between pb-3 border-b border-[#222222]">
+                                            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+                                                <div className="w-2 h-2 bg-red-500 animate-pulse"></div>
+                                                ESPERANDO ATENCIÓN
+                                            </h2>
+                                            <span className="text-xs font-mono font-bold text-[#A3A3A3] bg-black px-2 py-0.5 border border-[#222222]">{pending.length}</span>
+                                        </div>
 
-                                        {pending.length === 0 && (
-                                            <PremiumContent className="p-8 text-center text-muted-foreground border-dashed">
-                                                No hay fallas pendientes por revisar
-                                            </PremiumContent>
-                                        )}
+                                        <div className="space-y-3">
+                                            {pending.length === 0 && (
+                                                <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
+                                                    NO HAY FALLAS PENDIENTES
+                                                </div>
+                                            )}
 
-                                        {pending.map(fault => (
-                                            <FaultCard
-                                                key={fault.id}
-                                                fault={fault}
-                                                onMoveToReview={() => handleReview(fault)}
-                                                onResolve={() => handleResolve(fault)}
-                                            />
-                                        ))}
+                                            {pending.map(fault => (
+                                                <FaultCard
+                                                    key={fault.id}
+                                                    fault={fault}
+                                                    onMoveToReview={() => handleReview(fault)}
+                                                    onResolve={() => handleResolve(fault)}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* EN REVISIÓN */}
                                 {(view === 'board' || view === 'review') && (
-                                    <div className={`space-y-4 ${view !== 'board' ? 'lg:col-span-2' : ''}`}>
-                                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                            En Revisión ({inProgress.length})
-                                        </h2>
+                                    <div className="space-y-4 bg-[#141414] p-4 rounded-[12px] border border-[#222222]">
+                                        <div className="flex items-center justify-between pb-3 border-b border-[#222222]">
+                                            <h2 className="text-sm font-bold text-[#FFB000] flex items-center gap-2 uppercase tracking-wider">
+                                                <div className="w-2 h-2 bg-[#FFB000]"></div>
+                                                EN TALLER / REVISIÓN
+                                            </h2>
+                                            <span className="text-xs font-mono font-bold text-[#FFB000] bg-[#FFB000]/10 px-2 py-0.5 border border-[#FFB000]/20">{inProgress.length}</span>
+                                        </div>
 
-                                        {inProgress.length === 0 && (
-                                            <PremiumContent className="p-8 text-center text-muted-foreground border-dashed">
-                                                No hay vehículos en el taller
-                                            </PremiumContent>
-                                        )}
+                                        <div className="space-y-3">
+                                            {inProgress.length === 0 && (
+                                                <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
+                                                    NO HAY VEHÍCULOS EN TALLER
+                                                </div>
+                                            )}
 
-                                        {inProgress.map(fault => (
-                                            <FaultCard
-                                                key={fault.id}
-                                                fault={fault}
-                                                isReviewing
-                                                onResolve={() => handleResolve(fault)}
-                                                onDiscard={() => updateStatus(fault.id, 'Pendiente')}
-                                            />
-                                        ))}
+                                            {inProgress.map(fault => (
+                                                <FaultCard
+                                                    key={fault.id}
+                                                    fault={fault}
+                                                    isReviewing
+                                                    onResolve={() => handleResolve(fault)}
+                                                    onDiscard={() => updateStatus(fault.id, 'Pendiente')}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
-
                             </div>
                         )}
                     </>
                 ) : (
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                            <h2 className="text-xl font-bold text-foreground">Historial de Servicios y Reparaciones</h2>
+                    <div className="max-w-4xl mx-auto bg-[#141414] p-4 sm:p-6 rounded-[12px] border border-[#222222]">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 pb-4 border-b border-[#222222]">
+                            <h2 className="text-sm font-bold text-white uppercase tracking-wider">HISTORIAL DE OPERACIONES</h2>
 
-                            <div className="w-full md:w-64">
+                            <div className="w-full sm:w-64">
                                 <Select value={historyFilter} onValueChange={setHistoryFilter}>
-                                    <SelectTrigger className="bg-white/5 border-white/10 rounded-xl h-11 text-foreground">
+                                    <SelectTrigger className="bg-black border-[#222222] rounded-[8px] h-10 text-white font-bold text-[11px] sm:text-xs uppercase hover:bg-[#1E1E1E] transition-colors focus:ring-1 focus:ring-[#FFB000] shadow-none">
                                         <div className="flex items-center gap-2">
-                                            <Filter size={14} className="text-muted-foreground" />
-                                            <SelectValue placeholder="Filtrar por vehículo" />
+                                            <Filter size={14} className="text-[#A3A3A3]" />
+                                            <SelectValue placeholder="FILTRAR POR..." />
                                         </div>
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">Todos los vehículos</SelectItem>
+                                    <SelectContent className="bg-black border-[#222222] text-white">
+                                        <SelectItem value="all" className="focus:bg-[#1E1E1E] focus:text-white font-bold text-xs uppercase cursor-pointer">TODOS LOS VEHÍCULOS</SelectItem>
                                         {vehicles.map((v) => (
-                                            <SelectItem key={v.id} value={v.placa}>
-                                                {v.modelo} <span className="text-muted-foreground text-xs ml-2">({v.placa})</span>
+                                            <SelectItem key={v.id} value={v.placa} className="focus:bg-[#1E1E1E] focus:text-white font-bold text-xs uppercase cursor-pointer">
+                                                {v.modelo} <span className="text-[#A3A3A3] font-mono ml-2">[{v.placa}]</span>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -550,58 +535,57 @@ export default function TallerPage() {
                         </div>
 
                         {loadingHistory ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
-                                <p>Cargando historial...</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-[#A3A3A3]">
+                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FFB000] border-t-transparent mb-4" />
+                                <p className="font-bold uppercase tracking-wider text-sm">CARGANDO...</p>
                             </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {historyLogs
                                     .filter(log => historyFilter === "all" || log.placa === historyFilter)
                                     .map((log: any) => (
-                                        <PremiumCard key={log.id} className="p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${log.type === 'REPAIR' ? 'bg-green-500/20 text-green-500' : 'bg-blue-500/20 text-blue-500'
-                                                    }`}>
-                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} /> : <Wrench size={18} />}
+                                        <div key={log.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4 bg-[#1E1E1E] border border-[#222222] rounded-[8px]">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <div className={`w-10 h-10 flex items-center justify-center shrink-0 border border-[#222222] bg-black rounded-[4px] ${log.type === 'REPAIR' ? 'text-white' : 'text-[#FFB000]'}`}>
+                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} strokeWidth={2.5} /> : <Wrench size={18} strokeWidth={2.5} />}
                                                 </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-bold text-foreground">{log.vehicle}</span>
-                                                        <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">{log.placa}</span>
+                                                <div className="font-roboto flex-1">
+                                                    <div className="flex items-center flex-wrap gap-2 mb-1">
+                                                        <span className="font-bold font-sans tracking-wide text-white uppercase text-sm">{log.vehicle}</span>
+                                                        <span className="text-[10px] text-[#A3A3A3] font-mono border border-[#222222] bg-black px-1.5 py-0.5 font-bold uppercase">{log.placa}</span>
                                                     </div>
-                                                    <div className="text-sm text-foreground/80">
-                                                        <span className="font-medium">
+                                                    <div className="text-xs text-[#A3A3A3] leading-relaxed">
+                                                        <span className="font-bold text-white uppercase tracking-wider">
                                                             {log.type === 'MAINTENANCE'
-                                                                ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
-                                                                    log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
-                                                                        log.category === 'CHAIN_KIT' ? 'Kit de Arrastre' :
-                                                                            log.category === 'WASH' ? 'Lavado' :
-                                                                                log.category === 'OTHER' ? (log.description || 'Otro Servicio') :
+                                                                ? (log.category === 'OIL_CHANGE' ? 'CMB ACEITE' :
+                                                                    log.category === 'TIMING_BELT' ? 'CORREA TIEMPO' :
+                                                                        log.category === 'CHAIN_KIT' ? 'KIT ARRASTRE' :
+                                                                            log.category === 'WASH' ? 'LAVADO' :
+                                                                                log.category === 'OTHER' ? (log.description || 'OTRO') :
                                                                                     log.category)
-                                                                : `Reparación: ${log.category}`
+                                                                : `REP: ${log.category}`
                                                             }
                                                         </span>
                                                         {log.type === 'MAINTENANCE' && log.category === 'OTHER' ? null : (
                                                             <>
-                                                                <span className="mx-2 text-muted-foreground/30">|</span>
-                                                                {log.description}
+                                                                <span className="mx-2 text-[#444444]">|</span>
+                                                                <span className="uppercase">{log.description}</span>
                                                             </>
                                                         )}
-                                                        {log.mileage && <span className="text-muted-foreground ml-2">({log.mileage.toLocaleString()} km)</span>}
+                                                        {log.mileage && <span className="text-[#A3A3A3] ml-2 font-mono bg-black border border-[#222222] px-1 py-0.5">KM: {log.mileage.toLocaleString()}</span>}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right text-xs text-muted-foreground">
+                                            <div className="text-left sm:text-right text-[10px] text-[#555555] font-mono font-bold uppercase border-t border-[#222222] sm:border-none pt-3 sm:pt-0 mt-3 sm:mt-0 flex gap-2 sm:block">
                                                 <div>{new Date(log.date).toLocaleDateString()}</div>
                                                 <div>{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                             </div>
-                                        </PremiumCard>
+                                        </div>
                                     ))}
                                 {historyLogs.length === 0 && (
-                                    <PremiumContent className="p-8 text-center text-muted-foreground border-dashed">
-                                        No hay historial registrado
-                                    </PremiumContent>
+                                    <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
+                                        SIN REGISTROS
+                                    </div>
                                 )}
                             </div>
                         )}
@@ -631,11 +615,11 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     isReviewing?: boolean
 }) {
     const priorityColor = {
-        'Crítica': 'text-red-500 bg-red-500/10 border-red-500/20',
-        'Alta': 'text-orange-500 bg-orange-500/10 border-orange-500/20',
-        'Media': 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20',
-        'Baja': 'text-blue-500 bg-blue-500/10 border-blue-500/20'
-    }[fault.prioridad] || 'text-muted-foreground bg-muted border-white/10'
+        'Crítica': 'text-red-500 border-red-500',
+        'Alta': 'text-orange-500 border-orange-500',
+        'Media': 'text-yellow-500 border-yellow-500',
+        'Baja': 'text-[#FFB000] border-[#FFB000]'
+    }[fault.prioridad] || 'text-white border-white/20'
 
     const getFaultIcon = (type: string) => {
         switch (type) {
@@ -650,72 +634,72 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     const Icon = getFaultIcon(fault.tipo_falla)
 
     return (
-        <PremiumCard className="h-fit p-0 group hover:border-primary/50 flex flex-col overflow-hidden">
-            <div className="p-5 flex gap-4">
-                <div className="relative w-24 h-24 bg-muted/50 rounded-xl overflow-hidden shrink-0 border border-white/5">
+        <div className="flex flex-col overflow-hidden bg-[#1E1E1E] border border-[#222222] rounded-[8px] transition-all hover:border-[#444444]">
+            <div className="p-4 flex gap-4">
+                <div className="relative w-20 h-20 bg-black overflow-hidden shrink-0 border border-[#222222] rounded-[4px]">
                     {fault.foto_url ? (
-                        <Image src={fault.foto_url} alt={fault.modelo} fill className="object-cover" />
+                        <>
+                            <Image src={fault.foto_url} alt={fault.modelo} fill className="object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-black/20" />
+                        </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-muted-foreground/50">
-                            <Icon size={32} />
+                        <div className="flex items-center justify-center h-full text-[#444444]">
+                            <Icon size={24} strokeWidth={2} />
                         </div>
                     )}
                 </div>
 
-                <div className="flex-1 min-w-0 flex flex-col h-full">
-                    <div className="mb-2">
-                        <div className="flex justify-between items-start gap-2">
-                            <h3 className="font-bold text-foreground text-base leading-tight">{fault.modelo}</h3>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${priorityColor} bg-opacity-50 shrink-0`}>
-                                {fault.prioridad}
-                            </span>
+                <div className="flex-1 min-w-0 flex flex-col font-roboto">
+                    <div className="mb-1.5 flex justify-between items-start gap-2">
+                        <div>
+                            <h3 className="font-bold text-white text-base leading-none uppercase font-sans tracking-wide">{fault.modelo}</h3>
+                            <div className="text-[10px] font-mono text-[#A3A3A3] mt-1.5 font-bold bg-black border border-[#222222] inline-block px-1.5 py-0.5 uppercase tracking-wider">
+                                {fault.placa}
+                            </div>
                         </div>
-                        {/* [NEW] License Plate Display */}
-                        <div className="text-xs font-mono text-muted-foreground mt-0.5 font-semibold bg-white/5 inline-block px-1.5 py-0.5 rounded">
-                            {fault.placa}
-                        </div>
+                        <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 border ${priorityColor} bg-black shrink-0 font-mono`}>
+                            {fault.prioridad}
+                        </span>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
-                        <div className={`p-1 rounded-full border bg-white/5 border-white/10 shrink-0`}>
-                            <Icon size={12} />
+                    <div className="flex items-center gap-1.5 mb-2 text-[10px] text-white font-bold uppercase tracking-widest">
+                        <div className={`p-0.5 bg-black border border-[#222222] shrink-0 text-[#FFB000] rounded-[2px]`}>
+                            <Icon size={10} strokeWidth={3} />
                         </div>
                         {fault.tipo_falla}
                     </div>
 
-                    <p className="text-sm text-foreground/70 line-clamp-2 leading-relaxed mb-1">
+                    <p className="text-xs text-[#A3A3A3] line-clamp-2 leading-relaxed uppercase mb-2">
                         {fault.descripcion}
                     </p>
 
-                    <div className="mt-auto pt-2 flex items-center justify-between text-xs text-muted-foreground/50">
-                        <div className="flex items-center gap-1 font-medium">
-                            <Clock size={12} />
-                            {new Date(fault.created_at).toLocaleDateString()}
-                        </div>
+                    <div className="mt-auto flex items-center gap-1 font-mono text-[9px] text-[#555555] font-bold uppercase tracking-wider">
+                        <Clock size={10} />
+                        {new Date(fault.created_at).toLocaleDateString()}
                     </div>
                 </div>
             </div>
 
             {/* Footer Action Bar */}
-            <div className="bg-white/5 border-t border-white/5 p-3 flex justify-end gap-2">
+            <div className="bg-[#141414] border-t border-[#222222] p-2.5 flex justify-end gap-2">
                 {!isReviewing && onMoveToReview && (
-                    <Button onClick={onMoveToReview} size="sm" variant="secondary" className="h-8 rounded-lg text-xs w-full sm:w-auto">
-                        Revisar
-                        <ArrowRight size={14} className="ml-2" />
+                    <Button onClick={onMoveToReview} size="sm" variant="outline" className="h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-[#444444] text-white hover:bg-white hover:text-black hover:border-white w-full sm:w-auto transition-colors">
+                        MANDAR A REVISIÓN
+                        <ArrowRight size={12} className="ml-1.5" strokeWidth={3} />
                     </Button>
                 )}
 
                 {isReviewing && onDiscard && (
-                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-white/5">
-                        Devolver
+                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#A3A3A3] hover:text-white hover:bg-[#222222] transition-colors w-full sm:w-auto">
+                        DESCARTAR
                     </Button>
                 )}
 
-                <Button onClick={onResolve} size="sm" className={`h-8 rounded-lg text-xs ${!isReviewing ? 'hidden' : 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20'}`}>
-                    <CheckCircle size={14} className="mr-2" />
-                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'Registrar' : 'Reparado'}
+                <Button onClick={onResolve} size="sm" className={`h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider w-full sm:w-auto transition-none shadow-none ${!isReviewing ? 'hidden' : 'bg-[#FFB000] hover:bg-[#E59E00] text-black'}`}>
+                    <CheckCircle size={12} strokeWidth={3} className="mr-1.5" />
+                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'CERRAR SERVICIO' : 'MARCAR REPARADO'}
                 </Button>
             </div>
-        </PremiumCard>
+        </div>
     )
 }
