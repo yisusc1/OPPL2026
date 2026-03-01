@@ -14,9 +14,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner"
 import QRCode from "react-qr-code"
 import Link from "next/link"
+import Image from "next/image"
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
 import { PremiumContent } from "@/components/ui/premium-content"
+
 
 type Vehicle = {
     id: string
@@ -271,11 +273,12 @@ export default function TransportePage() {
 
                 {/* UNIFIED ACTION GRID (3 CARDS) */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                     {/* CARD 1: SALIDA */}
                     <button
-                        disabled={!!activeTripReport} // [NEW] Disable if in trip
+                        disabled={!!activeTripReport}
                         onClick={() => {
-                            if (activeTripReport) return // Prevent click if disabled check fails
+                            if (activeTripReport) return
                             if (assignedVehicle) {
                                 setInitialVehicleId(assignedVehicle.id)
                                 setSalidaOpen(true)
@@ -284,66 +287,60 @@ export default function TransportePage() {
                                 setSalidaOpen(true)
                             }
                         }}
-                        className="text-left w-full h-full"
+                        className="text-left w-full h-full group"
                     >
-                        <PremiumCard
-                            className={`h-full flex flex-col justify-between ${activeTripReport ? 'opacity-60 cursor-not-allowed bg-muted/50' : 'hover:border-primary/50'}`}
-                        >
-                            <div className="flex flex-col h-full justify-between space-y-6">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${activeTripReport ? 'bg-muted text-muted-foreground' : 'bg-indigo-500/10 text-indigo-500'}`}>
-                                    <Truck size={24} />
+                        <div className={`relative overflow-hidden rounded-2xl border border-zinc-800 !bg-zinc-950 h-[280px] flex flex-col justify-end transition-all duration-300 ${activeTripReport ? 'opacity-50 cursor-not-allowed' : 'hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10'}`}>
+                            <div className="absolute inset-0">
+                                <Image src="/transport-salida.png" alt="Salida" fill className={`object-cover transition-all duration-500 ${activeTripReport ? 'opacity-30' : 'opacity-50 group-hover:opacity-65 group-hover:scale-105'}`} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/40 to-transparent" />
+                            </div>
+                            <div className="relative z-10 p-6 space-y-3">
+                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${activeTripReport ? 'bg-zinc-800 text-zinc-500' : 'bg-indigo-500/20 text-indigo-400'}`}>
+                                    <Truck size={22} />
                                 </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-foreground">
-                                        {activeTripReport ? "En Ruta (Activo)" : "Registrar Salida"}
-                                    </h2>
-                                    <p className="text-muted-foreground text-sm font-medium">
-                                        {activeTripReport ? "Tienes un viaje en curso. Registra la entrada para iniciar otro." : (assignedVehicle ? "Iniciar ruta con tu unidad asignada." : "Seleccionar vehículo del departamento para iniciar ruta.")}
-                                    </p>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">{activeTripReport ? "En Ruta (Activo)" : "Registrar Salida"}</h2>
+                                    <p className="text-zinc-400 text-sm mt-1">{activeTripReport ? "Tienes un viaje en curso. Registra la entrada para iniciar otro." : (assignedVehicle ? "Iniciar ruta con tu unidad asignada." : "Seleccionar vehículo del departamento para iniciar ruta.")}</p>
                                 </div>
                                 {!activeTripReport && (
-                                    <div className="flex items-center text-indigo-500 font-bold text-sm">
+                                    <div className="flex items-center text-indigo-400 font-bold text-sm">
                                         Iniciar <ArrowRight size={16} className="ml-2" />
                                     </div>
                                 )}
                             </div>
-                        </PremiumCard>
+                        </div>
                     </button>
 
                     {/* CARD 2: ENTRADA */}
                     <button
-                        disabled={!activeTripReport} // [NEW] Disable if NOT in trip
+                        disabled={!activeTripReport}
                         onClick={() => {
-                            if (!activeTripReport) return // Prevent click
-                            if (activeTripReport) {
-                                setInitialVehicleId(activeTripReport.vehiculo_id)
-                                setEntradaOpen(true)
-                            }
+                            if (!activeTripReport) return
+                            setInitialVehicleId(activeTripReport.vehiculo_id)
+                            setEntradaOpen(true)
                         }}
-                        className="text-left w-full h-full"
+                        className="text-left w-full h-full group"
                     >
-                        <PremiumCard
-                            className={`h-full flex flex-col justify-between ${!activeTripReport ? 'opacity-60 cursor-not-allowed bg-muted/50' : 'hover:border-primary/50'}`}
-                        >
-                            <div className="flex flex-col h-full justify-between space-y-6">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${!activeTripReport ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                    <LogOut size={24} className="scale-x-[-1]" />
+                        <div className={`relative overflow-hidden rounded-2xl border border-zinc-800 !bg-zinc-950 h-[280px] flex flex-col justify-end transition-all duration-300 ${!activeTripReport ? 'opacity-50 cursor-not-allowed' : 'hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/10'}`}>
+                            <div className="absolute inset-0">
+                                <Image src="/transport-entrada.png" alt="Entrada" fill className={`object-cover transition-all duration-500 ${!activeTripReport ? 'opacity-30' : 'opacity-50 group-hover:opacity-65 group-hover:scale-105'}`} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/40 to-transparent" />
+                            </div>
+                            <div className="relative z-10 p-6 space-y-3">
+                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${!activeTripReport ? 'bg-zinc-800 text-zinc-500' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                    <LogOut size={22} className="scale-x-[-1]" />
                                 </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-foreground">
-                                        {!activeTripReport ? "Sin Viaje Activo" : "Registrar Entrada"}
-                                    </h2>
-                                    <p className="text-muted-foreground text-sm font-medium">
-                                        {!activeTripReport ? "No tienes un vehículo en ruta actualmente. Registra una salida primero." : (assignedVehicle ? "Finalizar ruta y reportar kilometraje." : "Cerrar ruta, registrar kilometraje y liberar vehículo.")}
-                                    </p>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">{!activeTripReport ? "Sin Viaje Activo" : "Registrar Entrada"}</h2>
+                                    <p className="text-zinc-400 text-sm mt-1">{!activeTripReport ? "No tienes un vehículo en ruta actualmente. Registra una salida primero." : (assignedVehicle ? "Finalizar ruta y reportar kilometraje." : "Cerrar ruta, registrar kilometraje y liberar vehículo.")}</p>
                                 </div>
                                 {activeTripReport && (
-                                    <div className="flex items-center text-emerald-500 font-bold text-sm">
+                                    <div className="flex items-center text-emerald-400 font-bold text-sm">
                                         Registrar <ArrowRight size={16} className="ml-2" />
                                     </div>
                                 )}
                             </div>
-                        </PremiumCard>
+                        </div>
                     </button>
 
                     {/* CARD 3: FALLA */}
@@ -356,25 +353,28 @@ export default function TransportePage() {
                                 startFaultReportingPool()
                             }
                         }}
-                        className="text-left w-full h-full"
+                        className="text-left w-full h-full group"
                     >
-                        <PremiumCard className="h-full flex flex-col justify-between hover:border-red-500/50">
-                            <div className="flex flex-col h-full justify-between space-y-6">
-                                <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500">
-                                    <AlertTriangle size={24} />
+                        <div className="relative overflow-hidden rounded-2xl border border-zinc-800 !bg-zinc-950 h-[280px] flex flex-col justify-end transition-all duration-300 hover:border-red-500/50 hover:shadow-lg hover:shadow-red-500/10">
+                            <div className="absolute inset-0">
+                                <Image src="/transport-falla.png" alt="Falla" fill className="object-cover opacity-50 group-hover:opacity-65 group-hover:scale-105 transition-all duration-500" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/95 via-zinc-950/40 to-transparent" />
+                            </div>
+                            <div className="relative z-10 p-6 space-y-3">
+                                <div className="w-11 h-11 rounded-xl bg-red-500/20 flex items-center justify-center text-red-400">
+                                    <AlertTriangle size={22} />
                                 </div>
-                                <div className="space-y-2">
-                                    <h2 className="text-xl font-bold text-foreground">Reportar Falla</h2>
-                                    <p className="text-muted-foreground text-sm font-medium">
-                                        {assignedVehicle ? "Notificar avería en tu unidad asignada." : "Notificar avería en un vehículo de la flota."}
-                                    </p>
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">Reportar Falla</h2>
+                                    <p className="text-zinc-400 text-sm mt-1">{assignedVehicle ? "Notificar avería en tu unidad asignada." : "Notificar avería en un vehículo de la flota."}</p>
                                 </div>
-                                <div className="flex items-center text-red-500 font-bold text-sm">
+                                <div className="flex items-center text-red-400 font-bold text-sm">
                                     Reportar <ArrowRight size={16} className="ml-2" />
                                 </div>
                             </div>
-                        </PremiumCard>
+                        </div>
                     </button>
+
                 </div>
 
                 {/* MODALS */}
