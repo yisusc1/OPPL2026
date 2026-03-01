@@ -381,8 +381,8 @@ export default function TallerPage() {
             <div className="max-w-5xl mx-auto space-y-4">
 
                 {/* 1. HEADER & SEARCH BAR */}
-                <PremiumCard className="p-3 sm:p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
-                    <div className="relative w-full md:w-96 flex-1">
+                <PremiumCard className="p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-center gap-3 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5 w-full sm:w-auto mx-auto sm:mx-0 max-w-md sm:max-w-none">
+                    <div className="relative w-full sm:w-96 flex-1">
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                         <input
                             type="text"
@@ -401,7 +401,7 @@ export default function TallerPage() {
                             setPendingResolveId(null)
                             setMaintenanceOpen(true)
                         }}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium w-full md:w-auto shadow-sm"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium w-full sm:w-auto shadow-sm"
                     >
                         <Wrench size={14} className="sm:w-4 sm:h-4" />
                         Nuevo Servicio
