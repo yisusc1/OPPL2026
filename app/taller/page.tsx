@@ -377,8 +377,8 @@ export default function TallerPage() {
     const inProgress = filteredFaults.filter(f => f.estado === 'En Revisión')
 
     return (
-        <PremiumPageLayout title="INTELIGENCIA OPERACIONAL" description="TALLER MECÁNICO / GESTIÓN DE FALLAS">
-            <div className="max-w-7xl mx-auto space-y-8 text-white font-sans">
+        <PremiumPageLayout title="Taller Mecánico" description="Gestión de Fallas y Mantenimiento">
+            <div className="max-w-7xl mx-auto space-y-8">
                 {/* PC CONTROLS (Top Right) */}
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="hidden md:flex gap-1 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
@@ -409,10 +409,10 @@ export default function TallerPage() {
                                 setPendingResolveId(null)
                                 setMaintenanceOpen(true)
                             }}
-                            className="bg-[#FFB000] text-black hover:bg-[#E59E00] gap-2 h-10 px-6 rounded-lg text-sm font-bold uppercase w-full md:w-auto transition-none"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 px-4 rounded-xl text-sm font-medium w-full md:w-auto"
                         >
-                            <Wrench size={16} strokeWidth={2.5} />
-                            REPORTAR FALLA
+                            <Wrench size={16} />
+                            Registrar Mantenimiento
                         </Button>
                     </div>
                 </div>
@@ -473,9 +473,9 @@ export default function TallerPage() {
                                 {/* PENDIENTES */}
                                 {(view === 'board' || view === 'pending') && (
                                     <div className={`space-y-4 ${view !== 'board' ? 'lg:col-span-2' : ''}`}>
-                                        <h2 className="text-xl font-bold font-sans tracking-tight text-white flex items-center gap-2 uppercase">
-                                            <div className="w-2.5 h-2.5 bg-red-500 animate-pulse"></div>
-                                            PENDIENTES ({pending.length})
+                                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>
+                                            Pendientes ({pending.length})
                                         </h2>
 
                                         {pending.length === 0 && (
@@ -498,9 +498,9 @@ export default function TallerPage() {
                                 {/* EN REVISIÓN */}
                                 {(view === 'board' || view === 'review') && (
                                     <div className={`space-y-4 ${view !== 'board' ? 'lg:col-span-2' : ''}`}>
-                                        <h2 className="text-xl font-bold font-sans tracking-tight text-white flex items-center gap-2 uppercase">
-                                            <div className="w-2.5 h-2.5 bg-blue-500"></div>
-                                            EN REVISIÓN ({inProgress.length})
+                                        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                                            En Revisión ({inProgress.length})
                                         </h2>
 
                                         {inProgress.length === 0 && (
@@ -527,7 +527,7 @@ export default function TallerPage() {
                 ) : (
                     <div className="max-w-4xl mx-auto">
                         <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-                            <h2 className="text-xl font-bold font-sans tracking-tight text-white uppercase">HISTORIAL DE OPERACIONES</h2>
+                            <h2 className="text-xl font-bold text-foreground">Historial de Servicios y Reparaciones</h2>
 
                             <div className="w-full md:w-64">
                                 <Select value={historyFilter} onValueChange={setHistoryFilter}>
@@ -559,19 +559,19 @@ export default function TallerPage() {
                                 {historyLogs
                                     .filter(log => historyFilter === "all" || log.placa === historyFilter)
                                     .map((log: any) => (
-                                        <PremiumCard key={log.id} className="p-4 flex items-center justify-between bg-[#1E1E1E] border-[#222222] rounded-[12px] shadow-none">
+                                        <PremiumCard key={log.id} className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-10 h-10 flex items-center justify-center shrink-0 border border-[#222222] bg-black ${log.type === 'REPAIR' ? 'text-white' : 'text-[#FFB000]'
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${log.type === 'REPAIR' ? 'bg-green-500/20 text-green-500' : 'bg-blue-500/20 text-blue-500'
                                                     }`}>
-                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} strokeWidth={2.5} /> : <Wrench size={18} strokeWidth={2.5} />}
+                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} /> : <Wrench size={18} />}
                                                 </div>
-                                                <div className="font-roboto">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="font-bold font-sans tracking-wide text-white uppercase">{log.vehicle}</span>
-                                                        <span className="text-[10px] text-[#A3A3A3] font-mono border border-[#222222] bg-black px-1.5 py-0.5 font-bold uppercase">{log.placa}</span>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-foreground">{log.vehicle}</span>
+                                                        <span className="text-xs text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded">{log.placa}</span>
                                                     </div>
-                                                    <div className="text-sm text-[#A3A3A3] leading-[1.6]">
-                                                        <span className="font-bold text-white uppercase text-xs tracking-wider">
+                                                    <div className="text-sm text-foreground/80">
+                                                        <span className="font-medium">
                                                             {log.type === 'MAINTENANCE'
                                                                 ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
                                                                     log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
@@ -584,15 +584,15 @@ export default function TallerPage() {
                                                         </span>
                                                         {log.type === 'MAINTENANCE' && log.category === 'OTHER' ? null : (
                                                             <>
-                                                                <span className="mx-2 text-[#222222]">|</span>
+                                                                <span className="mx-2 text-muted-foreground/30">|</span>
                                                                 {log.description}
                                                             </>
                                                         )}
-                                                        {log.mileage && <span className="text-white ml-2 font-mono text-xs">[{log.mileage.toLocaleString()} KM]</span>}
+                                                        {log.mileage && <span className="text-muted-foreground ml-2">({log.mileage.toLocaleString()} km)</span>}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-right text-xs text-[#A3A3A3] font-mono font-bold uppercase">
+                                            <div className="text-right text-xs text-muted-foreground">
                                                 <div>{new Date(log.date).toLocaleDateString()}</div>
                                                 <div>{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                             </div>
@@ -631,11 +631,11 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     isReviewing?: boolean
 }) {
     const priorityColor = {
-        'Crítica': 'text-red-500 border-red-500',
-        'Alta': 'text-orange-500 border-orange-500',
-        'Media': 'text-yellow-500 border-yellow-500',
-        'Baja': 'text-[#FFB000] border-[#FFB000]'
-    }[fault.prioridad] || 'text-white border-white/20'
+        'Crítica': 'text-red-500 bg-red-500/10 border-red-500/20',
+        'Alta': 'text-orange-500 bg-orange-500/10 border-orange-500/20',
+        'Media': 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20',
+        'Baja': 'text-blue-500 bg-blue-500/10 border-blue-500/20'
+    }[fault.prioridad] || 'text-muted-foreground bg-muted border-white/10'
 
     const getFaultIcon = (type: string) => {
         switch (type) {
@@ -650,38 +650,35 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     const Icon = getFaultIcon(fault.tipo_falla)
 
     return (
-        <PremiumCard className="h-fit p-0 flex flex-col overflow-hidden bg-[#1E1E1E] border-[#222222] rounded-[12px] shadow-none">
+        <PremiumCard className="h-fit p-0 group hover:border-primary/50 flex flex-col overflow-hidden">
             <div className="p-5 flex gap-4">
-                <div className="relative w-24 h-24 bg-black overflow-hidden shrink-0 border border-[#222222]">
+                <div className="relative w-24 h-24 bg-muted/50 rounded-xl overflow-hidden shrink-0 border border-white/5">
                     {fault.foto_url ? (
-                        <>
-                            <Image src={fault.foto_url} alt={fault.modelo} fill className="object-cover" />
-                            <div className="absolute inset-0 bg-black/70" /> {/* High-End Dark Overlay */}
-                        </>
+                        <Image src={fault.foto_url} alt={fault.modelo} fill className="object-cover" />
                     ) : (
-                        <div className="flex items-center justify-center h-full text-white/20">
+                        <div className="flex items-center justify-center h-full text-muted-foreground/50">
                             <Icon size={32} />
                         </div>
                     )}
                 </div>
 
-                <div className="flex-1 min-w-0 flex flex-col h-full font-roboto">
+                <div className="flex-1 min-w-0 flex flex-col h-full">
                     <div className="mb-2">
                         <div className="flex justify-between items-start gap-2">
-                            <h3 className="font-bold text-white text-lg leading-tight uppercase font-sans tracking-wider">{fault.modelo}</h3>
-                            <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 border ${priorityColor} bg-black shrink-0`}>
+                            <h3 className="font-bold text-foreground text-base leading-tight">{fault.modelo}</h3>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${priorityColor} bg-opacity-50 shrink-0`}>
                                 {fault.prioridad}
                             </span>
                         </div>
-                        {/* License Plate Display */}
-                        <div className="text-xs font-mono text-[#A3A3A3] mt-0.5 font-bold bg-black border border-[#222222] inline-block px-1.5 py-0.5">
+                        {/* [NEW] License Plate Display */}
+                        <div className="text-xs font-mono text-muted-foreground mt-0.5 font-semibold bg-white/5 inline-block px-1.5 py-0.5 rounded">
                             {fault.placa}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-2 text-xs text-white font-bold uppercase tracking-wider">
-                        <div className={`p-1 bg-black border border-[#222222] shrink-0 text-[#FFB000]`}>
-                            <Icon size={12} strokeWidth={3} />
+                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
+                        <div className={`p-1 rounded-full border bg-white/5 border-white/10 shrink-0`}>
+                            <Icon size={12} />
                         </div>
                         {fault.tipo_falla}
                     </div>
@@ -700,23 +697,23 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
             </div>
 
             {/* Footer Action Bar */}
-            <div className="bg-[#141414] border-t border-[#222222] p-3 flex justify-end gap-2">
+            <div className="bg-white/5 border-t border-white/5 p-3 flex justify-end gap-2">
                 {!isReviewing && onMoveToReview && (
-                    <Button onClick={onMoveToReview} size="sm" variant="outline" className="h-8 rounded-[8px] text-xs font-bold uppercase tracking-wider w-full sm:w-auto border-white text-white hover:bg-white hover:text-black">
-                        REVISAR
+                    <Button onClick={onMoveToReview} size="sm" variant="secondary" className="h-8 rounded-lg text-xs w-full sm:w-auto">
+                        Revisar
                         <ArrowRight size={14} className="ml-2" />
                     </Button>
                 )}
 
                 {isReviewing && onDiscard && (
-                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-8 rounded-[8px] text-xs font-bold uppercase tracking-wider text-[#A3A3A3] hover:text-white hover:bg-black">
-                        DESCARTAR
+                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-8 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-white/5">
+                        Devolver
                     </Button>
                 )}
 
-                <Button onClick={onResolve} size="sm" className={`h-8 rounded-[8px] text-xs font-bold uppercase tracking-wider ${!isReviewing ? 'hidden' : 'bg-[#FFB000] hover:bg-[#E59E00] text-black shadow-none transition-none'}`}>
-                    <CheckCircle size={14} strokeWidth={2.5} className="mr-2" />
-                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'CERRAR SERVICIO' : 'MARCAR REPARADO'}
+                <Button onClick={onResolve} size="sm" className={`h-8 rounded-lg text-xs ${!isReviewing ? 'hidden' : 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20'}`}>
+                    <CheckCircle size={14} className="mr-2" />
+                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'Registrar' : 'Reparado'}
                 </Button>
             </div>
         </PremiumCard>
