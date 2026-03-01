@@ -60,7 +60,7 @@ export default async function GerenciaDashboard() {
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             <PremiumCard className="p-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-red-500/10 rounded-xl text-red-500"><AlertTriangle size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><AlertTriangle size={18} /></div>
                                     <div>
                                         <div className="text-2xl font-bold">{stats.activeFaults}</div>
                                         <div className="text-xs text-muted-foreground">Fallas activas</div>
@@ -69,7 +69,7 @@ export default async function GerenciaDashboard() {
                             </PremiumCard>
                             <PremiumCard className="p-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500"><Wrench size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><Wrench size={18} /></div>
                                     <div>
                                         <div className="text-2xl font-bold">{stats.vehiclesInMaintenance}</div>
                                         <div className="text-xs text-muted-foreground">Veh. en taller</div>
@@ -78,7 +78,7 @@ export default async function GerenciaDashboard() {
                             </PremiumCard>
                             <PremiumCard className="p-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-green-500/10 rounded-xl text-green-500"><Car size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><Car size={18} /></div>
                                     <div>
                                         <div className="text-2xl font-bold">{fleet.filter(v => v.status === 'IN_ROUTE').length}</div>
                                         <div className="text-xs text-muted-foreground">En ruta ahora</div>
@@ -87,7 +87,7 @@ export default async function GerenciaDashboard() {
                             </PremiumCard>
                             <PremiumCard className="p-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500"><Car size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><Car size={18} /></div>
                                     <div>
                                         <div className="text-2xl font-bold">{fleet.filter(v => v.status === 'AVAILABLE').length}</div>
                                         <div className="text-xs text-muted-foreground">Disponibles</div>
@@ -100,7 +100,7 @@ export default async function GerenciaDashboard() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-500"><TrendingUp size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><TrendingUp size={18} /></div>
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Instalaciones</span>
                                 </div>
                                 <div className="text-4xl font-bold text-foreground">{monthly.totalInstallations}</div>
@@ -109,7 +109,7 @@ export default async function GerenciaDashboard() {
 
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500"><Zap size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><Zap size={18} /></div>
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">TV</span>
                                 </div>
                                 <div className="text-4xl font-bold text-foreground">{monthly.powerGoCount}</div>
@@ -118,7 +118,7 @@ export default async function GerenciaDashboard() {
 
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-cyan-500/10 rounded-xl text-cyan-500"><Droplets size={18} /></div>
+                                    <div className="p-2 bg-foreground/5 rounded-xl text-muted-foreground"><Droplets size={18} /></div>
                                     <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Combustible</span>
                                 </div>
                                 <div className="text-3xl font-bold text-foreground">{monthly.fuelTotalLiters.toFixed(1)} L</div>
@@ -135,7 +135,7 @@ export default async function GerenciaDashboard() {
                             {/* TOP 4 TECNICOS */}
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <Medal size={16} className="text-yellow-500" />
+                                    <Medal size={16} className="text-muted-foreground" />
                                     <h3 className="font-bold text-sm text-foreground">Top 4 Técnicos</h3>
                                     <span className="ml-auto text-xs text-muted-foreground">{capitalize(monthly.monthLabel)}</span>
                                 </div>
@@ -145,11 +145,11 @@ export default async function GerenciaDashboard() {
                                     <div className="space-y-3">
                                         {monthly.topTechnicians.map((t, i) => (
                                             <div key={t.name} className="flex items-center gap-3">
-                                                <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : i === 1 ? 'bg-zinc-400/20 text-zinc-400' : i === 2 ? 'bg-amber-700/20 text-amber-700' : 'bg-white/5 text-muted-foreground'}`}>{i + 1}</span>
+                                                <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 bg-foreground/5 text-muted-foreground">{i + 1}</span>
                                                 <span className="flex-1 text-sm font-medium text-foreground truncate capitalize">{t.name.toLowerCase()}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-1.5 rounded-full bg-primary/20 w-20 overflow-hidden">
-                                                        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round((t.count / (monthly.topTechnicians[0]?.count || 1)) * 100)}%` }} />
+                                                    <div className="h-1.5 rounded-full bg-foreground/10 w-20 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-foreground/60" style={{ width: `${Math.round((t.count / (monthly.topTechnicians[0]?.count || 1)) * 100)}%` }} />
                                                     </div>
                                                     <span className="text-xs font-bold text-foreground w-6 text-right">{t.count}</span>
                                                 </div>
@@ -162,7 +162,7 @@ export default async function GerenciaDashboard() {
                             {/* TOP 3 ASESORES */}
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <Users size={16} className="text-blue-500" />
+                                    <Users size={16} className="text-muted-foreground" />
                                     <h3 className="font-bold text-sm text-foreground">Top 3 Asesores</h3>
                                     <span className="ml-auto text-xs text-muted-foreground">{capitalize(monthly.monthLabel)}</span>
                                 </div>
@@ -172,11 +172,11 @@ export default async function GerenciaDashboard() {
                                     <div className="space-y-3">
                                         {monthly.topAdvisors.map((a, i) => (
                                             <div key={a.name} className="flex items-center gap-3">
-                                                <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : i === 1 ? 'bg-zinc-400/20 text-zinc-400' : 'bg-amber-700/20 text-amber-700'}`}>{i + 1}</span>
+                                                <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold shrink-0 bg-foreground/5 text-muted-foreground">{i + 1}</span>
                                                 <span className="flex-1 text-sm font-medium text-foreground truncate capitalize">{a.name.toLowerCase()}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-1.5 rounded-full bg-blue-500/20 w-20 overflow-hidden">
-                                                        <div className="h-full rounded-full bg-blue-500" style={{ width: `${Math.round((a.count / (monthly.topAdvisors[0]?.count || 1)) * 100)}%` }} />
+                                                    <div className="h-1.5 rounded-full bg-foreground/10 w-20 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-foreground/60" style={{ width: `${Math.round((a.count / (monthly.topAdvisors[0]?.count || 1)) * 100)}%` }} />
                                                     </div>
                                                     <span className="text-xs font-bold text-foreground w-6 text-right">{a.count}</span>
                                                 </div>
@@ -189,7 +189,7 @@ export default async function GerenciaDashboard() {
                             {/* TOP 5 ZONAS */}
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <MapPin size={16} className="text-green-500" />
+                                    <MapPin size={16} className="text-muted-foreground" />
                                     <h3 className="font-bold text-sm text-foreground">Top 5 Zonas</h3>
                                     <span className="ml-auto text-xs text-muted-foreground">{capitalize(monthly.monthLabel)}</span>
                                 </div>
@@ -202,8 +202,8 @@ export default async function GerenciaDashboard() {
                                                 <span className="w-5 text-xs font-bold text-muted-foreground text-right shrink-0">{i + 1}</span>
                                                 <span className="flex-1 text-sm font-medium text-foreground truncate capitalize">{z.name.toLowerCase()}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-1.5 rounded-full bg-green-500/20 w-20 overflow-hidden">
-                                                        <div className="h-full rounded-full bg-green-500" style={{ width: `${Math.round((z.count / (monthly.topZones[0]?.count || 1)) * 100)}%` }} />
+                                                    <div className="h-1.5 rounded-full bg-foreground/10 w-20 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-foreground/60" style={{ width: `${Math.round((z.count / (monthly.topZones[0]?.count || 1)) * 100)}%` }} />
                                                     </div>
                                                     <span className="text-xs font-bold text-foreground w-6 text-right">{z.count}</span>
                                                 </div>
@@ -216,7 +216,7 @@ export default async function GerenciaDashboard() {
                             {/* TOP 5 SECTORES CON MÁS INSTALACIONES */}
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <MapPin size={16} className="text-purple-500" />
+                                    <MapPin size={16} className="text-muted-foreground" />
                                     <h3 className="font-bold text-sm text-foreground">Top 5 Sectores</h3>
                                     <span className="ml-auto text-xs text-muted-foreground">{capitalize(monthly.monthLabel)}</span>
                                 </div>
@@ -229,8 +229,8 @@ export default async function GerenciaDashboard() {
                                                 <span className="w-5 text-xs font-bold text-muted-foreground text-right shrink-0">{i + 1}</span>
                                                 <span className="flex-1 text-sm font-medium text-foreground truncate capitalize">{s.name.toLowerCase()}</span>
                                                 <div className="flex items-center gap-2">
-                                                    <div className="h-1.5 rounded-full bg-purple-500/20 w-20 overflow-hidden">
-                                                        <div className="h-full rounded-full bg-purple-500" style={{ width: `${Math.round((s.count / (monthly.allSectors[0]?.count || 1)) * 100)}%` }} />
+                                                    <div className="h-1.5 rounded-full bg-foreground/10 w-20 overflow-hidden">
+                                                        <div className="h-full rounded-full bg-foreground/60" style={{ width: `${Math.round((s.count / (monthly.allSectors[0]?.count || 1)) * 100)}%` }} />
                                                     </div>
                                                     <span className="text-xs font-bold text-foreground w-6 text-right">{s.count}</span>
                                                 </div>
