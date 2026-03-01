@@ -254,14 +254,7 @@ export function VehicleDetailsDialog({ isOpen, onClose, vehicle, onUpdate, reado
                                     {getIcon(vehicle.tipo)}
                                     {vehicle.tipo}
                                 </div>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute top-2 right-2 bg-black/20 hover:bg-black/40 text-white rounded-full z-10"
-                                    onClick={onClose}
-                                >
-                                    <X size={20} />
-                                </Button>
+
                             </div>
 
                             <div className="p-6">
