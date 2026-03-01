@@ -32,9 +32,9 @@ export function KPICard({ label, value, icon: Icon, subValue, className }: KPICa
                 <span
                     className={cn(
                         "font-extrabold text-foreground tracking-tight leading-none transition-all",
-                        String(value).length > 20 ? "text-base md:text-xl whitespace-normal break-words" :
-                            String(value).length > 12 ? "text-lg md:text-2xl whitespace-normal break-words" :
-                                "text-3xl md:text-3xl"
+                        String(value).length > 14 ? "text-sm md:text-base truncate" :
+                            String(value).length > 8 ? "text-xl md:text-2xl truncate" :
+                                "text-3xl"
                     )}
                     title={String(value)}
                 >

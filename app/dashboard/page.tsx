@@ -418,6 +418,16 @@ export default function DashboardPage() {
                     icon={Monitor}
                 />
                 <KPICard
+                    label="Routers"
+                    value={metrics?.counters?.routerCount || 0}
+                    icon={Wifi}
+                />
+                <KPICard
+                    label="Nuevos"
+                    value={metrics?.counters?.nuevosServicios || 0}
+                    icon={Users}
+                />
+                <KPICard
                     label="Max. Ventas"
                     value={metrics?.counters?.maxVentas || 0}
                     icon={TrendingUp}
@@ -429,22 +439,12 @@ export default function DashboardPage() {
                         : "N/A"}
                     subValue="Mejor Rendimiento"
                     icon={User}
-                    className="col-span-2 sm:col-span-1"
-                />
-                <KPICard
-                    label="Routers"
-                    value={metrics?.counters?.routerCount || 0}
-                    icon={Wifi}
-                />
-                <KPICard
-                    label="Nuevos"
-                    value={metrics?.counters?.nuevosServicios || 0}
-                    icon={Users}
                 />
                 <KPICard
                     label="Días"
                     value={metrics?.counters?.diasLaborados || 0}
                     icon={Calendar}
+                    className="col-span-2 sm:col-span-1"
                 />
             </div>
 

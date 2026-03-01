@@ -139,7 +139,7 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
     const hasActiveFilters = Object.values(currentFilters).some(arr => arr.length > 0);
 
     return (
-        <div className="w-full flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 pb-2">
+        <div className="w-full flex flex-wrap md:flex-nowrap items-center gap-2 md:overflow-x-auto no-scrollbar py-1.5 pb-2">
             <FilterDropdown
                 title="Mes"
                 items={months.length > 0 ? months : ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]}
