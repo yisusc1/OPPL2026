@@ -96,7 +96,7 @@ export default function Home() {
       icon: MapIcon,
       href: "/map",
       cta: "Ver Mapa",
-      bgImage: "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=60&w=500", // Map/Abstract
+      bgImage: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1 md:col-span-2", // Feature item
       show: isModuleEnabled("module_map") && (isAdmin || hasRole("mapa"))
     },
@@ -107,7 +107,7 @@ export default function Home() {
       icon: LayoutDashboard,
       href: "/dashboard",
       cta: "Ver Dashboard",
-      bgImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=60&w=500", // Data/Charts
+      bgImage: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_dashboard") && (isAdmin || hasRole("dashboard"))
     },
@@ -118,7 +118,7 @@ export default function Home() {
       icon: Wrench,
       href: "/tecnicos",
       cta: "Gestionar",
-      bgImage: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&q=60&w=500", // Tech/Work
+      bgImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_tecnicos") && canAccess("tecnico", "Instalación")
     },
@@ -129,7 +129,7 @@ export default function Home() {
       icon: Zap,
       href: "/instalaciones",
       cta: "Procesar",
-      bgImage: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=60&w=500", // Chips/Tech
+      bgImage: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_procesador") && (isAdmin || hasRole("procesador") || canAccess("tecnico", "Instalación") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente'))))
     },
@@ -140,7 +140,7 @@ export default function Home() {
       icon: Truck,
       href: "/transporte",
       cta: "Ver Flota",
-      bgImage: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=60&w=500", // Truck/Road
+      bgImage: "https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_transporte") && (canAccess("transporte", "Transporte") || hasRole("chofer"))
     },
@@ -151,7 +151,7 @@ export default function Home() {
       icon: Settings,
       href: "/admin",
       cta: "Administrar",
-      bgImage: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=60&w=500", // Office/Building
+      bgImage: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isAdmin
     },
@@ -162,7 +162,7 @@ export default function Home() {
       icon: ShieldCheck,
       href: "/control",
       cta: "Auditar",
-      bgImage: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=60&w=500", // Audit/Paperwork
+      bgImage: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_control") && canAccess("auditoria")
     },
@@ -173,7 +173,7 @@ export default function Home() {
       icon: Activity,
       href: "/gerencia",
       cta: "Ver Informes",
-      bgImage: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&q=60&w=500", // Business/Charts
+      bgImage: "https://images.unsplash.com/photo-1568992688065-536aad8a12f6?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_gerencia") && (isAdmin || hasRole("gerencia") || (profile?.job_title && (profile.job_title.toLowerCase().includes('gerente') || profile.job_title.toLowerCase().includes('admin'))))
     },
@@ -184,7 +184,7 @@ export default function Home() {
       icon: Package,
       href: "/almacen",
       cta: "Inventario",
-      bgImage: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=60&w=500", // Warehouse
+      bgImage: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_almacen") && canAccess("almacen", "Almacén")
     },
@@ -197,7 +197,7 @@ export default function Home() {
       icon: Wrench,
       href: "/taller",
       cta: "Entrar",
-      bgImage: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=60&w=500", // Mechanic
+      bgImage: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_taller") && canAccess("taller", "Taller")
     },
@@ -208,7 +208,7 @@ export default function Home() {
       icon: Truck,
       href: "/control/combustible",
       cta: "Controlar",
-      bgImage: "https://images.unsplash.com/photo-1527018601619-a508a2be00cd?auto=format&fit=crop&q=60&w=500", // Gas Station
+      bgImage: "https://images.unsplash.com/photo-1527018601619-a508a2be00cd?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: isModuleEnabled("module_combustible") && (canAccess("combustible") || (hasRole("supervisor") && dept === "Transporte"))
     },
@@ -219,7 +219,7 @@ export default function Home() {
       icon: UserCog,
       href: "/perfil",
       cta: "Ver Perfil",
-      bgImage: "https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=crop&q=60&w=500", // Abstract Profile
+      bgImage: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&q=60&w=500",
       className: "col-span-1",
       show: true
     }
