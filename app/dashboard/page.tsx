@@ -413,7 +413,7 @@ export default function DashboardPage() {
                     icon={FileText}
                 />
                 <KPICard
-                    label="Power Go"
+                    label="TV"
                     value={metrics?.counters?.powerGoCount || 0}
                     icon={Monitor}
                 />

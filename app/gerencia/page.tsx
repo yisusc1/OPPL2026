@@ -110,10 +110,10 @@ export default async function GerenciaDashboard() {
                             <PremiumCard className="p-5">
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500"><Zap size={18} /></div>
-                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Power GO</span>
+                                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">TV</span>
                                 </div>
                                 <div className="text-4xl font-bold text-foreground">{monthly.powerGoCount}</div>
-                                <div className="text-xs text-muted-foreground mt-1">Vendidos este mes</div>
+                                <div className="text-xs text-muted-foreground mt-1">Vendidas este mes</div>
                             </PremiumCard>
 
                             <PremiumCard className="p-5">

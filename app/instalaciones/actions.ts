@@ -295,7 +295,7 @@ export async function processDataLogic(planificadas: number, reagendas: number, 
     // Construcción del Layout de texto esperado
     let txt = `Leyenda de Instalaciones ${fecha}\n\n`;
     txt += `Planificadas: ${planificadas}\nReagenda: ${reagendas}\nFuera de planificación: ${fPlan}\n`;
-    txt += `Total Realizadas: ${totalRealizadas}\nPowerGo Hoy: ${powergoCount}\n`;
+    txt += `Total Realizadas: ${totalRealizadas}\nTV Hoy: ${powergoCount}\n`;
     txt += `Realizadas en el Valle: ${zonasCount.valle}\nRealizadas en Propatria: ${zonasCount.propatria}\n`;
     txt += `Realizadas en la Vega: ${zonasCount.la_vega}\nRealizadas en Tejerias: ${zonasCount.tejerias}\n`;
     txt += `Realizadas en Coche: ${zonasCount.coche}\n`;

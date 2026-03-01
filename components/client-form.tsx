@@ -504,7 +504,7 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
         `*Router:* ${formData.venta_router ? formData.router_serial : 'N/A'}\n` +
         `*MAC:* ${formData.venta_router ? formData.mac_router : 'N/A'}\n` +
         `*Zona:* ${formData.ubicacion}\n` +
-        `*Power Go:* ${formData.power_go}\n` +
+        `*TV:* ${formData.power_go}\n` +
         `*Estatus:* ${formData.estatus}\n` +
         `*Plan:* ${formData.plan || client.plan}\n` +
         `*V. Descarga:* ${formData.v_descarga}\n` +
@@ -524,7 +524,7 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
         `*Observación:* ${formData.observacion_final}`
 
       if (formData.power_go === 'Inactivo') {
-        message += `\n*Motivo Power Go:* ${formData.motivo_power_go}`
+        message += `\n*Motivo TV:* ${formData.motivo_power_go}`
       }
     }
 
@@ -767,7 +767,7 @@ export function ClientForm({ client, phase, onBack, onPhaseComplete, teamData }:
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                       <div className="space-y-0.5">
-                        <label className="text-sm font-bold text-zinc-900 dark:text-white block">Power Go</label>
+                        <label className="text-sm font-bold text-zinc-900 dark:text-white block">TV</label>
                         <p className="text-[10px] text-zinc-400">
                           {formData.power_go === "Activo" ? "Servicio Activo" : "Servicio Inactivo"}
                         </p>
