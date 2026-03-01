@@ -381,15 +381,15 @@ export default function TallerPage() {
             <div className="max-w-5xl mx-auto space-y-4">
 
                 {/* 1. HEADER & SEARCH BAR */}
-                <PremiumCard className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
+                <PremiumCard className="p-3 sm:p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
                     <div className="relative w-full md:w-96 flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                         <input
                             type="text"
                             placeholder="Buscar por placa o falla..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full h-11 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all text-sm"
+                            className="w-full h-10 sm:h-11 pl-10 pr-4 bg-white/5 border border-white/10 rounded-lg sm:rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all text-xs sm:text-sm"
                             suppressHydrationWarning
                         />
                     </div>
@@ -401,21 +401,21 @@ export default function TallerPage() {
                             setPendingResolveId(null)
                             setMaintenanceOpen(true)
                         }}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-11 px-6 rounded-xl text-sm font-medium w-full md:w-auto shadow-sm"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 sm:h-11 px-4 sm:px-6 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium w-full md:w-auto shadow-sm"
                     >
-                        <Wrench size={16} />
+                        <Wrench size={14} className="sm:w-4 sm:h-4" />
                         Nuevo Servicio
                     </Button>
                 </PremiumCard>
 
                 {/* 2. UNIFIED SEGMENTED CONTROL (TABS) */}
-                <div className="flex justify-center overflow-x-auto pb-2 -mx-4 px-4 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0">
-                    <div className="inline-flex bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 rounded-2xl shrink-0 shadow-sm">
+                <div className="flex justify-center w-full">
+                    <div className="grid grid-cols-2 sm:flex sm:inline-flex bg-muted/50 backdrop-blur-sm border border-border/50 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl gap-1 sm:gap-0 w-full sm:w-auto shadow-sm">
                         {[
-                            { id: 'board', label: 'Tablero', icon: LayoutGrid },
-                            { id: 'pending', label: `Pendientes (${pending.length})`, icon: AlertCircle },
-                            { id: 'review', label: `En Revisión (${inProgress.length})`, icon: Zap },
-                            { id: 'history', label: 'Historial', icon: History }
+                            { id: 'board', label: 'Tablero', mobileLabel: 'Tablero', icon: LayoutGrid },
+                            { id: 'pending', label: `Pendientes (${pending.length})`, mobileLabel: `Pdts (${pending.length})`, icon: AlertCircle },
+                            { id: 'review', label: `En Revisión (${inProgress.length})`, mobileLabel: `Taller (${inProgress.length})`, icon: Zap },
+                            { id: 'history', label: 'Historial', mobileLabel: 'Historial', icon: History }
                         ].map(tab => {
                             const Icon = tab.icon;
                             const isActive = view === tab.id;
@@ -423,13 +423,14 @@ export default function TallerPage() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setView(tab.id as any)}
-                                    className={`flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-medium rounded-xl transition-all duration-200 shrink-0 ${isActive
+                                    className={`flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-sm font-medium rounded-lg sm:rounded-xl transition-all duration-200 ${isActive
                                         ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                                         }`}
                                 >
-                                    <Icon size={16} />
-                                    {tab.label}
+                                    <Icon size={14} className="sm:w-4 sm:h-4" />
+                                    <span className="hidden sm:inline">{tab.label}</span>
+                                    <span className="inline sm:hidden">{tab.mobileLabel}</span>
                                 </button>
                             )
                         })}
