@@ -377,19 +377,19 @@ export default function TallerPage() {
     const inProgress = filteredFaults.filter(f => f.estado === 'En Revisión')
 
     return (
-        <PremiumPageLayout title="INTELIGENCIA OPERACIONAL" description="TALLER MECÁNICO / PANEL GENERAL">
-            <div className="max-w-7xl mx-auto space-y-6 font-sans text-white">
+        <PremiumPageLayout title="Taller Mecánico" description="Gestión de Fallas y Mantenimiento">
+            <div className="max-w-7xl mx-auto space-y-8">
 
                 {/* 1. HEADER & SEARCH BAR */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#141414] p-4 border border-[#222222] rounded-[12px]">
+                <PremiumCard className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-background/60 backdrop-blur-xl border-white/10 dark:border-white/5">
                     <div className="relative w-full md:w-96 flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#A3A3A3]" size={16} strokeWidth={2.5} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                         <input
                             type="text"
                             placeholder="Buscar por placa o falla..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full h-10 pl-11 pr-4 bg-black border border-[#222222] rounded-[8px] text-white font-bold placeholder:text-[#555555] focus:outline-none focus:border-[#FFB000] focus:ring-1 focus:ring-[#FFB000] transition-colors uppercase text-sm"
+                            className="w-full h-11 pl-12 pr-4 bg-white/5 border border-white/10 rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary shadow-sm transition-all text-sm"
                             suppressHydrationWarning
                         />
                     </div>
@@ -401,33 +401,34 @@ export default function TallerPage() {
                             setPendingResolveId(null)
                             setMaintenanceOpen(true)
                         }}
-                        className="bg-[#FFB000] text-black hover:bg-[#E59E00] gap-2 h-10 px-6 rounded-[8px] text-xs font-bold uppercase tracking-wider w-full md:w-auto shadow-none transition-none shrink-0"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-11 px-6 rounded-xl text-sm font-medium w-full md:w-auto shadow-sm"
                     >
-                        <Wrench size={16} strokeWidth={2.5} />
-                        NUEVO SERVICIO
+                        <Wrench size={16} />
+                        Nuevo Servicio
                     </Button>
-                </div>
+                </PremiumCard>
 
                 {/* 2. UNIFIED SEGMENTED CONTROL (TABS) */}
                 <div className="flex justify-center overflow-x-auto pb-2 -mx-4 px-4 sm:overflow-visible sm:pb-0 sm:mx-0 sm:px-0">
-                    <div className="inline-flex bg-black border border-[#222222] p-1 rounded-[8px] shrink-0">
+                    <div className="inline-flex bg-muted/50 backdrop-blur-sm border border-border/50 p-1.5 rounded-2xl shrink-0 shadow-sm">
                         {[
-                            { id: 'board', label: 'TABLERO', icon: LayoutGrid },
-                            { id: 'pending', label: `PENDIENTES (${pending.length})`, icon: AlertCircle },
-                            { id: 'review', label: `EN TALLER (${inProgress.length})`, icon: Zap },
-                            { id: 'history', label: 'HISTORIAL', icon: History }
+                            { id: 'board', label: 'Tablero', icon: LayoutGrid },
+                            { id: 'pending', label: `Pendientes (${pending.length})`, icon: AlertCircle },
+                            { id: 'review', label: `En Revisión (${inProgress.length})`, icon: Zap },
+                            { id: 'history', label: 'Historial', icon: History }
                         ].map(tab => {
                             const Icon = tab.icon;
+                            const isActive = view === tab.id;
                             return (
                                 <button
                                     key={tab.id}
                                     onClick={() => setView(tab.id as any)}
-                                    className={`flex items-center gap-2 px-4 py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider rounded-[6px] transition-colors shrink-0 ${view === tab.id
-                                        ? 'bg-[#1E1E1E] text-[#FFB000]'
-                                        : 'text-[#A3A3A3] hover:text-white hover:bg-[#141414]'
+                                    className={`flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-medium rounded-xl transition-all duration-200 shrink-0 ${isActive
+                                        ? 'bg-background text-foreground shadow-sm ring-1 ring-border/50'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
                                         }`}
                                 >
-                                    <Icon size={14} strokeWidth={2.5} />
+                                    <Icon size={16} />
                                     {tab.label}
                                 </button>
                             )
@@ -439,29 +440,29 @@ export default function TallerPage() {
                 {view !== 'history' ? (
                     <>
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-[#A3A3A3]">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FFB000] border-t-transparent mb-4" />
-                                <p className="font-bold uppercase tracking-wider text-sm">CARGANDO DATOS...</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
+                                <p className="font-medium text-sm">Cargando datos...</p>
                             </div>
                         ) : (
                             <div className={view === 'board' ? "grid grid-cols-1 lg:grid-cols-2 gap-6 items-start" : "max-w-3xl mx-auto space-y-4"}>
 
                                 {/* PENDIENTES */}
                                 {(view === 'board' || view === 'pending') && (
-                                    <div className="space-y-4 bg-[#141414] p-4 rounded-[12px] border border-[#222222]">
-                                        <div className="flex items-center justify-between pb-3 border-b border-[#222222]">
-                                            <h2 className="text-sm font-bold text-white flex items-center gap-2 uppercase tracking-wider">
-                                                <div className="w-2 h-2 bg-red-500 animate-pulse"></div>
-                                                ESPERANDO ATENCIÓN
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between pb-2 border-b border-border/50 px-2 lg:px-0">
+                                            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse ring-4 ring-red-500/20"></div>
+                                                Esperando Atención
                                             </h2>
-                                            <span className="text-xs font-mono font-bold text-[#A3A3A3] bg-black px-2 py-0.5 border border-[#222222]">{pending.length}</span>
+                                            <span className="text-xs font-mono font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-full">{pending.length}</span>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {pending.length === 0 && (
-                                                <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
-                                                    NO HAY FALLAS PENDIENTES
-                                                </div>
+                                                <PremiumContent className="p-8 text-center text-muted-foreground border-dashed">
+                                                    No hay fallas pendientes
+                                                </PremiumContent>
                                             )}
 
                                             {pending.map(fault => (
@@ -478,20 +479,20 @@ export default function TallerPage() {
 
                                 {/* EN REVISIÓN */}
                                 {(view === 'board' || view === 'review') && (
-                                    <div className="space-y-4 bg-[#141414] p-4 rounded-[12px] border border-[#222222]">
-                                        <div className="flex items-center justify-between pb-3 border-b border-[#222222]">
-                                            <h2 className="text-sm font-bold text-[#FFB000] flex items-center gap-2 uppercase tracking-wider">
-                                                <div className="w-2 h-2 bg-[#FFB000]"></div>
-                                                EN TALLER / REVISIÓN
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between pb-2 border-b border-border/50 px-2 lg:px-0">
+                                            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <div className="w-2.5 h-2.5 rounded-full bg-blue-500 ring-4 ring-blue-500/20"></div>
+                                                En Taller / Revisión
                                             </h2>
-                                            <span className="text-xs font-mono font-bold text-[#FFB000] bg-[#FFB000]/10 px-2 py-0.5 border border-[#FFB000]/20">{inProgress.length}</span>
+                                            <span className="text-xs font-mono font-medium text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full">{inProgress.length}</span>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {inProgress.length === 0 && (
-                                                <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
-                                                    NO HAY VEHÍCULOS EN TALLER
-                                                </div>
+                                                <PremiumContent className="p-8 text-center text-muted-foreground border-dashed">
+                                                    No hay vehículos en taller
+                                                </PremiumContent>
                                             )}
 
                                             {inProgress.map(fault => (
@@ -510,23 +511,23 @@ export default function TallerPage() {
                         )}
                     </>
                 ) : (
-                    <div className="max-w-4xl mx-auto bg-[#141414] p-4 sm:p-6 rounded-[12px] border border-[#222222]">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 pb-4 border-b border-[#222222]">
-                            <h2 className="text-sm font-bold text-white uppercase tracking-wider">HISTORIAL DE OPERACIONES</h2>
+                    <PremiumCard className="max-w-4xl mx-auto p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 pb-4 border-b border-white/5">
+                            <h2 className="text-lg font-bold text-foreground">Historial de Operaciones</h2>
 
                             <div className="w-full sm:w-64">
                                 <Select value={historyFilter} onValueChange={setHistoryFilter}>
-                                    <SelectTrigger className="bg-black border-[#222222] rounded-[8px] h-10 text-white font-bold text-[11px] sm:text-xs uppercase hover:bg-[#1E1E1E] transition-colors focus:ring-1 focus:ring-[#FFB000] shadow-none">
+                                    <SelectTrigger className="bg-background/50 backdrop-blur-sm border-white/10 rounded-xl h-11 text-foreground transition-colors hover:bg-white/5">
                                         <div className="flex items-center gap-2">
-                                            <Filter size={14} className="text-[#A3A3A3]" />
-                                            <SelectValue placeholder="FILTRAR POR..." />
+                                            <Filter size={16} className="text-muted-foreground" />
+                                            <SelectValue placeholder="Filtrar por..." />
                                         </div>
                                     </SelectTrigger>
-                                    <SelectContent className="bg-black border-[#222222] text-white">
-                                        <SelectItem value="all" className="focus:bg-[#1E1E1E] focus:text-white font-bold text-xs uppercase cursor-pointer">TODOS LOS VEHÍCULOS</SelectItem>
+                                    <SelectContent className="bg-background border-white/10 text-foreground">
+                                        <SelectItem value="all" className="focus:bg-white/5">Todos los vehículos</SelectItem>
                                         {vehicles.map((v) => (
-                                            <SelectItem key={v.id} value={v.placa} className="focus:bg-[#1E1E1E] focus:text-white font-bold text-xs uppercase cursor-pointer">
-                                                {v.modelo} <span className="text-[#A3A3A3] font-mono ml-2">[{v.placa}]</span>
+                                            <SelectItem key={v.id} value={v.placa} className="focus:bg-white/5">
+                                                {v.modelo} <span className="text-muted-foreground font-mono ml-2 text-xs">[{v.placa}]</span>
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -535,61 +536,61 @@ export default function TallerPage() {
                         </div>
 
                         {loadingHistory ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-[#A3A3A3]">
-                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#FFB000] border-t-transparent mb-4" />
-                                <p className="font-bold uppercase tracking-wider text-sm">CARGANDO...</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4" />
+                                <p className="font-medium text-sm">Cargando...</p>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {historyLogs
                                     .filter(log => historyFilter === "all" || log.placa === historyFilter)
                                     .map((log: any) => (
-                                        <div key={log.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4 bg-[#1E1E1E] border border-[#222222] rounded-[8px]">
+                                        <PremiumCard key={log.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4 bg-white/5 border-white/5 shadow-none rounded-xl">
                                             <div className="flex items-center gap-4 flex-1">
-                                                <div className={`w-10 h-10 flex items-center justify-center shrink-0 border border-[#222222] bg-black rounded-[4px] ${log.type === 'REPAIR' ? 'text-white' : 'text-[#FFB000]'}`}>
-                                                    {log.type === 'REPAIR' ? <CheckCircle size={18} strokeWidth={2.5} /> : <Wrench size={18} strokeWidth={2.5} />}
+                                                <div className={`w-12 h-12 flex items-center justify-center shrink-0 rounded-xl border border-white/5 bg-background/50 ${log.type === 'REPAIR' ? 'text-green-500 shadow-[inset_0_0_20px_rgba(34,197,94,0.1)]' : 'text-blue-500 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)]'}`}>
+                                                    {log.type === 'REPAIR' ? <CheckCircle size={20} /> : <Wrench size={20} />}
                                                 </div>
-                                                <div className="font-roboto flex-1">
+                                                <div className="flex-1">
                                                     <div className="flex items-center flex-wrap gap-2 mb-1">
-                                                        <span className="font-bold font-sans tracking-wide text-white uppercase text-sm">{log.vehicle}</span>
-                                                        <span className="text-[10px] text-[#A3A3A3] font-mono border border-[#222222] bg-black px-1.5 py-0.5 font-bold uppercase">{log.placa}</span>
+                                                        <span className="font-bold text-foreground">{log.vehicle}</span>
+                                                        <span className="text-xs text-muted-foreground font-mono bg-white/5 px-2 py-0.5 rounded-md border border-white/5">{log.placa}</span>
                                                     </div>
-                                                    <div className="text-xs text-[#A3A3A3] leading-relaxed">
-                                                        <span className="font-bold text-white uppercase tracking-wider">
+                                                    <div className="text-sm text-foreground/80 leading-relaxed">
+                                                        <span className="font-medium text-foreground">
                                                             {log.type === 'MAINTENANCE'
-                                                                ? (log.category === 'OIL_CHANGE' ? 'CMB ACEITE' :
-                                                                    log.category === 'TIMING_BELT' ? 'CORREA TIEMPO' :
-                                                                        log.category === 'CHAIN_KIT' ? 'KIT ARRASTRE' :
-                                                                            log.category === 'WASH' ? 'LAVADO' :
-                                                                                log.category === 'OTHER' ? (log.description || 'OTRO') :
+                                                                ? (log.category === 'OIL_CHANGE' ? 'Cambio de Aceite' :
+                                                                    log.category === 'TIMING_BELT' ? 'Correa de Tiempo' :
+                                                                        log.category === 'CHAIN_KIT' ? 'Kit de Arrastre' :
+                                                                            log.category === 'WASH' ? 'Lavado' :
+                                                                                log.category === 'OTHER' ? (log.description || 'Otro Servicio') :
                                                                                     log.category)
-                                                                : `REP: ${log.category}`
+                                                                : `Reparación: ${log.category}`
                                                             }
                                                         </span>
                                                         {log.type === 'MAINTENANCE' && log.category === 'OTHER' ? null : (
                                                             <>
-                                                                <span className="mx-2 text-[#444444]">|</span>
-                                                                <span className="uppercase">{log.description}</span>
+                                                                <span className="mx-2 text-white/10">|</span>
+                                                                <span className="text-muted-foreground">{log.description}</span>
                                                             </>
                                                         )}
-                                                        {log.mileage && <span className="text-[#A3A3A3] ml-2 font-mono bg-black border border-[#222222] px-1 py-0.5">KM: {log.mileage.toLocaleString()}</span>}
+                                                        {log.mileage && <span className="text-muted-foreground ml-2 font-mono bg-white/5 border border-white/5 px-1.5 py-0.5 rounded text-xs">KM: {log.mileage.toLocaleString()}</span>}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="text-left sm:text-right text-[10px] text-[#555555] font-mono font-bold uppercase border-t border-[#222222] sm:border-none pt-3 sm:pt-0 mt-3 sm:mt-0 flex gap-2 sm:block">
+                                            <div className="text-left sm:text-right text-xs text-muted-foreground/50 font-mono font-medium border-t border-white/5 sm:border-none pt-3 sm:pt-0 mt-3 sm:mt-0 flex gap-3 sm:block">
                                                 <div>{new Date(log.date).toLocaleDateString()}</div>
                                                 <div>{new Date(log.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                             </div>
-                                        </div>
+                                        </PremiumCard>
                                     ))}
                                 {historyLogs.length === 0 && (
-                                    <div className="p-8 text-center text-[#555555] border border-dashed border-[#222222] font-bold text-xs uppercase tracking-wider">
-                                        SIN REGISTROS
-                                    </div>
+                                    <PremiumContent className="p-8 text-center text-muted-foreground border-dashed text-sm">
+                                        No hay registros en el historial
+                                    </PremiumContent>
                                 )}
                             </div>
                         )}
-                    </div>
+                    </PremiumCard>
                 )}
             </div>
 
@@ -615,11 +616,11 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     isReviewing?: boolean
 }) {
     const priorityColor = {
-        'Crítica': 'text-red-500 border-red-500',
-        'Alta': 'text-orange-500 border-orange-500',
-        'Media': 'text-yellow-500 border-yellow-500',
-        'Baja': 'text-[#FFB000] border-[#FFB000]'
-    }[fault.prioridad] || 'text-white border-white/20'
+        'Crítica': 'text-red-500 bg-red-500/10 border-red-500/20',
+        'Alta': 'text-orange-500 bg-orange-500/10 border-orange-500/20',
+        'Media': 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20',
+        'Baja': 'text-blue-500 bg-blue-500/10 border-blue-500/20'
+    }[fault.prioridad] || 'text-muted-foreground bg-muted border-white/10'
 
     const getFaultIcon = (type: string) => {
         switch (type) {
@@ -634,72 +635,74 @@ function FaultCard({ fault, onMoveToReview, onResolve, onDiscard, isReviewing }:
     const Icon = getFaultIcon(fault.tipo_falla)
 
     return (
-        <div className="flex flex-col overflow-hidden bg-[#1E1E1E] border border-[#222222] rounded-[8px] transition-all hover:border-[#444444]">
-            <div className="p-4 flex gap-4">
-                <div className="relative w-20 h-20 bg-black overflow-hidden shrink-0 border border-[#222222] rounded-[4px]">
+        <PremiumCard className="h-full p-0 flex flex-col overflow-hidden bg-background/40 hover:bg-background/60 group">
+            <div className="p-4 sm:p-5 flex gap-4">
+                <div className="relative w-24 h-24 bg-muted/30 rounded-xl overflow-hidden shrink-0 border border-white/5">
                     {fault.foto_url ? (
                         <>
                             <Image src={fault.foto_url} alt={fault.modelo} fill className="object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-black/20" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </>
                     ) : (
-                        <div className="flex items-center justify-center h-full text-[#444444]">
-                            <Icon size={24} strokeWidth={2} />
+                        <div className="flex items-center justify-center h-full text-muted-foreground/30">
+                            <Icon size={32} />
                         </div>
                     )}
                 </div>
 
-                <div className="flex-1 min-w-0 flex flex-col font-roboto">
-                    <div className="mb-1.5 flex justify-between items-start gap-2">
-                        <div>
-                            <h3 className="font-bold text-white text-base leading-none uppercase font-sans tracking-wide">{fault.modelo}</h3>
-                            <div className="text-[10px] font-mono text-[#A3A3A3] mt-1.5 font-bold bg-black border border-[#222222] inline-block px-1.5 py-0.5 uppercase tracking-wider">
-                                {fault.placa}
-                            </div>
+                <div className="flex-1 min-w-0 flex flex-col">
+                    <div className="mb-2">
+                        <div className="flex justify-between items-start gap-2">
+                            <h3 className="font-bold text-foreground text-base leading-tight">{fault.modelo}</h3>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${priorityColor} shrink-0`}>
+                                {fault.prioridad}
+                            </span>
                         </div>
-                        <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 border ${priorityColor} bg-black shrink-0 font-mono`}>
-                            {fault.prioridad}
-                        </span>
+                        <div className="text-xs font-mono text-muted-foreground mt-1 font-semibold bg-white/5 inline-block px-2 py-0.5 rounded border border-white/5">
+                            {fault.placa}
+                        </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 mb-2 text-[10px] text-white font-bold uppercase tracking-widest">
-                        <div className={`p-0.5 bg-black border border-[#222222] shrink-0 text-[#FFB000] rounded-[2px]`}>
-                            <Icon size={10} strokeWidth={3} />
+                    <div className="flex items-center gap-2 mb-2 text-xs text-muted-foreground font-medium">
+                        <div className={`p-1.5 rounded-full border bg-white/5 border-white/10 shrink-0`}>
+                            <Icon size={12} />
                         </div>
                         {fault.tipo_falla}
                     </div>
 
-                    <p className="text-xs text-[#A3A3A3] line-clamp-2 leading-relaxed uppercase mb-2">
+                    <p className="text-sm text-foreground/70 line-clamp-2 leading-relaxed mb-1">
                         {fault.descripcion}
                     </p>
 
-                    <div className="mt-auto flex items-center gap-1 font-mono text-[9px] text-[#555555] font-bold uppercase tracking-wider">
-                        <Clock size={10} />
-                        {new Date(fault.created_at).toLocaleDateString()}
+                    <div className="mt-auto pt-2 flex items-center justify-between text-xs text-muted-foreground/50">
+                        <div className="flex items-center gap-1.5 font-medium">
+                            <Clock size={12} />
+                            {new Date(fault.created_at).toLocaleDateString()}
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Footer Action Bar */}
-            <div className="bg-[#141414] border-t border-[#222222] p-2.5 flex justify-end gap-2">
+            <div className="bg-white/5 border-t border-white/5 p-3 flex justify-end gap-2 mt-auto">
                 {!isReviewing && onMoveToReview && (
-                    <Button onClick={onMoveToReview} size="sm" variant="outline" className="h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-[#444444] text-white hover:bg-white hover:text-black hover:border-white w-full sm:w-auto transition-colors">
-                        MANDAR A REVISIÓN
-                        <ArrowRight size={12} className="ml-1.5" strokeWidth={3} />
+                    <Button onClick={onMoveToReview} size="sm" variant="secondary" className="h-9 rounded-lg text-xs font-medium w-full sm:w-auto">
+                        ENVIAR A TALLER
+                        <ArrowRight size={14} className="ml-2 opacity-70" />
                     </Button>
                 )}
 
                 {isReviewing && onDiscard && (
-                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-[#A3A3A3] hover:text-white hover:bg-[#222222] transition-colors w-full sm:w-auto">
-                        DESCARTAR
+                    <Button onClick={onDiscard} size="sm" variant="ghost" className="h-9 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-white/5 w-full sm:w-auto border border-dashed border-white/10 hover:border-transparent">
+                        DEVOLVER A PENDIENTES
                     </Button>
                 )}
 
-                <Button onClick={onResolve} size="sm" className={`h-7 rounded-[4px] text-[10px] sm:text-[11px] font-bold uppercase tracking-wider w-full sm:w-auto transition-none shadow-none ${!isReviewing ? 'hidden' : 'bg-[#FFB000] hover:bg-[#E59E00] text-black'}`}>
-                    <CheckCircle size={12} strokeWidth={3} className="mr-1.5" />
-                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'CERRAR SERVICIO' : 'MARCAR REPARADO'}
+                <Button onClick={onResolve} size="sm" className={`h-9 rounded-lg text-xs font-medium w-full sm:w-auto ${!isReviewing ? 'hidden' : 'bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/20'}`}>
+                    <CheckCircle size={14} className="mr-2 opacity-90" />
+                    {isReviewing && fault.tipo_falla === 'Mantenimiento' ? 'FINALIZAR MANTENIMIENTO' : 'MARCAR COMO REPARADO'}
                 </Button>
             </div>
-        </div>
+        </PremiumCard>
     )
 }
