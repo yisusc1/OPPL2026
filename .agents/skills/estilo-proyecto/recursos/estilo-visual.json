@@ -1,0 +1,46 @@
+{
+    "marca": "Ellie",
+    "objetivo": "Mantener inteligencia operacional y estética High-End futurista.",
+    "paleta": {
+        "principal": "#000000",
+        "secundario": "#FFFFFF",
+        "acento": "#FFB000",
+        "fondo": "#000000",
+        "superficie": "#1E1E1E",
+        "texto": {
+            "principal": "#FFFFFF",
+            "secundario": "#A3A3A3"
+        },
+        "bordes": "#222222"
+    },
+    "tipografia": {
+        "titulares": "Inter",
+        "cuerpo": "Roboto",
+        "interlineado_cuerpo": "1.6",
+        "pesos": {
+            "normal": 400,
+            "medio": 500,
+            "negrita": 700
+        }
+    },
+    "formas": {
+        "radio_tarjeta": "12px",
+        "radio_boton": "8px",
+        "radio_input": "8px",
+        "estilo_general": "Geométrico, nítido y limpio"
+    },
+    "espaciado": {
+        "xs": "4px",
+        "sm": "8px",
+        "md": "12px",
+        "lg": "16px",
+        "xl": "24px",
+        "xxl": "32px"
+    },
+    "componentes": {
+        "boton_principal": "Fondo Ámbar Digital (#FFB000), texto Blanco Puro (#FFFFFF) Bold. Sin bordes extra, geométrico.",
+        "boton_secundario": "Fondo oscuro, contorno nítido en Blanco o Ámbar. Texto en el color del contorno.",
+        "tarjetas": "Fondo oscuro o imagen con overlay Negro Absoluto (70-80%). Sin sombra exterior proyectada (plana). Borde sutil oscuro (#222222).",
+        "layout": "Concepto High-End, minimalista tecnológico, velocidad de procesamiento. Sin ruido innecesario, alto contraste."
+    }
+}
