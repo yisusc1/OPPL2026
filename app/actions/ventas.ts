@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { google } from "googleapis";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -124,6 +125,69 @@ export async function saveActividad(activity: {
     .single();
 
   if (error) throw new Error(error.message);
+
+  // Intentar enviar datos a la API de Google Sheets usando Google Cloud Console (Service Account)
+  try {
+    const serviceAccountEmail = process.env.GOOGLE_CLIENT_EMAIL;
+    // Extraer la llave privada en caso de que se haya pegado el JSON completo por error en Vercel
+    let rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
+    if (rawKey.trim().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(rawKey);
+        if (parsed.private_key) rawKey = parsed.private_key;
+      } catch (e) {
+        console.warn("No se pudo parsear GOOGLE_PRIVATE_KEY como JSON");
+      }
+    }
+    // Es común que la variable entorno guarde los literales \n, necesitamos reemplazarlos por saltos reales.
+    const privateKey = rawKey.replace(/\\n/g, '\n');
+    const sheetId = process.env.GOOGLE_SHEETS_ACTIVIDADES_ID; // el ID de la hoja: 1UZvhPyYhw...
+
+    if (serviceAccountEmail && privateKey && sheetId) {
+      const auth = new google.auth.JWT({
+        email: serviceAccountEmail,
+        key: privateKey,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+
+      const sheets = google.sheets({ version: "v4", auth });
+
+      // Preparar como arreglo según el orden exacto de las columnas de izquierda a derecha.
+      const row = [
+        activity.fecha || "",
+        activity.hora || "",
+        activity.asesor || "",
+        activity.estado || "",
+        activity.municipio || "",
+        activity.parroquia || "",
+        activity.sector || "",
+        activity.tipo || "",
+        0, // Solicitudes
+        activity.clientes_captados || 0,
+        activity.volantes || 0,
+        activity.llamadas_info || 0,
+        activity.llamadas_agenda || 0,
+        activity.condominio || "",
+        activity.notas || "",
+        data.id || "" // ID de actividad
+      ];
+
+      // Las acciones de servidor no pueden bloquear eternamente así que ignoraremos o haremos un .catch si falla.
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: sheetId,
+        range: "REPORTES DE ASESORES!A:P", // La hoja y del rango de columnas A a P (16 col)
+        valueInputOption: "USER_ENTERED",
+        requestBody: {
+          values: [row]
+        }
+      });
+    } else {
+      console.warn("Faltan variables de entorno para Google Sheets Console (GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEETS_ACTIVIDADES_ID)");
+    }
+  } catch (err) {
+    console.error("Error conectando con Google Sheets API:", err);
+  }
+
   return data;
 }
 
