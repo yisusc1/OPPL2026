@@ -261,12 +261,12 @@ export default function NuevaSolicitudPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Nombres</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Nombres</Label>
                 <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
               </div>
-              <div>
-                <Label>Apellidos</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Apellidos</Label>
                 <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
               </div>
             </div>
@@ -285,8 +285,8 @@ export default function NuevaSolicitudPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Género</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Género</Label>
                 <Select value={genero} onValueChange={setGenero}>
                   <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Elegir..." /></SelectTrigger>
                   <SelectContent>
@@ -295,8 +295,8 @@ export default function NuevaSolicitudPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Fecha de Nacimiento</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Fecha Nacimiento</Label>
                 <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
             </div>
@@ -310,15 +310,15 @@ export default function NuevaSolicitudPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Estado</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Estado</Label>
                 <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); setSector(""); }}>
                   <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Municipio</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Municipio</Label>
                 <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); setSector(""); }} disabled={!estado}>
                   <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
@@ -326,15 +326,15 @@ export default function NuevaSolicitudPage() {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Parroquia</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Parroquia</Label>
                 <Select value={parroquia} onValueChange={(v) => { setParroquia(v); setSector(""); }} disabled={!municipio}>
                   <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Sector</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Sector</Label>
                 <Select value={sector} onValueChange={setSector} disabled={!parroquia}>
                   <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{sectores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
@@ -355,8 +355,8 @@ export default function NuevaSolicitudPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Tipo de Servicio</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Tipo de Servicio</Label>
                 <div className="flex gap-2 mt-2">
                   <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-11 rounded-lg" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
                     Domiciliario
@@ -366,8 +366,8 @@ export default function NuevaSolicitudPage() {
                   </Button>
                 </div>
               </div>
-              <div>
-                <Label>Power Go</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Power Go</Label>
                 <div className="flex items-center gap-3 mt-3">
                   <Switch checked={powerGo} onCheckedChange={setPowerGo} disabled={tipoServicio === "Empresarial"} />
                   <span className="text-sm text-zinc-600 dark:text-zinc-400">{powerGo ? "SI" : "NO"}</span>
@@ -403,12 +403,12 @@ export default function NuevaSolicitudPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Teléfono Principal</Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Telf. Principal</Label>
                 <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
-              <div>
-                <Label>Teléfono Secundario <span className="text-zinc-400 font-normal">(Opcional)</span></Label>
+              <div className="flex flex-col justify-end">
+                <Label className="mb-2">Telf. Opcional</Label>
                 <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
             </div>
