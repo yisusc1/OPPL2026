@@ -152,9 +152,16 @@ export async function saveActividad(activity: {
 
       const sheets = google.sheets({ version: "v4", auth });
 
+      // Formatear la fecha a D/M/YYYY como lo pide el usuario (ej: 2026-03-27 -> 27/3/2026)
+      let formattedFecha = activity.fecha || "";
+      if (formattedFecha.includes("-")) {
+        const [yyyy, mm, dd] = formattedFecha.split("-");
+        formattedFecha = `${parseInt(dd)}/${parseInt(mm)}/${yyyy}`;
+      }
+
       // Preparar como arreglo según el orden exacto de las columnas de izquierda a derecha.
       const row = [
-        activity.fecha || "",
+        formattedFecha,
         activity.hora || "",
         activity.asesor || "",
         activity.estado || "",
