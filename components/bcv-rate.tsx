@@ -81,8 +81,8 @@ export function BCVRate() {
             <div
                 onClick={() => loadRates(true)}
                 className={cn(
-                    "flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit",
-                    "cursor-pointer hover:bg-muted/50 transition-colors group"
+                    "flex items-center gap-3 w-fit",
+                    "cursor-pointer opacity-90 hover:opacity-100 transition-opacity group"
                 )}
                 title="Haz clic para actualizar"
             >
@@ -118,8 +118,8 @@ export function BCVRate() {
                 <div
                     onClick={() => loadRates(true)}
                     className={cn(
-                        "flex items-center gap-3 bg-background/60 backdrop-blur-md border border-border shadow-sm rounded-full px-4 py-1.5 w-fit",
-                        "cursor-pointer hover:bg-muted/50 transition-colors group"
+                        "flex items-center gap-3 w-fit",
+                        "cursor-pointer opacity-90 hover:opacity-100 transition-opacity group"
                     )}
                     title="Haz clic para actualizar"
                 >
