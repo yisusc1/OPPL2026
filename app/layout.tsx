@@ -28,6 +28,8 @@ import { getSystemSettings } from "./admin/settings-actions";
 import { VoiceAssistant } from "@/components/voice-assistant";
 import { VoiceProvider } from "@/components/voice-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 export default async function RootLayout({
   children,
@@ -67,7 +69,16 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             <VoiceProvider>
-              {children}
+              {user ? (
+                <SidebarProvider>
+                  <AppSidebar />
+                  <SidebarInset className="bg-background">
+                    {children}
+                  </SidebarInset>
+                </SidebarProvider>
+              ) : (
+                children
+              )}
               {isVoiceEnabled && <VoiceAssistant />}
               <Toaster />
             </VoiceProvider>

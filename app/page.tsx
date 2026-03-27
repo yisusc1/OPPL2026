@@ -28,6 +28,7 @@ import { INITIAL_MODULES_CONFIG } from "@/lib/constants";
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid";
 import { BCVRate } from "@/components/bcv-rate";
 import { EllielLogo } from "@/components/ui/elliel-logo";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Home() {
   const { hasRole, isAdmin, isLoading: isUserLoading, profile } = useUser();
@@ -239,6 +240,9 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen w-full overflow-y-auto bg-background selection:bg-primary/20">
+      <div className="fixed top-4 left-4 z-50">
+        <SidebarTrigger className="bg-background/80 backdrop-blur-md shadow-sm" />
+      </div>
       <div className="fixed top-4 right-4 z-50">
         <ModeToggle />
       </div>
