@@ -2,16 +2,17 @@
 
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
-import { Chrome } from "lucide-react"
+import { Chrome, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { EllielLogo } from "@/components/ui/elliel-logo"
+import { BackgroundPaths } from "@/components/ui/background-paths"
 
 export default function LoginPage() {
     const [loading, setLoading] = useState(false)
-
     const router = useRouter()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -22,7 +23,6 @@ export default function LoginPage() {
         try {
             const supabase = createClient()
             const redirectTo = `${window.location.origin}/auth/callback`
-            console.log("DEBUG LOGIN: Redirecting to:", redirectTo)
 
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
@@ -59,11 +59,7 @@ export default function LoginPage() {
                 toast.error("Error registro: " + error.message)
                 setLoading(false)
             } else {
-                toast.success("Cuenta creada! Revisa tu correo o intenta iniciar sesión (si el auto-confirm está activo)")
-                // Try auto login logic or just notify
-                // For dev environments without email confirm, this works immediately usually
-                // If email confirm is on, they are stuck. 
-                // Let's assume they can login or middleware handles it.
+                toast.success("Cuenta creada! Intenta iniciar sesión")
                 setLoading(false)
             }
         } else {
@@ -84,97 +80,103 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-[#F2F2F7]">
-            {/* Background Gradients - Subtle Silver/Gray */}
-            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-gray-200/50 blur-[100px]" />
-            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-slate-200/50 blur-[100px]" />
+        <main className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-background">
+            {/* Animación de fondo (estilo premium principal del proyecto) */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <BackgroundPaths />
+            </div>
 
-            {/* Glass Card - Light Mode iOS Style */}
-            <div className="w-full max-w-md relative z-10 backdrop-blur-xl bg-white/70 border border-white/40 rounded-[2.5rem] p-8 shadow-xl shadow-black/5 ring-1 ring-white/60">
-                <div className="flex flex-col items-center text-center space-y-8 py-8">
-                    {/* Logo Area */}
-                    <div className="w-24 h-24 bg-gradient-to-br from-white to-gray-100 rounded-2xl flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-2 animate-in zoom-in duration-500 border border-white/60">
-                        <div className="w-12 h-12 border-4 border-gray-900 rounded-xl" />
+            {/* Tarjeta de Glassmorphism */}
+            <div className="w-full max-w-[400px] relative z-10 backdrop-blur-xl bg-background/60 border border-border/40 rounded-[2.5rem] p-8 sm:p-10 shadow-2xl">
+                <div className="flex flex-col items-center text-center">
+                    
+                    {/* Logo Area (Reemplaza al cuadro de prueba) */}
+                    <div className="mb-8 flex items-center justify-center animate-in zoom-in duration-500">
+                        <EllielLogo width={110} />
                     </div>
 
-                    <div className="space-y-2 animate-in slide-in-from-bottom-4 duration-700 fade-in fill-mode-both delay-100">
-                        <h1 className="text-3xl font-semibold tracking-tight text-gray-900">
+                    <div className="space-y-1 mb-6 animate-in slide-in-from-bottom-4 duration-700 fade-in delay-100">
+                        <h1 className="text-2xl font-bold tracking-tight text-foreground">
                             Bienvenido
                         </h1>
-                        <p className="text-gray-500 text-sm font-medium tracking-wide uppercase">
+                        <p className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
                             Sistema de Gestión y Operatividad
                         </p>
                     </div>
 
-                    <div className="w-full space-y-4 pt-4 animate-in slide-in-from-bottom-8 duration-700 fade-in fill-mode-both delay-200">
-
-                        {/* Manual Login Form */}
-                        <form onSubmit={handleEmailLogin} className="space-y-3 mb-6">
-                            <div className="space-y-1 text-left">
-                                <Label className="text-xs text-gray-500 ml-1">Email</Label>
-                                <Input
-                                    type="email"
-                                    value={email}
-                                    onChange={e => setEmail(e.target.value)}
-                                    className="rounded-xl border-gray-200 bg-gray-50/50"
-                                    placeholder="correo@ejemplo.com"
-                                />
-                            </div>
-                            <div className="space-y-1 text-left">
-                                <Label className="text-xs text-gray-500 ml-1">Contraseña</Label>
-                                <Input
-                                    type="password"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    className="rounded-xl border-gray-200 bg-gray-50/50"
-                                    placeholder="••••••••"
-                                />
-                            </div>
+                    <form onSubmit={handleEmailLogin} className="w-full space-y-4 mb-6 animate-in slide-in-from-bottom-6 duration-700 fade-in delay-200">
+                        <div className="space-y-1.5 text-left">
+                            <Label className="text-xs text-muted-foreground ml-1">Correo Electrónico</Label>
+                            <Input
+                                type="email"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                className="h-11 rounded-xl bg-background/50 border-border/50 focus:bg-background transition-colors"
+                                placeholder="correo@ejemplo.com"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1.5 text-left">
+                            <Label className="text-xs text-muted-foreground ml-1">Contraseña</Label>
+                            <Input
+                                type="password"
+                                value={password}
+                                onChange={e => setPassword(e.target.value)}
+                                className="h-11 rounded-xl bg-background/50 border-border/50 focus:bg-background transition-colors"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        
+                        <div className="pt-2">
                             <Button
                                 type="submit"
-                                variant="outline"
-                                className="w-full rounded-xl h-11 border-gray-200 text-gray-700 hover:bg-gray-50 mb-2"
+                                className="w-full h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium transition-all shadow-md shadow-blue-600/20"
                                 disabled={loading || !email || !password}
                             >
-                                {loading ? "Procesando..." : (isSignUp ? "Registrar Cuenta de Prueba" : "Iniciar con Correo")}
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isSignUp ? "Registrar Cuenta" : "Iniciar Sesión")}
                             </Button>
-
-                            <div className="text-center">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsSignUp(!isSignUp)}
-                                    className="text-xs text-blue-600 hover:underline"
-                                >
-                                    {isSignUp ? "¿Ya tienes cuenta? Inicia Sesión" : "¿No tienes contraseña? Crea una cuenta de prueba"}
-                                </button>
-                            </div>
-                        </form>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-gray-200" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-white px-2 text-gray-400">O continúa con</span>
-                            </div>
                         </div>
+
+                        <div className="text-center pt-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsSignUp(!isSignUp)}
+                                className="text-[11px] text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-medium hover:underline transition-colors"
+                            >
+                                {isSignUp ? "¿Ya tienes cuenta? Ingresa aquí" : "¿Necesitas acceso? Crea una cuenta de prueba"}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div className="w-full relative animate-in slide-in-from-bottom-8 duration-700 fade-in delay-300">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border/50" />
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                            <span className="bg-background/80 backdrop-blur-md px-2 text-muted-foreground rounded-full">O continúa con</span>
+                        </div>
+                    </div>
+
+                    <div className="w-full mt-6 animate-in slide-in-from-bottom-8 duration-700 fade-in delay-300">
                         <Button
                             onClick={handleLogin}
-                            className="w-full h-14 rounded-full text-base font-medium bg-gray-900 text-white hover:bg-black transition-all duration-300 shadow-lg shadow-gray-900/10 hover:scale-[1.02] active:scale-[0.98]"
+                            variant="outline"
+                            className="w-full h-11 rounded-xl text-sm font-medium border-border/50 bg-background/50 hover:bg-muted/50 transition-all duration-300 shadow-sm"
                             disabled={loading}
                         >
                             {loading ? (
-                                <span className="animate-pulse">Conectando...</span>
+                                <span className="flex items-center gap-2 text-muted-foreground"><Loader2 className="w-4 h-4 animate-spin" /> Conectando...</span>
                             ) : (
                                 <div className="flex items-center justify-center gap-3">
-                                    <Chrome className="w-5 h-5 text-white" />
+                                    <Chrome className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
                                     <span>Continuar con Google</span>
                                 </div>
                             )}
                         </Button>
 
-                        <p className="text-xs text-center text-gray-400">
-                            Acceso seguro restringido a personal autorizado
+                        <p className="text-[9px] text-center text-zinc-400 mt-6 uppercase tracking-widest font-semibold flex items-center justify-center gap-2">
+                            Acceso Autorizado únicamente
                         </p>
                     </div>
                 </div>
