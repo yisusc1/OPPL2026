@@ -248,8 +248,8 @@ export default function NuevaSolicitudPage() {
                <p className="font-bold text-lg text-zinc-900 dark:text-zinc-100">{promotor || "No identificado"}</p>
             </div>
             <div>
-              <Label>Fecha de Disponibilidad</Label>
-              <Input type="date" value={fechaDisp} onChange={(e) => setFechaDisp(e.target.value)} className="mt-2 h-11 rounded-lg" />
+              <Label className="mb-2 block text-[13px]">Fecha de Disponibilidad</Label>
+              <Input type="date" value={fechaDisp} onChange={(e) => setFechaDisp(e.target.value)} className="h-11 rounded-lg block w-full text-foreground" />
             </div>
           </CardContent>
         </Card>
@@ -262,17 +262,17 @@ export default function NuevaSolicitudPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Nombres</Label>
-                <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
+                <Label className="mb-2 truncate text-[13px]">Nombres</Label>
+                <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="h-11 rounded-lg capitalize" />
               </div>
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Apellidos</Label>
-                <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
+                <Label className="mb-2 truncate text-[13px]">Apellidos</Label>
+                <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="h-11 rounded-lg capitalize" />
               </div>
             </div>
             <div>
-              <Label>Cédula / RIF</Label>
-              <div className="flex gap-2 mt-2">
+              <Label className="mb-2 block text-[13px]">Cédula / RIF</Label>
+              <div className="flex gap-2">
                 <Select value={cedulaTipo} onValueChange={setCedulaTipo}>
                   <SelectTrigger className="w-[85px] h-11 rounded-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -286,9 +286,9 @@ export default function NuevaSolicitudPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Género</Label>
+                <Label className="mb-2 truncate text-[13px]">Género</Label>
                 <Select value={genero} onValueChange={setGenero}>
-                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Elegir..." /></SelectTrigger>
+                  <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Elegir..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="M">Masculino</SelectItem>
                     <SelectItem value="F">Femenino</SelectItem>
@@ -296,8 +296,8 @@ export default function NuevaSolicitudPage() {
                 </Select>
               </div>
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Fecha Nacimiento</Label>
-                <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="mt-2 h-11 rounded-lg" />
+                <Label className="mb-2 truncate text-[13px]">Fecha Nac.</Label>
+                <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="h-11 rounded-lg block w-full text-foreground" />
               </div>
             </div>
           </CardContent>
@@ -311,32 +311,32 @@ export default function NuevaSolicitudPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Estado</Label>
+                <Label className="mb-2 truncate text-[13px]">Estado</Label>
                 <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); setSector(""); }}>
-                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Municipio</Label>
+                <Label className="mb-2 truncate text-[13px]">Municipio</Label>
                 <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); setSector(""); }} disabled={!estado}>
-                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Parroquia</Label>
+                <Label className="mb-2 truncate text-[13px]">Parroquia</Label>
                 <Select value={parroquia} onValueChange={(v) => { setParroquia(v); setSector(""); }} disabled={!municipio}>
-                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Sector</Label>
+                <Label className="mb-2 truncate text-[13px]">Sector</Label>
                 <Select value={sector} onValueChange={setSector} disabled={!parroquia}>
-                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{sectores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -354,30 +354,36 @@ export default function NuevaSolicitudPage() {
             <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Detalles del Servicio</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
-                <Label className="mb-2">Tipo de Servicio</Label>
-                <div className="flex gap-2 mt-2">
-                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-11 rounded-lg" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
+            <div className="space-y-4">
+              <div className="w-full">
+                <Label className="mb-2 block text-[13px]">Tipo de Servicio</Label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
                     Domiciliario
                   </Button>
-                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-11 rounded-lg" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setPowerGo(false); }}>
+                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setPowerGo(false); }}>
                     Empresarial
                   </Button>
                 </div>
               </div>
-              <div className="flex flex-col justify-end">
-                <Label className="mb-2">Power Go</Label>
-                <div className="flex items-center gap-3 mt-3">
-                  <Switch checked={powerGo} onCheckedChange={setPowerGo} disabled={tipoServicio === "Empresarial"} />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{powerGo ? "SI" : "NO"}</span>
+              
+              {tipoServicio === "Domiciliario" && (
+                <div className="flex items-center justify-between p-4 border border-border/60 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-semibold">Power Go</Label>
+                    <p className="text-xs text-muted-foreground">Incluir equipo de respaldo eléctrico</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{powerGo ? "SÍ" : "NO"}</span>
+                    <Switch checked={powerGo} onCheckedChange={setPowerGo} />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <div>
-              <Label>Plan a Contratar</Label>
+              <Label className="mb-2 block text-[13px]">Plan a Contratar</Label>
               <Select value={plan} onValueChange={setPlan}>
-                <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
+                <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
                 <SelectContent>
                   {activePlanes.length > 0 ? (
                     activePlanes.map((p: any) => {
@@ -404,17 +410,17 @@ export default function NuevaSolicitudPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Telf. Principal</Label>
-                <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="mt-2 h-11 rounded-lg" />
+                <Label className="mb-2 truncate text-[13px]">Telf. Principal</Label>
+                <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="h-11 rounded-lg" />
               </div>
               <div className="flex flex-col justify-end">
-                <Label className="mb-2">Telf. Opcional</Label>
-                <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="mt-2 h-11 rounded-lg" />
+                <Label className="mb-2 truncate text-[13px]">Telf. Opcional</Label>
+                <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="h-11 rounded-lg" />
               </div>
             </div>
             <div>
-              <Label>Correo Electrónico</Label>
-              <Input type="email" placeholder="cliente@correo.com" value={correo} onChange={(e) => setCorreo(e.target.value)} className="mt-2 h-11 rounded-lg" />
+              <Label className="mb-2 block text-[13px]">Correo Electrónico</Label>
+              <Input type="email" placeholder="cliente@correo.com" value={correo} onChange={(e) => setCorreo(e.target.value)} className="h-11 rounded-lg" />
             </div>
 
             {/* Fuente */}
