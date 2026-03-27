@@ -239,6 +239,19 @@ export async function getSolicitudesDelDia(promotor: string, fecha: string) {
   return data || [];
 }
 
+export async function getSolicitudesPorActividades(actividadesIds: number[]) {
+  if (!actividadesIds || actividadesIds.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("solicitudes")
+    .select("*")
+    .in("actividad_id", actividadesIds)
+    .order("fecha_solicitud", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 export async function getActividadesDelDia(asesor: string) {
   const supabase = await createClient();
   const todayStr = getVenezuelaToday();

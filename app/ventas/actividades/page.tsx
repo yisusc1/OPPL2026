@@ -27,7 +27,7 @@ import { useUser } from "@/components/providers/user-provider";
 import {
   getActividades,
   deleteActividad,
-  getSolicitudesDelDia,
+  getSolicitudesPorActividades,
   cerrarJornada,
   autoCerrarActividadesAntiguas,
   getHistorialActividades,
@@ -137,7 +137,9 @@ export default function ActividadesPage() {
     setGeneratingReport(true);
 
     try {
-      const solicitudes = await getSolicitudesDelDia(currentAsesor, todayStr);
+      // Filtrar estrictamente solo las solicitudes de las actividades abiertas en este momento
+      const actividadesIds = actividades.map(a => a.id);
+      const solicitudes = await getSolicitudesPorActividades(actividadesIds);
       const date = new Date().toLocaleDateString("es-ES");
 
       let totalCap = 0, totalVol = 0, totalLlamInfo = 0, totalLlamAgenda = 0;
