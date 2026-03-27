@@ -129,8 +129,8 @@ export default function NuevaSolicitudPage() {
   const fuentesList = isFromActivity ? FUENTES_DESDE_ACTIVIDAD : FUENTES_STANDALONE;
 
   async function handleSubmit() {
-    if (!nombres || !apellidos || !cedulaNum || !genero || !estado || !municipio || !parroquia || !direccion || !plan || !telefonoP || !fuente || !promotor) {
-      toast({ title: "Complete todos los campos obligatorios", variant: "destructive" });
+    if (!fechaDisp || !nombres || !apellidos || !cedulaNum || !genero || !fechaNac || !estado || !municipio || !parroquia || !sector || !direccion || !tipoServicio || !plan || !telefonoP || !correo || !fuente || !promotor) {
+      toast({ title: "Complete todos los campos obligatorios", description: "Todos los campos a excepción del teléfono secundario son requeridos.", variant: "destructive" });
       return;
     }
 
@@ -249,7 +249,7 @@ export default function NuevaSolicitudPage() {
             </div>
             <div>
               <Label>Fecha de Disponibilidad</Label>
-              <Input type="date" value={fechaDisp} onChange={(e) => setFechaDisp(e.target.value)} className="mt-1.5" />
+              <Input type="date" value={fechaDisp} onChange={(e) => setFechaDisp(e.target.value)} className="mt-2 h-11 rounded-lg" />
             </div>
           </CardContent>
         </Card>
@@ -263,32 +263,32 @@ export default function NuevaSolicitudPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Nombres</Label>
-                <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="mt-1.5 capitalize" />
+                <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
               </div>
               <div>
                 <Label>Apellidos</Label>
-                <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="mt-1.5 capitalize" />
+                <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="mt-2 h-11 rounded-lg capitalize" />
               </div>
             </div>
             <div>
               <Label>Cédula / RIF</Label>
-              <div className="flex gap-2 mt-1.5">
+              <div className="flex gap-2 mt-2">
                 <Select value={cedulaTipo} onValueChange={setCedulaTipo}>
-                  <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-[85px] h-11 rounded-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="V-">V-</SelectItem>
                     <SelectItem value="E-">E-</SelectItem>
                     <SelectItem value="J-">J-</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="12345678" value={cedulaNum} onChange={(e) => setCedulaNum(e.target.value)} className="flex-1" />
+                <Input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="12345678" value={cedulaNum} onChange={(e) => setCedulaNum(e.target.value)} className="flex-1 h-11 rounded-lg" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Género</Label>
                 <Select value={genero} onValueChange={setGenero}>
-                  <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Elegir..." /></SelectTrigger>
+                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Elegir..." /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="M">Masculino</SelectItem>
                     <SelectItem value="F">Femenino</SelectItem>
@@ -296,8 +296,8 @@ export default function NuevaSolicitudPage() {
                 </Select>
               </div>
               <div>
-                <Label>Fecha de Nacimiento <span className="text-zinc-400 font-normal">(Opc.)</span></Label>
-                <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="mt-1.5" />
+                <Label>Fecha de Nacimiento</Label>
+                <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
             </div>
           </CardContent>
@@ -313,14 +313,14 @@ export default function NuevaSolicitudPage() {
               <div>
                 <Label>Estado</Label>
                 <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); setSector(""); }}>
-                  <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Municipio</Label>
                 <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); setSector(""); }} disabled={!estado}>
-                  <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
@@ -329,21 +329,21 @@ export default function NuevaSolicitudPage() {
               <div>
                 <Label>Parroquia</Label>
                 <Select value={parroquia} onValueChange={(v) => { setParroquia(v); setSector(""); }} disabled={!municipio}>
-                  <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
                 <Label>Sector</Label>
                 <Select value={sector} onValueChange={setSector} disabled={!parroquia}>
-                  <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{sectores.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
             <div>
               <Label>Dirección (Calle / Casa / Apto)</Label>
-              <Textarea placeholder="Ej: Calle 4, Res. Las Rosas, Apto 2-B" value={direccion} onChange={(e) => setDireccion(e.target.value)} rows={2} className="mt-1.5" />
+              <Textarea placeholder="Ej: Calle 4, Res. Las Rosas, Apto 2-B" value={direccion} onChange={(e) => setDireccion(e.target.value)} rows={3} className="mt-2 rounded-lg resize-none" />
             </div>
           </CardContent>
         </Card>
@@ -357,11 +357,11 @@ export default function NuevaSolicitudPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Tipo de Servicio</Label>
-                <div className="flex gap-2 mt-1.5">
-                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
+                <div className="flex gap-2 mt-2">
+                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-11 rounded-lg" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
                     Domiciliario
                   </Button>
-                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setPowerGo(false); }}>
+                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-11 rounded-lg" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setPowerGo(false); }}>
                     Empresarial
                   </Button>
                 </div>
@@ -377,7 +377,7 @@ export default function NuevaSolicitudPage() {
             <div>
               <Label>Plan a Contratar</Label>
               <Select value={plan} onValueChange={setPlan}>
-                <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
+                <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
                 <SelectContent>
                   {activePlanes.length > 0 ? (
                     activePlanes.map((p: any) => {
@@ -405,23 +405,23 @@ export default function NuevaSolicitudPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Teléfono Principal</Label>
-                <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="mt-1.5" />
+                <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
               <div>
-                <Label>Teléfono Secundario</Label>
-                <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="mt-1.5" />
+                <Label>Teléfono Secundario <span className="text-zinc-400 font-normal">(Opcional)</span></Label>
+                <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="mt-2 h-11 rounded-lg" />
               </div>
             </div>
             <div>
-              <Label>Correo Electrónico <span className="text-zinc-400 font-normal">(Opcional)</span></Label>
-              <Input type="email" placeholder="cliente@correo.com" value={correo} onChange={(e) => setCorreo(e.target.value)} className="mt-1.5" />
+              <Label>Correo Electrónico</Label>
+              <Input type="email" placeholder="cliente@correo.com" value={correo} onChange={(e) => setCorreo(e.target.value)} className="mt-2 h-11 rounded-lg" />
             </div>
 
             {/* Fuente */}
             <div>
               <Label>{isFromActivity ? "¿Cómo se captó este cliente?" : "¿Cómo se obtuvo este cliente?"}</Label>
               <Select value={fuente} onValueChange={(v) => { setFuente(v); if (v !== "Actividad") setActividadId(""); }}>
-                <SelectTrigger className="w-full mt-1.5"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectTrigger className="w-full mt-2 h-11 rounded-lg"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                 <SelectContent>
                   {fuentesList.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
                 </SelectContent>
