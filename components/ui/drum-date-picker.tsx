@@ -72,10 +72,13 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
   const containerRef = useRef<HTMLDivElement>(null)
   const ITEM_HEIGHT = 40
   const isScrolling = useRef(false)
-  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
+  const isDragging = useRef(false)
+  const startY = useRef(0)
+  const startScrollTop = useRef(0)
+  const ITEM_HEIGHT = 40
 
   useEffect(() => {
-    if (containerRef.current && !isScrolling.current) {
+    if (containerRef.current && !isScrolling.current && !isDragging.current) {
       const index = items.indexOf(value)
       if (index !== -1) {
         containerRef.current.scrollTop = index * ITEM_HEIGHT
@@ -83,11 +86,66 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
     }
   }, [value, items])
 
+  // Custom Wheel Interceptor for Desktop (prevents massive jumps)
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+
+    let lastWheelTime = 0
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const now = Date.now()
+      // Limit wheel actions to one jump every 100ms (fixes fast-scroll jumping)
+      if (now - lastWheelTime < 100) return
+      lastWheelTime = now
+
+      const direction = e.deltaY > 0 ? 1 : -1
+      el.scrollBy({ top: direction * ITEM_HEIGHT, behavior: 'smooth' })
+    }
+
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true
+    startY.current = e.pageY
+    startScrollTop.current = containerRef.current?.scrollTop || 0
+    if (containerRef.current) {
+        containerRef.current.style.scrollSnapType = 'none'
+        containerRef.current.style.cursor = 'grabbing'
+    }
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current || !containerRef.current) return
+    e.preventDefault()
+    const walk = (e.pageY - startY.current) * 1.5 // drag speed
+    containerRef.current.scrollTop = startScrollTop.current - walk
+    
+    // Live update value while dragging
+    const index = Math.max(0, Math.min(items.length - 1, Math.round(containerRef.current.scrollTop / ITEM_HEIGHT)))
+    if (items[index] !== undefined && items[index] !== value) {
+      onChange(items[index])
+    }
+  }
+
+  const stopDragging = () => {
+    if (isDragging.current && containerRef.current) {
+        isDragging.current = false
+        containerRef.current.style.scrollSnapType = 'y mandatory'
+        containerRef.current.style.cursor = 'grab'
+        // Force snap to closest item
+        const index = Math.round(containerRef.current.scrollTop / ITEM_HEIGHT)
+        containerRef.current.scrollTo({ top: index * ITEM_HEIGHT, behavior: 'smooth' })
+    }
+  }
+
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (isDragging.current) return // Handled by mouse move
     isScrolling.current = true
     if (scrollTimeout.current) clearTimeout(scrollTimeout.current)
     
-    // Smoothly update value as we scroll
     const scrollTop = e.currentTarget.scrollTop
     const index = Math.round(scrollTop / ITEM_HEIGHT)
     if (items[index] !== undefined && items[index] !== value) {
@@ -100,6 +158,7 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
   }
 
   const handleClick = (index: number) => {
+    // Ignore clicks if we just finished dragging a significant amount
     if (containerRef.current) {
       containerRef.current.scrollTo({ top: index * ITEM_HEIGHT, behavior: 'smooth' })
     }
@@ -107,13 +166,17 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
 
   return (
     <div 
-      className={`h-[200px] ${width} overflow-y-auto snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded-md`}
+      className={`h-[200px] ${width} overflow-y-auto snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded-md cursor-grab`}
       ref={containerRef}
       onScroll={handleScroll}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={stopDragging}
+      onMouseLeave={stopDragging}
       tabIndex={0}
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
-      <div className="h-[80px] shrink-0" />
+      <div className="h-[80px] shrink-0 pointer-events-none" />
       {items.map((item, idx) => (
         <div 
           key={`${item}`} 

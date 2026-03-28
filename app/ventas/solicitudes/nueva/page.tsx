@@ -71,7 +71,7 @@ export default function NuevaSolicitudPage() {
   const [actividadId, setActividadId] = useState<string>(urlActividadId || "");
 
   // Client data
-  const [fechaDisp, setFechaDisp] = useState("");
+  const [fechaDisp, setFechaDisp] = useState(format(new Date(), "yyyy-MM-dd"));
   const [nombres, setNombres] = useState("");
   const [apellidos, setApellidos] = useState("");
   const [cedulaTipo, setCedulaTipo] = useState("V-");
