@@ -83,19 +83,12 @@ export default function NuevaActividadPage() {
     setSaving(true);
     try {
       const now = new Date();
-      // Formatear hora: 08:05 p. m.
-      let hora = now.toLocaleTimeString("es-VE", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }).toLowerCase();
-
-      // Forzar formato con puntos y espacios si el sistema devuelve algo distinto
-      if (hora.includes("am")) hora = hora.replace("am", "a. m.");
-      if (hora.includes("pm")) hora = hora.replace("pm", "p. m.");
-      // Algunos sistemas ya traen puntos pero quizá no espacios
-      if (hora.includes("a.m.") && !hora.includes("a. m.")) hora = hora.replace("a.m.", "a. m.");
-      if (hora.includes("p.m.") && !hora.includes("p. m.")) hora = hora.replace("p.m.", "p. m.");
+      // Formatear hora manualmente: 08:05 p. m.
+      const hours24 = now.getHours();
+      const minutes = now.getMinutes();
+      const period = hours24 >= 12 ? "p. m." : "a. m.";
+      const hours12 = hours24 % 12 || 12;
+      const hora = `${hours12.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${period}`;
 
       await saveActividad({
         fecha: now.toISOString().split("T")[0],
