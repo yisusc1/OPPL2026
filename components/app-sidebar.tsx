@@ -11,7 +11,11 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { useUser } from "@/components/providers/user-provider"
 import { EllielLogo } from "@/components/ui/elliel-logo"
 import {
@@ -24,7 +28,8 @@ import {
   Users,
   ShieldCheck,
   UserCircle,
-  Briefcase
+  Briefcase,
+  ChevronRight
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -32,16 +37,67 @@ import { LogoutButton } from "@/components/ui/logout-button"
 
 // Modules definitions mapped to roles
 // Some titles and URLs reflect the structure viewed in current app logic
-const modules = [
+type NavItem = {
+  title: string
+  url?: string
+  icon: any
+  roles: string[]
+  items?: { title: string; url: string; roles?: string[] }[]
+}
+
+const modules: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["Gerente", "Admin", "Coordinador"] },
-  { title: "Ventas", url: "/ventas/actividades", icon: Home, roles: ["Gerente", "Asesor", "Coordinador", "Admin"] },
-  { title: "Almacén", url: "/almacen", icon: Package, roles: ["Gerente", "Admin", "Logistica", "Almacen"] },
+  { 
+    title: "Ventas", 
+    icon: Home, 
+    roles: ["Gerente", "Asesor", "Coordinador", "Admin"],
+    items: [
+      { title: "Dashboard Ventas", url: "/ventas" },
+      { title: "Actividades", url: "/ventas/actividades" },
+      { title: "Solicitudes", url: "/ventas/solicitudes" },
+    ]
+  },
+  {
+    title: "Almacén",
+    icon: Package,
+    roles: ["Gerente", "Admin", "Logistica", "Almacen"],
+    items: [
+      { title: "Dashboard Almacén", url: "/almacen" },
+      { title: "Productos", url: "/almacen/productos" },
+      { title: "Rastreo", url: "/almacen/rastreo" },
+      { title: "Seriales", url: "/almacen/seriales" },
+      { title: "Asignaciones", url: "/almacen/historial-asignaciones" },
+      { title: "Bajas", url: "/almacen/bajas" },
+      { title: "Historial", url: "/almacen/historial" }
+    ]
+  },
   { title: "Transporte", url: "/transporte", icon: Truck, roles: ["Gerente", "Admin", "Logistica", "Chofer"] },
   { title: "Instalaciones", url: "/instalaciones", icon: Wrench, roles: ["Gerente", "Admin", "Coordinador", "Técnico"] },
   { title: "Taller", url: "/taller", icon: PenTool, roles: ["Gerente", "Admin", "Taller"] },
-  { title: "Control", url: "/control", icon: Briefcase, roles: ["Gerente", "Admin", "Controlaría"] },
-  { title: "Usuarios (Admin)", url: "/admin/users", icon: Users, roles: ["Gerente", "Admin"] },
-  { title: "Configuración", url: "/admin/settings", icon: ShieldCheck, roles: ["Gerente", "Admin"] },
+  {
+    title: "Control",
+    icon: Briefcase,
+    roles: ["Gerente", "Admin", "Controlaría"],
+    items: [
+      { title: "Dashboard Control", url: "/control" },
+      { title: "Auditoría", url: "/control/audit" },
+      { title: "Combustible", url: "/control/combustible" },
+      { title: "Reportes", url: "/control/report" },
+      { title: "Spools", url: "/control/spools" },
+      { title: "Historial", url: "/control/history" }
+    ]
+  },
+  {
+    title: "Administrador",
+    icon: Users,
+    roles: ["Gerente", "Admin"],
+    items: [
+      { title: "Dashboard Admin", url: "/admin" },
+      { title: "Usuarios", url: "/admin/users" },
+      { title: "Gestión de Planes", url: "/admin/planes" },
+      { title: "Configuración", url: "/admin/settings" }
+    ]
+  },
   { title: "Perfil y Ajustes", url: "/perfil", icon: UserCircle, roles: ["ALL"] }
 ]
 
@@ -74,20 +130,73 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {allowedModules.map((item) => {
-                const isActive = pathname.startsWith(item.url)
+                const isGroupActive = item.url ? pathname.startsWith(item.url) : (item.items?.some(sub => pathname.startsWith(sub.url)) || false)
+                
+                if (item.items && item.items.length > 0) {
+                  return (
+                    <Collapsible
+                      key={item.title}
+                      defaultOpen={isGroupActive}
+                      className="group/collapsible"
+                    >
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton 
+                            className={`h-10 px-3 rounded-lg text-sm font-medium transition-colors cursor-pointer w-full flex items-center justify-between ${
+                              isGroupActive 
+                              ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 font-bold' 
+                              : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <item.icon size={18} className={isGroupActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-500'} />
+                              <span>{item.title}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 text-zinc-400" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub className="mt-1">
+                            {item.items.map((subItem) => {
+                              const isSubActive = pathname === subItem.url || pathname.startsWith(subItem.url + "/")
+                              return (
+                                <SidebarMenuSubItem key={subItem.title}>
+                                  <SidebarMenuSubButton 
+                                    asChild 
+                                    isActive={isSubActive}
+                                    className={`h-9 px-3 rounded-md text-sm font-medium transition-colors ${
+                                      isSubActive 
+                                      ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' 
+                                      : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800'
+                                    }`}
+                                  >
+                                    <Link href={subItem.url} className="w-full">
+                                      <span>{subItem.title}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              )
+                            })}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  )
+                }
+
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton 
                       asChild 
-                      isActive={isActive}
+                      isActive={isGroupActive}
                       className={`h-10 px-3 rounded-lg text-sm font-medium transition-colors ${
-                        isActive 
-                        ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400 hover:bg-blue-600/15' 
+                        isGroupActive 
+                        ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' 
                         : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800'
                       }`}
                     >
-                      <Link href={item.url} className="flex items-center gap-3">
-                        <item.icon size={18} className={isActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-500'} />
+                      <Link href={item.url!} className="flex items-center gap-3">
+                        <item.icon size={18} className={isGroupActive ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-500'} />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
