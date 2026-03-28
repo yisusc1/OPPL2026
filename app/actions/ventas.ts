@@ -212,9 +212,18 @@ export async function sincronizarConSheets(
     if (solicitudesHuerfanas && solicitudesHuerfanas.length > 0) {
       solicitudesHuerfanas.forEach((sol: any) => {
         const fechaSol = sol.fecha_solicitud ? sol.fecha_solicitud.split("T")[0] : "";
+        // Extraer hora de created_at (Venezuela = UTC-4)
+        let horaSol = "";
+        if (sol.created_at) {
+          const d = new Date(sol.created_at);
+          d.setHours(d.getHours() - 4); // UTC -> Venezuela
+          const hh = d.getUTCHours().toString().padStart(2, "0");
+          const mm = d.getUTCMinutes().toString().padStart(2, "0");
+          horaSol = `${hh}:${mm}`;
+        }
         rows.push([
           formatFechaSheets(fechaSol),
-          "",  // hora — no aplica
+          horaSol,
           sol.promotor || "",
           sol.estado || "",
           sol.municipio || "",
