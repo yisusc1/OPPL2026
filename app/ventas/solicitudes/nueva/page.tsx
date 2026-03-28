@@ -20,7 +20,11 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig, saveSolicitud, getActividadesDelDia } from "@/app/actions/ventas";
 import { getSystemSettings, getTvLabel } from "@/app/admin/settings-actions";
-import { Loader2, Link2, FlaskConical } from "lucide-react";
+import { Loader2, Link2, FlaskConical, Calendar as CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DrumDatePicker } from "@/components/ui/drum-date-picker";
 
 // Fuentes cuando se accede DESDE una actividad (la actividad ya está vinculada)
 const FUENTES_DESDE_ACTIVIDAD = [
@@ -258,7 +262,17 @@ export default function NuevaSolicitudPage() {
             </div>
             <div>
               <Label className="mb-2 block text-[13px]">Fecha de Disponibilidad</Label>
-              <Input type="date" value={fechaDisp} onChange={(e) => setFechaDisp(e.target.value)} className="h-11 rounded-lg block w-full text-foreground" />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal bg-background h-11 rounded-lg">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {fechaDisp ? format(parseISO(fechaDisp), "PPP", { locale: es }) : <span className="text-muted-foreground">Seleccionar fecha</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-4 z-[9999]" align="start">
+                  <DrumDatePicker value={fechaDisp} onChange={setFechaDisp} />
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
@@ -306,7 +320,17 @@ export default function NuevaSolicitudPage() {
               </div>
               <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Fecha de Nacimiento <span className="text-muted-foreground">(Opc.)</span></Label>
-                <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="h-11 rounded-lg block w-full text-foreground" />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-background h-11 rounded-lg">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {fechaNac ? format(parseISO(fechaNac), "PPP", { locale: es }) : <span className="text-muted-foreground">Seleccionar fecha</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-4 z-[9999]" align="start">
+                    <DrumDatePicker value={fechaNac} onChange={setFechaNac} maxYear={new Date().getFullYear()} />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardContent>
