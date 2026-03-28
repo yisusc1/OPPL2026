@@ -83,9 +83,23 @@ export default function NuevaActividadPage() {
     setSaving(true);
     try {
       const now = new Date();
+      // Formatear hora: 08:05 p. m.
+      let hora = now.toLocaleTimeString("es-VE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }).toLowerCase();
+
+      // Forzar formato con puntos y espacios si el sistema devuelve algo distinto
+      if (hora.includes("am")) hora = hora.replace("am", "a. m.");
+      if (hora.includes("pm")) hora = hora.replace("pm", "p. m.");
+      // Algunos sistemas ya traen puntos pero quizá no espacios
+      if (hora.includes("a.m.") && !hora.includes("a. m.")) hora = hora.replace("a.m.", "a. m.");
+      if (hora.includes("p.m.") && !hora.includes("p. m.")) hora = hora.replace("p.m.", "p. m.");
+
       await saveActividad({
         fecha: now.toISOString().split("T")[0],
-        hora: now.toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        hora: hora,
         asesor,
         tipo,
         clientes_captados: parseInt(captados) || 0,

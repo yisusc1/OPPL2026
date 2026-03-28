@@ -159,10 +159,26 @@ export async function saveActividad(activity: {
         formattedFecha = `${parseInt(dd)}/${parseInt(mm)}/${yyyy}`;
       }
 
+      // Formatear la hora a 12h con p. m. / a. m.
+      let displayHora = activity.hora || "";
+      if (displayHora && displayHora.includes(":")) {
+        // Si viene en formato 24h (HH:mm) o similar, intentamos normalizar
+        try {
+          const [h, m] = displayHora.split(":");
+          const hour = parseInt(h);
+          const min = m.split(" ")[0]; // Por si ya trae algo
+          const period = hour >= 12 ? "p. m." : "a. m.";
+          const h12 = hour % 12 || 12;
+          displayHora = `${h12.toString().padStart(2, "0")}:${min} ${period}`;
+        } catch (e) {
+          // Si falla el parseo manual, lo dejamos como viene
+        }
+      }
+
       // Preparar como arreglo según el orden exacto de las columnas de izquierda a derecha.
       const row = [
         formattedFecha,
-        activity.hora || "",
+        displayHora,
         activity.asesor || "",
         activity.estado || "",
         activity.municipio || "",
