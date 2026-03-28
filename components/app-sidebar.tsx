@@ -101,9 +101,9 @@ const modules: NavItem[] = [
     roles: ["Gerente", "Admin"],
     items: [
       { title: "Dashboard Admin", url: "/admin" },
-      { title: "Usuarios", url: "/admin/users" },
+      { title: "Usuarios", url: "/admin/usuarios" },
       { title: "Gestión de Planes", url: "/admin/planes" },
-      { title: "Configuración", url: "/admin/settings" }
+      { title: "Configuración", url: "/admin/configuracion" }
     ]
   },
   { title: "Perfil y Ajustes", url: "/perfil", icon: UserCircle, roles: ["ALL"] }
