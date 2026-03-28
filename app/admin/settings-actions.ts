@@ -151,3 +151,25 @@ export async function toggleAutofillEnabled() {
     revalidatePath("/admin/configuracion")
     return { success: true, value: newValue }
 }
+
+/** Get the custom TV label (default: "TV") */
+export async function getTvLabel(): Promise<string> {
+    const settings = await getSystemSettings()
+    return (settings["TV_LABEL"] as string) || "TV"
+}
+
+/** Update the TV label */
+export async function updateTvLabel(label: string) {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from("system_settings")
+        .upsert({
+            key: "TV_LABEL",
+            value: label.trim() || "TV",
+            description: "Custom label for TV/streaming service in plans"
+        })
+    if (error) throw error
+    revalidatePath("/admin/planes")
+    revalidatePath("/ventas")
+    return { success: true }
+}

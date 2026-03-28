@@ -24,6 +24,7 @@ import {
     calculateAdvancedMetrics,
     Installation
 } from "@/lib/dashboard-data";
+import { getTvLabel } from "@/app/admin/settings-actions";
 import { KPICard } from "@/components/dashboard/kpi-card";
 import { SummaryCard } from "@/components/dashboard/summary-card";
 import { ReportChart } from "@/components/dashboard/report-chart";
@@ -37,6 +38,7 @@ import { SortableCard } from "@/components/dashboard/sortable-card";
 export default function DashboardPage() {
     const [rawData, setRawData] = useState<Installation[]>([]);
     const [loading, setLoading] = useState(true);
+    const [tvLabel, setTvLabel] = useState("TV");
 
     // Drag and Drop State
     const [items, setItems] = useState([
@@ -127,7 +129,11 @@ export default function DashboardPage() {
         async function loadData() {
             setLoading(true);
             try {
-                let data = await fetchInstallations();
+                let [data, tvLab] = await Promise.all([
+                    fetchInstallations(),
+                    getTvLabel()
+                ]);
+
                 if (data === null) {
                     console.log("Using mock data...");
                 }
@@ -139,6 +145,8 @@ export default function DashboardPage() {
                 } else {
                     setRawData([]);
                 }
+                
+                setTvLabel(tvLab);
             } catch (error) {
                 console.error("Failed to load data", error);
             } finally {
@@ -413,7 +421,7 @@ export default function DashboardPage() {
                     icon={FileText}
                 />
                 <KPICard
-                    label="TV"
+                    label={tvLabel}
                     value={metrics?.counters?.powerGoCount || 0}
                     icon={Monitor}
                 />

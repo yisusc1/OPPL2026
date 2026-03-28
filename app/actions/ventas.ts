@@ -68,6 +68,43 @@ export async function deleteGeodata(id: number) {
   revalidatePath("/ventas");
 }
 
+// ── Planes CRUD (Admin) ───────────────────────────────────────────
+
+export async function getPlanes() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("planes_config")
+    .select("*")
+    .order("tipo")
+    .order("nombre");
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+export async function addPlan(plan: { nombre: string; tipo: string; activo: boolean; has_tv: boolean }) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("planes_config").insert([plan]);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/planes");
+  revalidatePath("/ventas");
+}
+
+export async function updatePlan(id: number, plan: { nombre?: string; tipo?: string; activo?: boolean; has_tv?: boolean }) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("planes_config").update(plan).eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/planes");
+  revalidatePath("/ventas");
+}
+
+export async function deletePlan(id: number) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("planes_config").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/planes");
+  revalidatePath("/ventas");
+}
+
 // ── Actividades ──────────────────────────────────────────────────
 
 export async function getActividades(asesor?: string, fecha?: string, cerrada?: boolean) {

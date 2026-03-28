@@ -1,10 +1,17 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { PremiumCard } from "@/components/ui/premium-card"
 import { Activity, ShieldCheck, Zap, TrendingUp, Briefcase } from "lucide-react"
 import type { DashboardMetrics } from "@/lib/dashboard-data"
+import { getTvLabel } from "@/app/admin/settings-actions"
 
 export function BusinessMetrics({ metrics }: { metrics: DashboardMetrics }) {
+    const [tvLabel, setTvLabel] = useState("TV")
+
+    useEffect(() => {
+        getTvLabel().then(setTvLabel).catch(console.error)
+    }, [])
     const {
         totalSolicitudes,
         powerGoCount,
@@ -46,13 +53,13 @@ export function BusinessMetrics({ metrics }: { metrics: DashboardMetrics }) {
                         </div>
                     </div>
 
-                    {/* Power Go */}
+                    {/* TV / Power Go */}
                     <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
                         <div className="h-10 w-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
                             <Zap size={20} />
                         </div>
                         <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Power Go</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{tvLabel}</p>
                             <h4 className="text-2xl font-black text-foreground">{powerGoCount}</h4>
                         </div>
                     </div>

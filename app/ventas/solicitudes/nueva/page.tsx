@@ -19,7 +19,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig, saveSolicitud, getActividadesDelDia } from "@/app/actions/ventas";
-import { getSystemSettings } from "@/app/admin/settings-actions";
+import { getSystemSettings, getTvLabel } from "@/app/admin/settings-actions";
 import { Loader2, Link2, FlaskConical } from "lucide-react";
 
 // Fuentes cuando se accede DESDE una actividad (la actividad ya está vinculada)
@@ -55,6 +55,7 @@ export default function NuevaSolicitudPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [autofillEnabled, setAutofillEnabled] = useState(false);
+  const [tvLabel, setTvLabel] = useState("TV");
 
   // Actividad vinculada desde URL
   const urlActividadId = searchParams.get("actividad_id");
@@ -84,7 +85,7 @@ export default function NuevaSolicitudPage() {
   // Service
   const [tipoServicio, setTipoServicio] = useState("Domiciliario");
   const [plan, setPlan] = useState("");
-  const [powerGo, setPowerGo] = useState(false);
+  const [incluyeTv, setIncluyeTv] = useState(false);
 
   // Contact
   const [telefonoP, setTelefonoP] = useState("");
@@ -96,10 +97,14 @@ export default function NuevaSolicitudPage() {
   useEffect(() => {
     (async () => {
       try {
-        const cfg = await getVentasConfig();
+        const [cfg, sys, tvLab] = await Promise.all([
+          getVentasConfig(),
+          getSystemSettings(),
+          getTvLabel()
+        ]);
         setConfig(cfg);
-        const sys = await getSystemSettings();
         setAutofillEnabled(sys["AUTOFILL_ENABLED"] === true);
+        setTvLabel(tvLab);
       } catch (e) {
         console.error(e);
       } finally {
@@ -162,7 +167,7 @@ export default function NuevaSolicitudPage() {
         telefono_principal: telefonoP,
         telefono_secundario: telefonoS || undefined,
         correo: correo || undefined,
-        power_go: powerGo,
+        power_go: incluyeTv,
         fecha_nacimiento: fechaNac || undefined,
         fuente,
       };
@@ -197,7 +202,7 @@ export default function NuevaSolicitudPage() {
       waMsg += `Teléfono principal: ${telefonoP}\n`;
       waMsg += `Teléfono secundario: ${telefonoS || telefonoP}\n`;
       waMsg += `Correo Electrónico: ${correo || ""}\n`;
-      waMsg += `Power Go: ${powerGo ? "SI" : "NO"}\n`;
+      waMsg += `${tvLabel}: ${incluyeTv ? "SI" : "NO"}\n`;
       waMsg += `Fuente: ${fuente}`;
 
       window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, "_blank");
@@ -365,24 +370,22 @@ export default function NuevaSolicitudPage() {
                   <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
                     Domiciliario
                   </Button>
-                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setPowerGo(false); }}>
+                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); }}>
                     Empresarial
                   </Button>
                 </div>
               </div>
               
-              {tipoServicio === "Domiciliario" && (
-                <div className="flex items-center justify-between p-4 border border-border/60 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-semibold">Power Go</Label>
-                    <p className="text-xs text-muted-foreground">Incluir equipo de respaldo eléctrico</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{powerGo ? "SÍ" : "NO"}</span>
-                    <Switch checked={powerGo} onCheckedChange={setPowerGo} />
-                  </div>
+              <div className="flex items-center justify-between p-4 border border-border/60 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-semibold">{tvLabel}</Label>
+                  <p className="text-xs text-muted-foreground">Incluir servicio de {tvLabel}</p>
                 </div>
-              )}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{incluyeTv ? "SÍ" : "NO"}</span>
+                  <Switch checked={incluyeTv} onCheckedChange={setIncluyeTv} />
+                </div>
+              </div>
             </div>
             <div>
               <Label className="mb-2 block text-[13px]">Plan a Contratar</Label>
@@ -391,12 +394,12 @@ export default function NuevaSolicitudPage() {
                 <SelectContent>
                   {activePlanes.length > 0 ? (
                     activePlanes.map((p: any) => {
-                      const display = p.nombre + (p.has_tv ? " + TV" : "");
+                      const display = p.nombre + (p.has_tv ? ` + ${tvLabel}` : "");
                       return <SelectItem key={p.id} value={display}>{display}</SelectItem>;
                     })
                   ) : (
                     (tipoServicio === "Domiciliario"
-                      ? ["400MB", "600MB", "1GB", "400MB + TV", "600MB + TV", "1GB + TV"]
+                      ? ["400MB", "600MB", "1GB", `400MB + ${tvLabel}`, `600MB + ${tvLabel}`, `1GB + ${tvLabel}`]
                       : ["50MB", "100MB", "200MB", "Plan Dedicado"]
                     ).map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)
                   )}

@@ -2,7 +2,7 @@
 
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid"
-import { UserCog, ShieldCheck, LayoutGrid, Database, MapPin } from "lucide-react"
+import { UserCog, ShieldCheck, LayoutGrid, Database, MapPin, Tv } from "lucide-react"
 import Image from "next/image"
 
 const adminSections = [
@@ -41,6 +41,15 @@ const adminSections = [
         icon: MapPin,
         className: "col-span-1",
         bg: "/admin-geodata.png",
+    },
+    {
+        name: "Gestión de Planes",
+        description: "Planes de servicio de internet y TV.",
+        href: "/admin/planes",
+        cta: "Configurar",
+        icon: Tv,
+        className: "col-span-1",
+        bg: "/admin-modules.png", // Reusing background or we can let it gracefully fallback
     },
     {
         name: "Base de Datos",

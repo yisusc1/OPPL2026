@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/components/providers/user-provider";
 import { getSolicitudes } from "@/app/actions/ventas";
+import { getTvLabel } from "@/app/admin/settings-actions";
 
-function buildWaMessage(sol: any) {
+function buildWaMessage(sol: any, tvLabel: string) {
   const todayStr = new Date(sol.fecha_solicitud).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   const formatDate = (d: string) => {
     if (!d) return "";
@@ -31,7 +32,7 @@ function buildWaMessage(sol: any) {
   msg += `Teléfono principal: ${sol.telefono_principal}\n`;
   msg += `Teléfono secundario: ${sol.telefono_secundario || sol.telefono_principal}\n`;
   msg += `Correo Electrónico: ${sol.correo || ""}\n`;
-  msg += `Power Go: ${sol.power_go ? "SI" : "NO"}\n`;
+  msg += `${tvLabel}: ${sol.power_go ? "SI" : "NO"}\n`;
   msg += `Fuente: ${sol.fuente || ""}`;
   return msg;
 }
@@ -42,6 +43,7 @@ export default function SolicitudesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [tvLabel, setTvLabel] = useState("TV");
 
   const promotor = profile ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
 
@@ -52,11 +54,15 @@ export default function SolicitudesPage() {
   async function loadData(searchTerm?: string) {
     setLoading(true);
     try {
-      const data = await getSolicitudes({
-        promotor,
-        search: searchTerm || undefined,
-      });
+      const [data, tvLab] = await Promise.all([
+        getSolicitudes({
+          promotor,
+          search: searchTerm || undefined,
+        }),
+        getTvLabel()
+      ]);
       setSolicitudes(data);
+      setTvLabel(tvLab);
     } catch (e) {
       console.error(e);
     } finally {
@@ -71,7 +77,7 @@ export default function SolicitudesPage() {
   }, [search]);
 
   function handleSendWa(sol: any) {
-    const msg = buildWaMessage(sol);
+    const msg = buildWaMessage(sol, tvLabel);
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }
 
@@ -138,7 +144,7 @@ export default function SolicitudesPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{sol.plan}</Badge>
                     <Badge variant="outline">{sol.tipo_servicio}</Badge>
-                    {sol.power_go && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-0">Power Go</Badge>}
+                    {sol.power_go && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-0">{tvLabel}</Badge>}
                     <span className="text-xs text-zinc-400">
                       {sol.parroquia}{sol.sector ? `, ${sol.sector}` : ""}
                     </span>
@@ -199,7 +205,7 @@ export default function SolicitudesPage() {
                         <span className="ml-2 text-zinc-700 dark:text-zinc-300">{sol.tipo_servicio}</span>
                       </div>
                       <div>
-                        <span className="text-zinc-400">Power Go:</span>
+                        <span className="text-zinc-400">{tvLabel}:</span>
                         <span className="ml-2 text-zinc-700 dark:text-zinc-300">{sol.power_go ? "SI" : "NO"}</span>
                       </div>
                       <div>
