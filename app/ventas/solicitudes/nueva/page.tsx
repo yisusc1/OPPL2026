@@ -270,7 +270,7 @@ export default function NuevaSolicitudPage() {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-4 z-[9999]" align="start">
-                  <DrumDatePicker value={fechaDisp} onChange={setFechaDisp} />
+                  <DrumDatePicker value={fechaDisp} onChange={setFechaDisp} minDate={new Date()} />
                 </PopoverContent>
               </Popover>
             </div>

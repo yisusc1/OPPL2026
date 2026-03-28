@@ -6,6 +6,8 @@ interface DrumPickerProps {
   onChange: (value: string) => void
   minYear?: number
   maxYear?: number
+  minDate?: Date
+  maxDate?: Date
 }
 
 const MONTHS = [
@@ -17,7 +19,9 @@ export function DrumDatePicker({
   value, 
   onChange, 
   minYear = 1920, 
-  maxYear = new Date().getFullYear() + 5 
+  maxYear = new Date().getFullYear() + 5,
+  minDate,
+  maxDate
 }: DrumPickerProps) {
   const dateObj = value && isValid(parseISO(value)) ? parseISO(value) : new Date()
   
@@ -32,11 +36,43 @@ export function DrumDatePicker({
   }, [maxDays, day])
 
   useEffect(() => {
-    const newDateStr = `${year}-${String(month).padStart(2, '0')}-${String(Math.min(day, maxDays)).padStart(2, '0')}`
+    let finalDay = Math.min(day, maxDays)
+    let finalMonth = month
+    let finalYear = year
+    const selectedDate = new Date(year, month - 1, finalDay)
+    const startOfSelected = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate())
+
+    if (minDate) {
+      const startOfMin = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())
+      if (startOfSelected < startOfMin) {
+        finalYear = minDate.getFullYear()
+        finalMonth = minDate.getMonth() + 1
+        finalDay = minDate.getDate()
+        setYear(finalYear)
+        setMonth(finalMonth)
+        setDay(finalDay)
+        return // Avoid triggering onChange out of bounds, will re-trigger
+      }
+    }
+
+    if (maxDate) {
+      const startOfMax = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate())
+      if (startOfSelected > startOfMax) {
+        finalYear = maxDate.getFullYear()
+        finalMonth = maxDate.getMonth() + 1
+        finalDay = maxDate.getDate()
+        setYear(finalYear)
+        setMonth(finalMonth)
+        setDay(finalDay)
+        return
+      }
+    }
+
+    const newDateStr = `${finalYear}-${String(finalMonth).padStart(2, '0')}-${String(finalDay).padStart(2, '0')}`
     if (newDateStr !== value) {
       onChange(newDateStr)
     }
-  }, [day, month, year, maxDays, value, onChange])
+  }, [day, month, year, maxDays, value, onChange, minDate, maxDate])
 
   return (
     <div className="flex justify-center items-center h-[200px] w-full bg-background relative select-none">
@@ -166,7 +202,7 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
 
   return (
     <div 
-      className={`h-[200px] ${width} overflow-y-auto snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded-md cursor-grab`}
+      className={`h-[200px] ${width} overflow-y-auto overflow-x-hidden touch-pan-y snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded-md cursor-grab`}
       ref={containerRef}
       onScroll={handleScroll}
       onMouseDown={handleMouseDown}
