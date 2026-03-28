@@ -19,7 +19,8 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig, saveSolicitud, getActividadesDelDia } from "@/app/actions/ventas";
-import { Loader2, Link2 } from "lucide-react";
+import { getSystemSettings } from "@/app/admin/settings-actions";
+import { Loader2, Link2, FlaskConical } from "lucide-react";
 
 // Fuentes cuando se accede DESDE una actividad (la actividad ya está vinculada)
 const FUENTES_DESDE_ACTIVIDAD = [
@@ -53,6 +54,7 @@ export default function NuevaSolicitudPage() {
   const [config, setConfig] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autofillEnabled, setAutofillEnabled] = useState(false);
 
   // Actividad vinculada desde URL
   const urlActividadId = searchParams.get("actividad_id");
@@ -96,6 +98,8 @@ export default function NuevaSolicitudPage() {
       try {
         const cfg = await getVentasConfig();
         setConfig(cfg);
+        const sys = await getSystemSettings();
+        setAutofillEnabled(sys["AUTOFILL_ENABLED"] === true);
       } catch (e) {
         console.error(e);
       } finally {
@@ -468,6 +472,50 @@ export default function NuevaSolicitudPage() {
           </Button>
         </div>
       </div>
+
+      {autofillEnabled && (
+        <button
+          type="button"
+          onClick={() => {
+            const nombres_test = ["Carlos", "María", "José", "Ana", "Pedro", "Laura", "Miguel", "Sofía"];
+            const apellidos_test = ["Gómez", "Rodríguez", "López", "Martínez", "Hernández", "Pérez", "García"];
+            const n = nombres_test[Math.floor(Math.random() * nombres_test.length)];
+            const a = apellidos_test[Math.floor(Math.random() * apellidos_test.length)];
+            setNombres(n);
+            setApellidos(a);
+            setCedulaNum(String(Math.floor(Math.random() * 20000000) + 10000000));
+            setGenero(Math.random() > 0.5 ? "M" : "F");
+            setFechaNac("1990-05-15");
+            setFechaDisp(new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]);
+            setDireccion("Av. Principal, Edif. Test, Piso 3");
+            setTelefonoP("0414" + String(Math.floor(Math.random() * 9000000) + 1000000));
+            setCorreo(`${n.toLowerCase()}.${a.toLowerCase()}@test.com`);
+            setFuente(isFromActivity ? "Recorrido" : "Llamada");
+            setPlan("");
+            // Fill first available location
+            const gh = config?.geoHierarchy || {};
+            const est = Object.keys(gh).sort();
+            if (est[0]) {
+              setEstado(est[0]);
+              const muns = Object.keys(gh[est[0]] || {}).sort();
+              if (muns[0]) {
+                setMunicipio(muns[0]);
+                const pars = Object.keys(gh[est[0]]?.[muns[0]] || {}).sort();
+                if (pars[0]) {
+                  setParroquia(pars[0]);
+                  const secs = (gh[est[0]]?.[muns[0]]?.[pars[0]] || []).sort();
+                  if (secs[0]) setSector(secs[0]);
+                }
+              }
+            }
+            toast({ title: "Formulario llenado con datos de prueba" });
+          }}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-amber-500 text-white font-semibold shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all hover:scale-105 active:scale-95"
+        >
+          <FlaskConical size={18} />
+          Auto-llenar
+        </button>
+      )}
     </PremiumPageLayout>
   );
 }

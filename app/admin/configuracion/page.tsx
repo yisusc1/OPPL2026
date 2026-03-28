@@ -5,10 +5,10 @@ import { createClient } from "@/lib/supabase/client"
 import { INITIAL_MODULES_CONFIG } from "@/lib/constants"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Save, AlertCircle, Bot, Mic, MicOff } from "lucide-react"
+import { ArrowLeft, Save, AlertCircle, Bot, Mic, MicOff, FlaskConical } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { getSystemSettings, toggleGeminiEnabled, toggleVoiceEnabled } from "../settings-actions"
+import { getSystemSettings, toggleGeminiEnabled, toggleVoiceEnabled, toggleAutofillEnabled } from "../settings-actions"
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumContent } from "@/components/ui/premium-content"
 
@@ -246,6 +246,49 @@ create policy "Admin Update" on app_settings for all using (true);`}
                             {saving ? "Guardando..." : "Guardar Cambios"}
                             <Save size={18} className="ml-2" />
                         </Button>
+                    </div>
+                </PremiumContent>
+
+                {/* DEV TOOLS */}
+                <PremiumContent>
+                    <div className="flex items-center gap-4 mb-6 border-b border-border/40 pb-4">
+                        <div className="h-10 w-10 bg-amber-500/10 rounded-full flex items-center justify-center text-amber-500 shadow-sm">
+                            <FlaskConical size={20} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-foreground">Herramientas de Desarrollo</h2>
+                            <p className="text-muted-foreground">Opciones para pruebas y testing.</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-background/40 hover:bg-background/60 border border-border/50 transition-colors">
+                            <div className="flex items-start gap-3">
+                                <div className={`mt-1 h-2 w-2 rounded-full ${systemSettings["AUTOFILL_ENABLED"] === true ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" : "bg-zinc-500"}`}></div>
+                                <div>
+                                    <div className="font-semibold text-foreground flex items-center gap-2">
+                                        Auto-llenado de Formularios
+                                    </div>
+                                    <div className="text-xs text-muted-foreground max-w-sm mt-1">
+                                        Muestra un botón para llenar automáticamente los formularios con datos de prueba. Útil para testing.
+                                    </div>
+                                </div>
+                            </div>
+                            <Switch
+                                checked={systemSettings["AUTOFILL_ENABLED"] === true}
+                                onCheckedChange={async () => {
+                                    const newValue = !systemSettings["AUTOFILL_ENABLED"];
+                                    setSystemSettings(prev => ({ ...prev, "AUTOFILL_ENABLED": newValue }))
+                                    try {
+                                        await toggleAutofillEnabled()
+                                        toast.success(newValue ? "Auto-llenado activado" : "Auto-llenado desactivado")
+                                    } catch (e) {
+                                        toast.error("Error al actualizar")
+                                        loadSettings()
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
                 </PremiumContent>
 

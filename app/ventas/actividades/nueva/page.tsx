@@ -19,7 +19,8 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig, saveActividad } from "@/app/actions/ventas";
-import { Loader2 } from "lucide-react";
+import { getSystemSettings } from "@/app/admin/settings-actions";
+import { Loader2, FlaskConical } from "lucide-react";
 
 const ACTIVITY_TYPES = [
   { value: "Visita a Condominio", label: "🏢 Visita a Condominio" },
@@ -40,6 +41,7 @@ export default function NuevaActividadPage() {
   const [geoHierarchy, setGeoHierarchy] = useState<Record<string, Record<string, Record<string, string[]>>>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [autofillEnabled, setAutofillEnabled] = useState(false);
 
   // Form state
   const [tipo, setTipo] = useState("");
@@ -61,6 +63,9 @@ export default function NuevaActividadPage() {
       try {
         const config = await getVentasConfig();
         setGeoHierarchy(config.geoHierarchy);
+        // Check autofill setting
+        const sys = await getSystemSettings();
+        setAutofillEnabled(sys["AUTOFILL_ENABLED"] === true);
       } catch (e) {
         console.error(e);
       } finally {
@@ -73,6 +78,31 @@ export default function NuevaActividadPage() {
   const municipios = estado ? Object.keys(geoHierarchy[estado] || {}).sort() : [];
   const parroquias = estado && municipio ? Object.keys(geoHierarchy[estado]?.[municipio] || {}).sort() : [];
   const sectores = estado && municipio && parroquia ? (geoHierarchy[estado]?.[municipio]?.[parroquia] || []).sort() : [];
+
+  function handleAutofill() {
+    const types = ACTIVITY_TYPES.map(t => t.value);
+    setTipo(types[Math.floor(Math.random() * types.length)]);
+    setCaptados(String(Math.floor(Math.random() * 5) + 1));
+    setVolantes(String(Math.floor(Math.random() * 20)));
+    setCondominio("Res. Los Samanes");
+    setNotas("Actividad de prueba autogenerada");
+    // Fill first available location
+    const firstEstado = estados[0];
+    if (firstEstado) {
+      setEstado(firstEstado);
+      const muns = Object.keys(geoHierarchy[firstEstado] || {}).sort();
+      if (muns[0]) {
+        setMunicipio(muns[0]);
+        const pars = Object.keys(geoHierarchy[firstEstado]?.[muns[0]] || {}).sort();
+        if (pars[0]) {
+          setParroquia(pars[0]);
+          const secs = (geoHierarchy[firstEstado]?.[muns[0]]?.[pars[0]] || []).sort();
+          if (secs[0]) setSector(secs[0]);
+        }
+      }
+    }
+    toast({ title: "Formulario llenado con datos de prueba" });
+  }
 
   async function handleSubmit(addAnother: boolean) {
     if (!tipo) {
@@ -276,6 +306,17 @@ export default function NuevaActividadPage() {
           </div>
         )}
       </div>
+
+      {autofillEnabled && (
+        <button
+          type="button"
+          onClick={handleAutofill}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-full bg-amber-500 text-white font-semibold shadow-lg shadow-amber-500/30 hover:bg-amber-600 transition-all hover:scale-105 active:scale-95"
+        >
+          <FlaskConical size={18} />
+          Auto-llenar
+        </button>
+      )}
     </PremiumPageLayout>
   );
 }

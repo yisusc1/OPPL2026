@@ -123,3 +123,31 @@ export async function toggleVoiceEnabled() {
     revalidatePath("/", "layout") // Refresh Layout to unmount component
     return { success: true, value: newValue }
 }
+
+export async function toggleAutofillEnabled() {
+    const supabase = await createClient()
+
+    const { data: current, error: fetchError } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "AUTOFILL_ENABLED")
+        .single()
+
+    if (fetchError && fetchError.code !== 'PGRST116') throw fetchError
+
+    // Default: FALSE (disabled)
+    const newValue = !(current?.value ?? false)
+
+    const { error: updateError } = await supabase
+        .from("system_settings")
+        .upsert({
+            key: "AUTOFILL_ENABLED",
+            value: newValue,
+            description: "Enable/Disable auto-fill test buttons on forms"
+        })
+
+    if (updateError) throw updateError
+
+    revalidatePath("/admin/configuracion")
+    return { success: true, value: newValue }
+}
