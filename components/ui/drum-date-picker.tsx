@@ -72,10 +72,10 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
   const containerRef = useRef<HTMLDivElement>(null)
   const ITEM_HEIGHT = 40
   const isScrolling = useRef(false)
+  const scrollTimeout = useRef<NodeJS.Timeout | null>(null)
   const isDragging = useRef(false)
   const startY = useRef(0)
   const startScrollTop = useRef(0)
-  const ITEM_HEIGHT = 40
 
   useEffect(() => {
     if (containerRef.current && !isScrolling.current && !isDragging.current) {
