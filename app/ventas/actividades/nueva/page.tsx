@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
