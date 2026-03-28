@@ -264,12 +264,12 @@ export default function NuevaSolicitudPage() {
             <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Datos del Cliente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Nombres</Label>
                 <Input placeholder="Ej: Juan" value={nombres} onChange={(e) => setNombres(e.target.value)} className="h-11 rounded-lg capitalize" />
               </div>
-              <div className="flex flex-col justify-end">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Apellidos</Label>
                 <Input placeholder="Ej: Pérez" value={apellidos} onChange={(e) => setApellidos(e.target.value)} className="h-11 rounded-lg capitalize" />
               </div>
@@ -278,7 +278,7 @@ export default function NuevaSolicitudPage() {
               <Label className="mb-2 block text-[13px]">Cédula / RIF</Label>
               <div className="flex gap-2">
                 <Select value={cedulaTipo} onValueChange={setCedulaTipo}>
-                  <SelectTrigger className="w-[85px] h-11 rounded-lg"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-[85px] shrink-0 h-11 rounded-lg"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="V-">V-</SelectItem>
                     <SelectItem value="E-">E-</SelectItem>
@@ -288,8 +288,8 @@ export default function NuevaSolicitudPage() {
                 <Input type="text" inputMode="numeric" pattern="[0-9]*" placeholder="12345678" value={cedulaNum} onChange={(e) => setCedulaNum(e.target.value)} className="flex-1 h-11 rounded-lg" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Género</Label>
                 <Select value={genero} onValueChange={setGenero}>
                   <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Elegir..." /></SelectTrigger>
@@ -299,8 +299,8 @@ export default function NuevaSolicitudPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col justify-end">
-                <Label className="mb-2 truncate text-[13px]">Fecha Nac.</Label>
+              <div className="flex flex-col justify-end min-w-0">
+                <Label className="mb-2 truncate text-[13px]">Fecha de Nacimiento <span className="text-muted-foreground">(Opc.)</span></Label>
                 <Input type="date" value={fechaNac} onChange={(e) => setFechaNac(e.target.value)} className="h-11 rounded-lg block w-full text-foreground" />
               </div>
             </div>
@@ -313,15 +313,15 @@ export default function NuevaSolicitudPage() {
             <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Ubicación</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Estado</Label>
                 <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); setSector(""); }}>
                   <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col justify-end">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Municipio</Label>
                 <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); setSector(""); }} disabled={!estado}>
                   <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
@@ -329,15 +329,15 @@ export default function NuevaSolicitudPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Parroquia</Label>
                 <Select value={parroquia} onValueChange={(v) => { setParroquia(v); setSector(""); }} disabled={!municipio}>
                   <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
                   <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="flex flex-col justify-end">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Sector</Label>
                 <Select value={sector} onValueChange={setSector} disabled={!parroquia}>
                   <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
@@ -412,12 +412,12 @@ export default function NuevaSolicitudPage() {
             <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Contacto y Fuente</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col justify-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Telf. Principal</Label>
                 <Input type="tel" placeholder="0414-1234567" value={telefonoP} onChange={(e) => setTelefonoP(e.target.value)} className="h-11 rounded-lg" />
               </div>
-              <div className="flex flex-col justify-end">
+              <div className="flex flex-col justify-end min-w-0">
                 <Label className="mb-2 truncate text-[13px]">Telf. Opcional</Label>
                 <Input type="tel" placeholder="Opcional" value={telefonoS} onChange={(e) => setTelefonoS(e.target.value)} className="h-11 rounded-lg" />
               </div>
