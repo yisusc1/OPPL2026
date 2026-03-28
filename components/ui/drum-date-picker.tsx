@@ -107,9 +107,10 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
 
   return (
     <div 
-      className={`h-[200px] ${width} overflow-y-auto snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center`}
+      className={`h-[200px] ${width} overflow-y-auto snap-y snap-mandatory scrollbar-hide [&::-webkit-scrollbar]:hidden text-center outline-none focus-visible:ring-1 focus-visible:ring-primary/50 rounded-md`}
       ref={containerRef}
       onScroll={handleScroll}
+      tabIndex={0}
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
     >
       <div className="h-[80px] shrink-0" />
@@ -117,8 +118,8 @@ function ScrollColumn({ items, value, onChange, width }: { items: (string|number
         <div 
           key={`${item}`} 
           onClick={() => handleClick(idx)}
-          className={`h-[40px] snap-center flex items-center justify-center cursor-pointer transition-colors duration-200 text-lg font-medium
-            ${item === value ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'}`}
+          className={`h-[40px] snap-center snap-always flex items-center justify-center cursor-pointer transition-colors duration-200 text-lg font-medium
+            ${item === value ? 'text-foreground font-bold text-xl scale-105' : 'text-muted-foreground hover:text-foreground/80'}`}
         >
           {item}
         </div>
