@@ -219,7 +219,7 @@ export default function ActividadesPage() {
         solicitudesPorActividad[id] = solicitudesVinculadas.filter((s: any) => s.actividad_id === id).length;
         llamadasPorActividad[id] = solicitudesVinculadas.filter((s: any) => s.actividad_id === id && s.fuente === "Llamada").length;
       });
-      await sincronizarConSheets(actividades, solicitudesPorActividad, llamadasPorActividad);
+      await sincronizarConSheets(actividades, solicitudesPorActividad, llamadasPorActividad, solicitudesHuerfanas);
 
       // 3. Mark activities as closed
       const result = await cerrarJornada(currentAsesor, todayStr);

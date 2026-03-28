@@ -159,7 +159,8 @@ function formatHoraSheets(hora: string): string {
 export async function sincronizarConSheets(
   actividades: any[],
   solicitudesPorActividad: Record<number, number>,
-  llamadasPorActividad: Record<number, number>
+  llamadasPorActividad: Record<number, number>,
+  solicitudesHuerfanas?: any[]
 ) {
   try {
     const serviceAccountEmail = process.env.GOOGLE_CLIENT_EMAIL;
@@ -187,7 +188,7 @@ export async function sincronizarConSheets(
     });
     const sheets = google.sheets({ version: "v4", auth });
 
-    // Crear una fila por cada actividad con datos FINALES
+    // Filas de actividades con datos FINALES
     const rows = actividades.map((act: any) => [
       formatFechaSheets(act.fecha || ""),
       formatHoraSheets(act.hora || ""),
@@ -206,6 +207,31 @@ export async function sincronizarConSheets(
       act.notas || "",
       act.id || "",
     ]);
+
+    // Filas de solicitudes huérfanas (sin actividad vinculada)
+    if (solicitudesHuerfanas && solicitudesHuerfanas.length > 0) {
+      solicitudesHuerfanas.forEach((sol: any) => {
+        const fechaSol = sol.fecha_solicitud ? sol.fecha_solicitud.split("T")[0] : "";
+        rows.push([
+          formatFechaSheets(fechaSol),
+          "",  // hora — no aplica
+          sol.promotor || "",
+          sol.estado || "",
+          sol.municipio || "",
+          sol.parroquia || "",
+          sol.sector || "",
+          "Fuera de Actividad",  // tipo
+          1,  // solicitudes = 1
+          0,  // clientes captados
+          0,  // volantes
+          0,  // llamadas info
+          sol.fuente === "Llamada" ? 1 : 0,  // llamadas agenda
+          "",  // condominio
+          `${sol.fuente || ""} - ${sol.nombres || ""} ${sol.apellidos || ""}`,  // notas: fuente + nombre
+          sol.id || "",
+        ]);
+      });
+    }
 
     if (rows.length > 0) {
       await sheets.spreadsheets.values.append({
@@ -366,7 +392,15 @@ export async function autoCerrarActividadesAntiguas(asesor: string) {
         llamadasPorActividad[id] = solicitudes.filter((s: any) => s.actividad_id === id && s.fuente === "Llamada").length;
       });
 
-      await sincronizarConSheets(actividadesAbiertas, solicitudesPorActividad, llamadasPorActividad);
+      // Buscar solicitudes huérfanas de esos días
+      const fechas = [...new Set(actividadesAbiertas.map((a: any) => a.fecha))];
+      let huerfanas: any[] = [];
+      for (const fecha of fechas) {
+        const h = await getSolicitudesDelDiaSinActividad(asesor, fecha as string);
+        huerfanas = huerfanas.concat(h);
+      }
+
+      await sincronizarConSheets(actividadesAbiertas, solicitudesPorActividad, llamadasPorActividad, huerfanas);
     } catch (e) {
       console.error("Error sincronizando actividades auto-cerradas con Sheets:", e);
     }
