@@ -142,22 +142,13 @@ export default function ActividadesPage() {
       const solicitudes = await getSolicitudesPorActividades(actividadesIds);
       const date = new Date().toLocaleDateString("es-ES");
 
-<<<<<<< HEAD
       let totalCap = 0, totalVol = 0, totalLlamInfo = 0;
-=======
-      let totalCap = 0, totalVol = 0, totalLlamInfo = 0, totalLlamAgenda = 0;
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
       actividades.forEach((a) => {
         totalCap += a.clientes_captados || 0;
         totalVol += a.volantes || 0;
         totalLlamInfo += a.llamadas_info || 0;
-<<<<<<< HEAD
       });
       const totalLlamAgenda = solicitudes.filter((s: any) => s.fuente === "Llamada").length;
-=======
-        totalLlamAgenda += a.llamadas_agenda || 0;
-      });
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
 
       // Plain text report — no emojis
       let msg = `REPORTE DIARIO\n`;
@@ -187,19 +178,12 @@ export default function ActividadesPage() {
         msg += `  Solicitudes enviadas: ${act.solicitudes_count || 0}\n`;
         if ((act.volantes || 0) > 0) msg += `  Volantes entregados: ${act.volantes}\n`;
 
-<<<<<<< HEAD
         const actLlamadasAgenda = solicitudes.filter((s: any) => s.actividad_id === act.id && s.fuente === "Llamada").length;
 
         if ((act.llamadas_info || 0) > 0 || actLlamadasAgenda > 0) {
           msg += `  Llamadas recibidas:\n`;
           if (act.llamadas_info > 0) msg += `    Buscaban info:  ${act.llamadas_info}\n`;
           if (actLlamadasAgenda > 0) msg += `    Para agendar:  ${actLlamadasAgenda}\n`;
-=======
-        if ((act.llamadas_info || 0) > 0 || (act.llamadas_agenda || 0) > 0) {
-          msg += `  Llamadas recibidas:\n`;
-          if (act.llamadas_info > 0) msg += `    Buscaban info:  ${act.llamadas_info}\n`;
-          if (act.llamadas_agenda > 0) msg += `    Para agendar:  ${act.llamadas_agenda}\n`;
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
         }
 
         if (act.notas) msg += `  Obs: ${act.notas}\n`;

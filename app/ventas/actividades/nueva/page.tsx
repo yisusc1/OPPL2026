@@ -49,10 +49,6 @@ export default function NuevaActividadPage() {
   const [notas, setNotas] = useState("");
   const [contactoTelefonico, setContactoTelefonico] = useState(false);
   const [llamadasInfo, setLlamadasInfo] = useState("");
-<<<<<<< HEAD
-=======
-  const [llamadasAgenda, setLlamadasAgenda] = useState("");
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
 
   // Geo state
   const [estado, setEstado] = useState("");
@@ -95,11 +91,7 @@ export default function NuevaActividadPage() {
         clientes_captados: parseInt(captados) || 0,
         volantes: parseInt(volantes) || 0,
         llamadas_info: contactoTelefonico ? (parseInt(llamadasInfo) || 0) : 0,
-<<<<<<< HEAD
         llamadas_agenda: 0, // Ahora se cuenta dinámicamente desde las solicitudes
-=======
-        llamadas_agenda: contactoTelefonico ? (parseInt(llamadasAgenda) || 0) : 0,
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
         estado: estado || "N/A",
         municipio: municipio || "N/A",
         parroquia: parroquia || "N/A",
@@ -118,10 +110,6 @@ export default function NuevaActividadPage() {
         setNotas("");
         setContactoTelefonico(false);
         setLlamadasInfo("");
-<<<<<<< HEAD
-=======
-        setLlamadasAgenda("");
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
         setEstado("");
         setMunicipio("");
         setParroquia("");
@@ -188,22 +176,11 @@ export default function NuevaActividadPage() {
               </div>
 
               {contactoTelefonico && (
-<<<<<<< HEAD
                 <div className="grid grid-cols-1 gap-4">
-=======
-                <div className="grid grid-cols-2 gap-4">
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
                   <div>
                     <Label>Llamadas Info</Label>
                     <Input type="number" min={0} placeholder="0" value={llamadasInfo} onChange={(e) => setLlamadasInfo(e.target.value)} className="mt-1.5" />
                   </div>
-<<<<<<< HEAD
-=======
-                  <div>
-                    <Label>Llamadas Agendados</Label>
-                    <Input type="number" min={0} placeholder="0" value={llamadasAgenda} onChange={(e) => setLlamadasAgenda(e.target.value)} className="mt-1.5" />
-                  </div>
->>>>>>> ecfcbd088ae785978d19ec318012c7cd646d6f22
                 </div>
               )}
 
