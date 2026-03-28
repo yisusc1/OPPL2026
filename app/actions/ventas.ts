@@ -125,11 +125,44 @@ export async function saveActividad(activity: {
     .single();
 
   if (error) throw new Error(error.message);
+  return data;
+}
 
-  // Intentar enviar datos a la API de Google Sheets usando Google Cloud Console (Service Account)
+// ── Helpers de formato ─────────────────────────────────────────
+
+function formatFechaSheets(fecha: string): string {
+  if (fecha.includes("-")) {
+    const [yyyy, mm, dd] = fecha.split("-");
+    return `${parseInt(dd)}/${parseInt(mm)}/${yyyy}`;
+  }
+  return fecha;
+}
+
+function formatHoraSheets(hora: string): string {
+  if (hora && hora.includes(":")) {
+    try {
+      const [h, m] = hora.split(":");
+      const hour = parseInt(h);
+      const min = m.split(" ")[0];
+      const period = hour >= 12 ? "p. m." : "a. m.";
+      const h12 = hour % 12 || 12;
+      return `${h12.toString().padStart(2, "0")}:${min} ${period}`;
+    } catch (e) {
+      return hora;
+    }
+  }
+  return hora;
+}
+
+// ── Sincronización con Google Sheets (al cierre de jornada) ───
+
+export async function sincronizarConSheets(
+  actividades: any[],
+  solicitudesPorActividad: Record<number, number>,
+  llamadasPorActividad: Record<number, number>
+) {
   try {
     const serviceAccountEmail = process.env.GOOGLE_CLIENT_EMAIL;
-    // Extraer la llave privada en caso de que se haya pegado el JSON completo por error en Vercel
     let rawKey = process.env.GOOGLE_PRIVATE_KEY || "";
     if (rawKey.trim().startsWith("{")) {
       try {
@@ -139,79 +172,52 @@ export async function saveActividad(activity: {
         console.warn("No se pudo parsear GOOGLE_PRIVATE_KEY como JSON");
       }
     }
-    // Es común que la variable entorno guarde los literales \n, necesitamos reemplazarlos por saltos reales.
     const privateKey = rawKey.replace(/\\n/g, '\n');
-    const sheetId = process.env.GOOGLE_SHEETS_ACTIVIDADES_ID; // el ID de la hoja: 1UZvhPyYhw...
+    const sheetId = process.env.GOOGLE_SHEETS_ACTIVIDADES_ID;
 
-    if (serviceAccountEmail && privateKey && sheetId) {
-      const auth = new google.auth.JWT({
-        email: serviceAccountEmail,
-        key: privateKey,
-        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-      });
+    if (!serviceAccountEmail || !privateKey || !sheetId) {
+      console.warn("Faltan variables de entorno para Google Sheets");
+      return;
+    }
 
-      const sheets = google.sheets({ version: "v4", auth });
+    const auth = new google.auth.JWT({
+      email: serviceAccountEmail,
+      key: privateKey,
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+    const sheets = google.sheets({ version: "v4", auth });
 
-      // Formatear la fecha a D/M/YYYY como lo pide el usuario (ej: 2026-03-27 -> 27/3/2026)
-      let formattedFecha = activity.fecha || "";
-      if (formattedFecha.includes("-")) {
-        const [yyyy, mm, dd] = formattedFecha.split("-");
-        formattedFecha = `${parseInt(dd)}/${parseInt(mm)}/${yyyy}`;
-      }
+    // Crear una fila por cada actividad con datos FINALES
+    const rows = actividades.map((act: any) => [
+      formatFechaSheets(act.fecha || ""),
+      formatHoraSheets(act.hora || ""),
+      act.asesor || "",
+      act.estado || "",
+      act.municipio || "",
+      act.parroquia || "",
+      act.sector || "",
+      act.tipo || "",
+      solicitudesPorActividad[act.id] || 0,
+      act.clientes_captados || 0,
+      act.volantes || 0,
+      act.llamadas_info || 0,
+      llamadasPorActividad[act.id] || 0,
+      act.condominio || "",
+      act.notas || "",
+      act.id || "",
+    ]);
 
-      // Formatear la hora a 12h con p. m. / a. m.
-      let displayHora = activity.hora || "";
-      if (displayHora && displayHora.includes(":")) {
-        // Si viene en formato 24h (HH:mm) o similar, intentamos normalizar
-        try {
-          const [h, m] = displayHora.split(":");
-          const hour = parseInt(h);
-          const min = m.split(" ")[0]; // Por si ya trae algo
-          const period = hour >= 12 ? "p. m." : "a. m.";
-          const h12 = hour % 12 || 12;
-          displayHora = `${h12.toString().padStart(2, "0")}:${min} ${period}`;
-        } catch (e) {
-          // Si falla el parseo manual, lo dejamos como viene
-        }
-      }
-
-      // Preparar como arreglo según el orden exacto de las columnas de izquierda a derecha.
-      const row = [
-        formattedFecha,
-        displayHora,
-        activity.asesor || "",
-        activity.estado || "",
-        activity.municipio || "",
-        activity.parroquia || "",
-        activity.sector || "",
-        activity.tipo || "",
-        0, // Solicitudes
-        activity.clientes_captados || 0,
-        activity.volantes || 0,
-        activity.llamadas_info || 0,
-        activity.llamadas_agenda || 0,
-        activity.condominio || "",
-        activity.notas || "",
-        data.id || "" // ID de actividad
-      ];
-
-      // Las acciones de servidor no pueden bloquear eternamente así que ignoraremos o haremos un .catch si falla.
+    if (rows.length > 0) {
       await sheets.spreadsheets.values.append({
         spreadsheetId: sheetId,
-        range: "REPORTES DE ASESORES!A:P", // La hoja y del rango de columnas A a P (16 col)
+        range: "REPORTES DE ASESORES!A:P",
         valueInputOption: "USER_ENTERED",
-        requestBody: {
-          values: [row]
-        }
+        requestBody: { values: rows },
       });
-    } else {
-      console.warn("Faltan variables de entorno para Google Sheets Console (GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEETS_ACTIVIDADES_ID)");
     }
   } catch (err) {
-    console.error("Error conectando con Google Sheets API:", err);
+    console.error("Error sincronizando con Google Sheets:", err);
   }
-
-  return data;
 }
 
 export async function deleteActividad(id: number) {
@@ -275,6 +281,22 @@ export async function getSolicitudesPorActividades(actividadesIds: number[]) {
   return data || [];
 }
 
+/** Obtener solicitudes del día que NO están vinculadas a ninguna actividad */
+export async function getSolicitudesDelDiaSinActividad(promotor: string, fecha: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("solicitudes")
+    .select("*")
+    .eq("promotor", promotor)
+    .gte("fecha_solicitud", fecha + "T00:00:00")
+    .lte("fecha_solicitud", fecha + "T23:59:59")
+    .is("actividad_id", null)
+    .order("fecha_solicitud", { ascending: true });
+
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
 export async function getActividadesDelDia(asesor: string) {
   const supabase = await createClient();
   const todayStr = getVenezuelaToday();
@@ -307,11 +329,20 @@ export async function cerrarJornada(asesor: string, fecha: string) {
   return { cerradas: data?.length || 0 };
 }
 
-/** Auto-close activities from days before today (Venezuela time) */
+/** Auto-close activities from days before today (Venezuela time) and sync to Sheets */
 export async function autoCerrarActividadesAntiguas(asesor: string) {
   const supabase = await createClient();
   const todayStr = getVenezuelaToday();
 
+  // Obtener las actividades abiertas de días anteriores ANTES de cerrarlas
+  const { data: actividadesAbiertas } = await supabase
+    .from("actividades")
+    .select("*")
+    .eq("asesor", asesor)
+    .eq("cerrada", false)
+    .lt("fecha", todayStr);
+
+  // Cerrar las actividades
   const { data, error } = await supabase
     .from("actividades")
     .update({ cerrada: true })
@@ -321,6 +352,26 @@ export async function autoCerrarActividadesAntiguas(asesor: string) {
     .select("id");
 
   if (error) throw new Error(error.message);
+
+  // Sincronizar con Sheets las actividades que se auto-cerraron
+  if (actividadesAbiertas && actividadesAbiertas.length > 0) {
+    try {
+      const ids = actividadesAbiertas.map((a: any) => a.id);
+      const solicitudes = await getSolicitudesPorActividades(ids);
+
+      const solicitudesPorActividad: Record<number, number> = {};
+      const llamadasPorActividad: Record<number, number> = {};
+      ids.forEach((id: number) => {
+        solicitudesPorActividad[id] = solicitudes.filter((s: any) => s.actividad_id === id).length;
+        llamadasPorActividad[id] = solicitudes.filter((s: any) => s.actividad_id === id && s.fuente === "Llamada").length;
+      });
+
+      await sincronizarConSheets(actividadesAbiertas, solicitudesPorActividad, llamadasPorActividad);
+    } catch (e) {
+      console.error("Error sincronizando actividades auto-cerradas con Sheets:", e);
+    }
+  }
+
   return { cerradas: data?.length || 0 };
 }
 

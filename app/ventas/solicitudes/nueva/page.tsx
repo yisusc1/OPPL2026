@@ -104,9 +104,9 @@ export default function NuevaSolicitudPage() {
     })();
   }, []);
 
-  // Load activities when "Actividad" fuente is selected (standalone mode only)
+  // Load activities for linking (always load when we have a promotor in standalone mode)
   useEffect(() => {
-    if (!isFromActivity && fuente === "Actividad" && promotor) {
+    if (!isFromActivity && promotor) {
       (async () => {
         try {
           const acts = await getActividadesDelDia(promotor);
@@ -116,7 +116,7 @@ export default function NuevaSolicitudPage() {
         }
       })();
     }
-  }, [fuente, promotor, isFromActivity]);
+  }, [promotor, isFromActivity]);
 
   const geoHierarchy = config?.geoHierarchy || {};
   const estados = Object.keys(geoHierarchy).sort();
@@ -166,7 +166,7 @@ export default function NuevaSolicitudPage() {
       // Link to activity
       if (isFromActivity && urlActividadId) {
         formData.actividad_id = parseInt(urlActividadId);
-      } else if (fuente === "Actividad" && actividadId) {
+      } else if (actividadId) {
         formData.actividad_id = parseInt(actividadId);
       }
 
@@ -434,24 +434,27 @@ export default function NuevaSolicitudPage() {
               </Select>
             </div>
 
-            {/* Activity Selector — only in standalone mode when "Actividad" is chosen */}
-            {!isFromActivity && fuente === "Actividad" && (
+            {/* Activity Selector — in standalone mode, optional for all fuentes */}
+            {!isFromActivity && fuente && actividadesDelDia.length > 0 && (
               <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl space-y-2">
-                <Label className="text-blue-700 dark:text-blue-300 text-xs uppercase font-semibold">Vincular a Actividad del Día</Label>
-                {actividadesDelDia.length === 0 ? (
-                  <p className="text-xs text-blue-500">No hay actividades registradas hoy. Crea una primero.</p>
-                ) : (
-                  <Select value={actividadId} onValueChange={setActividadId}>
-                    <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar actividad..." /></SelectTrigger>
-                    <SelectContent>
-                      {actividadesDelDia.map((act: any) => (
-                        <SelectItem key={act.id} value={String(act.id)}>
-                          {act.tipo} ({act.hora}) - {act.parroquia || "Sin ubicación"}{act.sector ? `, ${act.sector}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+                <Label className="text-blue-700 dark:text-blue-300 text-xs uppercase font-semibold">
+                  {fuente === "Actividad" ? "Vincular a Actividad del Día (obligatorio)" : "Vincular a Actividad del Día (opcional)"}
+                </Label>
+                <Select value={actividadId} onValueChange={setActividadId}>
+                  <SelectTrigger className="w-full"><SelectValue placeholder="Seleccionar actividad..." /></SelectTrigger>
+                  <SelectContent>
+                    {actividadesDelDia.map((act: any) => (
+                      <SelectItem key={act.id} value={String(act.id)}>
+                        {act.tipo} ({act.hora}) - {act.parroquia || "Sin ubicación"}{act.sector ? `, ${act.sector}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {!isFromActivity && fuente === "Actividad" && actividadesDelDia.length === 0 && (
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-xl">
+                <p className="text-xs text-blue-500">No hay actividades registradas hoy. Crea una primero.</p>
               </div>
             )}
           </CardContent>

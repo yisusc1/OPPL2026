@@ -28,6 +28,8 @@ import {
   getActividades,
   deleteActividad,
   getSolicitudesPorActividades,
+  getSolicitudesDelDiaSinActividad,
+  sincronizarConSheets,
   cerrarJornada,
   autoCerrarActividadesAntiguas,
   getHistorialActividades,
@@ -139,7 +141,10 @@ export default function ActividadesPage() {
     try {
       // Filtrar estrictamente solo las solicitudes de las actividades abiertas en este momento
       const actividadesIds = actividades.map(a => a.id);
-      const solicitudes = await getSolicitudesPorActividades(actividadesIds);
+      const solicitudesVinculadas = await getSolicitudesPorActividades(actividadesIds);
+      // Solicitudes del día sin actividad vinculada
+      const solicitudesHuerfanas = await getSolicitudesDelDiaSinActividad(currentAsesor, todayStr);
+      const todasSolicitudes = [...solicitudesVinculadas, ...solicitudesHuerfanas];
       const date = new Date().toLocaleDateString("es-ES");
 
       let totalCap = 0, totalVol = 0, totalLlamInfo = 0;
@@ -148,7 +153,7 @@ export default function ActividadesPage() {
         totalVol += a.volantes || 0;
         totalLlamInfo += a.llamadas_info || 0;
       });
-      const totalLlamAgenda = solicitudes.filter((s: any) => s.fuente === "Llamada").length;
+      const totalLlamAgenda = todasSolicitudes.filter((s: any) => s.fuente === "Llamada").length;
 
       // Plain text report — no emojis
       let msg = `REPORTE DIARIO\n`;
@@ -156,7 +161,7 @@ export default function ActividadesPage() {
       msg += `Asesor: ${currentAsesor}\n\n`;
 
       msg += `RESUMEN\n`;
-      msg += `Solicitudes confirmadas: ${solicitudes.length}\n`;
+      msg += `Solicitudes confirmadas: ${todasSolicitudes.length}\n`;
       msg += `Clientes captados:  ${totalCap}\n`;
       if (totalVol > 0) msg += `Volantes entregados:   ${totalVol}\n`;
       if (totalLlamInfo > 0) msg += `Llamadas (info):  ${totalLlamInfo}\n`;
@@ -175,10 +180,11 @@ export default function ActividadesPage() {
 
         if (act.condominio) msg += `  Condominio: ${act.condominio}\n`;
         msg += `  Clientes captados:  ${act.clientes_captados || 0}\n`;
-        msg += `  Solicitudes enviadas: ${act.solicitudes_count || 0}\n`;
+        const actSolCount = solicitudesVinculadas.filter((s: any) => s.actividad_id === act.id).length;
+        msg += `  Solicitudes enviadas: ${actSolCount}\n`;
         if ((act.volantes || 0) > 0) msg += `  Volantes entregados: ${act.volantes}\n`;
 
-        const actLlamadasAgenda = solicitudes.filter((s: any) => s.actividad_id === act.id && s.fuente === "Llamada").length;
+        const actLlamadasAgenda = solicitudesVinculadas.filter((s: any) => s.actividad_id === act.id && s.fuente === "Llamada").length;
 
         if ((act.llamadas_info || 0) > 0 || actLlamadasAgenda > 0) {
           msg += `  Llamadas recibidas:\n`;
@@ -189,20 +195,36 @@ export default function ActividadesPage() {
         if (act.notas) msg += `  Obs: ${act.notas}\n`;
       });
 
-      if (solicitudes.length > 0) {
-        msg += `\nSOLICITUDES (${solicitudes.length})\n`;
-        solicitudes.forEach((sol: any, i: number) => {
+      if (solicitudesVinculadas.length > 0) {
+        msg += `\nSOLICITUDES VINCULADAS (${solicitudesVinculadas.length})\n`;
+        solicitudesVinculadas.forEach((sol: any, i: number) => {
           msg += `  ${i + 1}. ${sol.nombres} ${sol.apellidos} - ${sol.cedula} - ${sol.telefono_principal}\n`;
+        });
+      }
+
+      if (solicitudesHuerfanas.length > 0) {
+        msg += `\nSOLICITUDES EN JORNADA (${solicitudesHuerfanas.length})\n`;
+        solicitudesHuerfanas.forEach((sol: any, i: number) => {
+          msg += `  ${i + 1}. ${sol.nombres} ${sol.apellidos} - ${sol.cedula} - ${sol.fuente}\n`;
         });
       }
 
       // 1. Open WhatsApp
       window.open(`https://wa.me/?text=${encodeURIComponent(msg.trim())}`, "_blank");
 
-      // 2. Mark activities as closed
+      // 2. Sync to Google Sheets with FINAL data
+      const solicitudesPorActividad: Record<number, number> = {};
+      const llamadasPorActividad: Record<number, number> = {};
+      actividadesIds.forEach((id: number) => {
+        solicitudesPorActividad[id] = solicitudesVinculadas.filter((s: any) => s.actividad_id === id).length;
+        llamadasPorActividad[id] = solicitudesVinculadas.filter((s: any) => s.actividad_id === id && s.fuente === "Llamada").length;
+      });
+      await sincronizarConSheets(actividades, solicitudesPorActividad, llamadasPorActividad);
+
+      // 3. Mark activities as closed
       const result = await cerrarJornada(currentAsesor, todayStr);
 
-      // 3. Move closed activities out of "Hoy" view
+      // 4. Move closed activities out of "Hoy" view
       setActividades([]);
       // Reset historial so it reloads when switched to
       setHistorial([]);
