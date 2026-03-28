@@ -1,5 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { INITIAL_MODULES_CONFIG } from "@/lib/constants"
+
 import {
   Sidebar,
   SidebarContent,
@@ -42,15 +46,17 @@ type NavItem = {
   url?: string
   icon: any
   roles: string[]
+  moduleKey?: string
   items?: { title: string; url: string; roles?: string[] }[]
 }
 
 const modules: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["Gerente", "Admin", "Coordinador"] },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["Gerente", "Admin", "Coordinador"], moduleKey: "module_dashboard" },
   { 
     title: "Ventas", 
     icon: Home, 
     roles: ["Gerente", "Asesor", "Coordinador", "Admin"],
+    moduleKey: "module_ventas",
     items: [
       { title: "Dashboard Ventas", url: "/ventas" },
       { title: "Actividades", url: "/ventas/actividades" },
@@ -61,6 +67,7 @@ const modules: NavItem[] = [
     title: "Almacén",
     icon: Package,
     roles: ["Gerente", "Admin", "Logistica", "Almacen"],
+    moduleKey: "module_almacen",
     items: [
       { title: "Dashboard Almacén", url: "/almacen" },
       { title: "Productos", url: "/almacen/productos" },
@@ -71,13 +78,14 @@ const modules: NavItem[] = [
       { title: "Historial", url: "/almacen/historial" }
     ]
   },
-  { title: "Transporte", url: "/transporte", icon: Truck, roles: ["Gerente", "Admin", "Logistica", "Chofer"] },
-  { title: "Instalaciones", url: "/instalaciones", icon: Wrench, roles: ["Gerente", "Admin", "Coordinador", "Técnico"] },
-  { title: "Taller", url: "/taller", icon: PenTool, roles: ["Gerente", "Admin", "Taller"] },
+  { title: "Transporte", url: "/transporte", icon: Truck, roles: ["Gerente", "Admin", "Logistica", "Chofer"], moduleKey: "module_transporte" },
+  { title: "Instalaciones", url: "/instalaciones", icon: Wrench, roles: ["Gerente", "Admin", "Coordinador", "Técnico"], moduleKey: "module_procesador" },
+  { title: "Taller", url: "/taller", icon: PenTool, roles: ["Gerente", "Admin", "Taller"], moduleKey: "module_taller" },
   {
     title: "Control",
     icon: Briefcase,
     roles: ["Gerente", "Admin", "Controlaría"],
+    moduleKey: "module_control",
     items: [
       { title: "Dashboard Control", url: "/control" },
       { title: "Auditoría", url: "/control/audit" },
@@ -104,6 +112,29 @@ const modules: NavItem[] = [
 export function AppSidebar() {
   const { profile } = useUser()
   const pathname = usePathname()
+  const [enabledModules, setEnabledModules] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings: Record<string, boolean> = {}
+        INITIAL_MODULES_CONFIG.forEach(m => settings[m.key] = m.default)
+
+        const supabase = createClient()
+        const { data, error } = await supabase.from('app_settings').select('*')
+
+        if (data && !error) {
+          data.forEach((item: any) => {
+            settings[item.key] = item.value
+          })
+        }
+        setEnabledModules(settings)
+      } catch (e) {
+        console.error("Error loading module settings", e)
+      }
+    }
+    loadSettings()
+  }, [])
 
   if (!profile) return null
 
@@ -113,11 +144,17 @@ export function AppSidebar() {
   // Note: Adjust the job_title strings to match exactly what you use in DB.
   const isSuperUser = userRole.toLowerCase().includes("presidente") || userRole.toLowerCase().includes("admin") || userRole.toLowerCase().includes("gerente")
 
-  const allowedModules = modules.filter(m => 
-    m.roles.includes("ALL") || 
-    isSuperUser ||
-    m.roles.some(r => userRole.toLowerCase().includes(r.toLowerCase()))
-  )
+  const allowedModules = modules.filter(m => {
+    // 1. Check if module is enabled globally (if it has a toggle key)
+    if (m.moduleKey && enabledModules[m.moduleKey] === false) {
+      return false
+    }
+
+    // 2. Check role permissions
+    return m.roles.includes("ALL") || 
+      isSuperUser ||
+      m.roles.some(r => userRole.toLowerCase().includes(r.toLowerCase()))
+  })
 
   return (
     <Sidebar className="border-r border-border/40 shadow-sm">
