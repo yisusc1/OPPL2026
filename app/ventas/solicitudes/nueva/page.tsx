@@ -269,7 +269,7 @@ export default function NuevaSolicitudPage() {
                     {fechaDisp ? format(parseISO(fechaDisp), "PPP", { locale: es }) : <span className="text-muted-foreground">Seleccionar fecha</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-4 z-[9999]" align="start">
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-4 z-[9999]" align="start">
                   <DrumDatePicker value={fechaDisp} onChange={setFechaDisp} />
                 </PopoverContent>
               </Popover>
@@ -327,7 +327,7 @@ export default function NuevaSolicitudPage() {
                       {fechaNac ? format(parseISO(fechaNac), "PPP", { locale: es }) : <span className="text-muted-foreground">Seleccionar fecha</span>}
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-4 z-[9999]" align="start">
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-4 z-[9999]" align="start">
                     <DrumDatePicker value={fechaNac} onChange={setFechaNac} maxYear={new Date().getFullYear()} />
                   </PopoverContent>
                 </Popover>
