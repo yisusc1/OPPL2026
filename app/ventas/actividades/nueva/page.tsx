@@ -83,12 +83,8 @@ export default function NuevaActividadPage() {
     setSaving(true);
     try {
       const now = new Date();
-      // Formatear hora manualmente: 08:05 p. m.
-      const hours24 = now.getHours();
-      const minutes = now.getMinutes();
-      const period = hours24 >= 12 ? "p. m." : "a. m.";
-      const hours12 = hours24 % 12 || 12;
-      const hora = `${hours12.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${period}`;
+      // Guardar hora en formato 24h para Supabase (la conversión a 12h se hace en ventas.ts para Google Sheets)
+      const hora = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
 
       await saveActividad({
         fecha: now.toISOString().split("T")[0],
