@@ -111,8 +111,11 @@ export function AppSidebar() {
 
   // Filter modules based on if the user role is present in the module's roles list
   // Note: Adjust the job_title strings to match exactly what you use in DB.
+  const isSuperUser = userRole.toLowerCase().includes("presidente") || userRole.toLowerCase().includes("admin") || userRole.toLowerCase().includes("gerente")
+
   const allowedModules = modules.filter(m => 
     m.roles.includes("ALL") || 
+    isSuperUser ||
     m.roles.some(r => userRole.toLowerCase().includes(r.toLowerCase()))
   )
 
