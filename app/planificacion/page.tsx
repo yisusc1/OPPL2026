@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { Toaster } from 'sonner';
+
 
 // Dynamic import to avoid SSR issues with drag-and-drop
 const PlanificacionBoard = dynamic(
@@ -21,9 +21,6 @@ const PlanificacionBoard = dynamic(
 
 export default function PlanificacionPage() {
     return (
-        <>
-            <PlanificacionBoard />
-            <Toaster richColors position="bottom-right" />
-        </>
+        <PlanificacionBoard />
     );
 }

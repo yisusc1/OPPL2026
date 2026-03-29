@@ -6,6 +6,31 @@ export interface Equipo {
     zona_asignada?: string | null;
     activo: boolean;
     created_at?: string;
+    miembros?: EquipoMiembro[];
+}
+
+export interface EquipoMiembro {
+    id: number;
+    equipo_id: number;
+    user_id: string;
+    created_at?: string;
+    // Joined from profiles
+    profile?: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        department?: string;
+        job_title?: string;
+    };
+}
+
+/** A technician available to be assigned to a team */
+export interface TecnicoDisponible {
+    id: string;          // profile UUID
+    first_name: string;
+    last_name: string;
+    job_title?: string;
+    department?: string;
 }
 
 /**

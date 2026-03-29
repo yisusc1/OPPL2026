@@ -2,7 +2,29 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion } from "@/lib/types/planificacion";
+import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion, TecnicoDisponible } from "@/lib/types/planificacion";
+
+// ── Técnicos Disponibles ────────────────────────────────────────
+
+/** Obtener todos los técnicos del departamento de Instalación */
+export async function getTecnicos(): Promise<TecnicoDisponible[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, department, job_title")
+        .eq("department", "Instalación")
+        .in("job_title", ["Técnico", "Chofer", "Supervisor", "Coordinador", "Encargado"])
+        .order("first_name");
+
+    if (error) throw new Error(error.message);
+    return (data || []).map(d => ({
+        id: d.id,
+        first_name: d.first_name || "",
+        last_name: d.last_name || "",
+        job_title: d.job_title || undefined,
+        department: d.department || undefined,
+    }));
+}
 
 // ── Equipos CRUD ────────────────────────────────────────────────
 
@@ -10,7 +32,7 @@ export async function getEquipos(): Promise<Equipo[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("equipos")
-        .select("*")
+        .select("*, miembros:equipo_miembros(*, profile:profiles(id, first_name, last_name, department, job_title))")
         .eq("activo", true)
         .order("nombre");
 
@@ -18,7 +40,7 @@ export async function getEquipos(): Promise<Equipo[]> {
     return data || [];
 }
 
-export async function crearEquipo(nombre: string, zona?: string): Promise<Equipo> {
+export async function crearEquipo(nombre: string, zona?: string, miembroIds?: string[]): Promise<Equipo> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("equipos")
@@ -27,11 +49,22 @@ export async function crearEquipo(nombre: string, zona?: string): Promise<Equipo
         .single();
 
     if (error) throw new Error(error.message);
+
+    // Add members
+    if (miembroIds && miembroIds.length > 0 && data) {
+        const miembrosInsert = miembroIds.map(uid => ({ equipo_id: data.id, user_id: uid }));
+        await supabase.from("equipo_miembros").insert(miembrosInsert);
+    }
+
     revalidatePath("/planificacion");
     return data;
 }
 
-export async function actualizarEquipo(id: number, updates: { nombre?: string; zona_asignada?: string | null }): Promise<void> {
+export async function actualizarEquipo(
+    id: number,
+    updates: { nombre?: string; zona_asignada?: string | null },
+    miembroIds?: string[]
+): Promise<void> {
     const supabase = await createClient();
     const { error } = await supabase
         .from("equipos")
@@ -39,6 +72,16 @@ export async function actualizarEquipo(id: number, updates: { nombre?: string; z
         .eq("id", id);
 
     if (error) throw new Error(error.message);
+
+    // Sync members: delete old, insert new
+    if (miembroIds !== undefined) {
+        await supabase.from("equipo_miembros").delete().eq("equipo_id", id);
+        if (miembroIds.length > 0) {
+            const miembrosInsert = miembroIds.map(uid => ({ equipo_id: id, user_id: uid }));
+            await supabase.from("equipo_miembros").insert(miembrosInsert);
+        }
+    }
+
     revalidatePath("/planificacion");
 }
 
@@ -51,6 +94,7 @@ export async function eliminarEquipo(id: number): Promise<void> {
         .update({ equipo_id: null, estatus_planificacion: "pendiente", fecha_instalacion: null })
         .eq("equipo_id", id);
 
+    // Members cascade-delete automatically
     const { error } = await supabase
         .from("equipos")
         .delete()
@@ -145,7 +189,7 @@ export async function actualizarEstatus(
         updates.notas_planificacion = notas;
     }
 
-    // If rescheduled or error, remove from team/date so it goes back to pending pool
+    // If back to pending, remove from team/date
     if (estatus === "pendiente") {
         updates.equipo_id = null;
         updates.fecha_instalacion = null;

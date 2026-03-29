@@ -34,11 +34,41 @@ CREATE INDEX IF NOT EXISTS idx_equipos_activo
 
 -- RLS policies
 ALTER TABLE equipos ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Equipos visible para autenticados" ON equipos;
 CREATE POLICY "Equipos visible para autenticados" ON equipos
     FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Equipos modificable por autenticados" ON equipos;
 CREATE POLICY "Equipos modificable por autenticados" ON equipos
     FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Equipos actualizable por autenticados" ON equipos;
 CREATE POLICY "Equipos actualizable por autenticados" ON equipos
     FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Equipos eliminable por autenticados" ON equipos;
 CREATE POLICY "Equipos eliminable por autenticados" ON equipos
     FOR DELETE TO authenticated USING (true);
+
+-- Tabla de miembros de equipo (relación equipo <-> profiles)
+CREATE TABLE IF NOT EXISTS equipo_miembros (
+    id SERIAL PRIMARY KEY,
+    equipo_id INTEGER NOT NULL REFERENCES equipos(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(equipo_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_equipo_miembros_equipo ON equipo_miembros (equipo_id);
+CREATE INDEX IF NOT EXISTS idx_equipo_miembros_user ON equipo_miembros (user_id);
+
+ALTER TABLE equipo_miembros ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Miembros visible para autenticados" ON equipo_miembros;
+CREATE POLICY "Miembros visible para autenticados" ON equipo_miembros
+    FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Miembros modificable por autenticados" ON equipo_miembros;
+CREATE POLICY "Miembros modificable por autenticados" ON equipo_miembros
+    FOR ALL TO authenticated USING (true) WITH CHECK (true);

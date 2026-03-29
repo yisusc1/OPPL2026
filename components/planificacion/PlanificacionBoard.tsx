@@ -16,7 +16,7 @@ import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion } from '@/lib
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil } from 'lucide-react';
-import { toast } from 'sonner';
+import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
 const PENDING_DROPPABLE = 'pending-pool';
@@ -27,6 +27,7 @@ export function PlanificacionBoard() {
     const [pendientes, setPendientes] = useState<SolicitudPlanificacion[]>([]);
     const [planificadas, setPlanificadas] = useState<SolicitudPlanificacion[]>([]);
     const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
 
     // Modals
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -56,7 +57,7 @@ export function PlanificacionBoard() {
             setPendientes(pend);
             setPlanificadas(plan);
         } catch (e: any) {
-            toast.error(e.message || 'Error al cargar datos');
+            toast({ title: 'Error al cargar datos', description: e.message, variant: 'destructive' });
         } finally {
             setLoading(false);
         }
@@ -96,9 +97,9 @@ export function PlanificacionBoard() {
             }
             try {
                 await agendarSolicitud(solId, teamId, selectedDate);
-                toast.success('Solicitud agendada');
+                toast({ title: 'Solicitud agendada' });
             } catch (e: any) {
-                toast.error(e.message);
+                toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData();
             }
             return;
@@ -111,9 +112,9 @@ export function PlanificacionBoard() {
             setPlanificadas(prev => prev.map(s => s.id === solId ? { ...s, equipo_id: newTeamId } : s));
             try {
                 await moverSolicitud(solId, newTeamId);
-                toast.success('Solicitud movida');
+                toast({ title: 'Solicitud movida' });
             } catch (e: any) {
-                toast.error(e.message);
+                toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData();
             }
             return;
@@ -128,9 +129,9 @@ export function PlanificacionBoard() {
             }
             try {
                 await actualizarEstatus(solId, 'pendiente');
-                toast.success('Solicitud devuelta a pendientes');
+                toast({ title: 'Solicitud devuelta a pendientes' });
             } catch (e: any) {
-                toast.error(e.message);
+                toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData();
             }
         }
@@ -159,7 +160,7 @@ export function PlanificacionBoard() {
         try {
             await actualizarEstatus(sol.id, status);
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
             loadData();
         }
     };
@@ -170,42 +171,42 @@ export function PlanificacionBoard() {
                 await moverSolicitud(id, updates.equipo_id);
             }
             await actualizarEstatus(id, updates.estatus, updates.motivo, updates.notas);
-            toast.success('Solicitud actualizada');
+            toast({ title: 'Solicitud actualizada' });
             loadData();
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
     };
 
     const handleMoveConfirm = async (solId: number, newTeamId: number) => {
         try {
             await moverSolicitud(solId, newTeamId);
-            toast.success('Solicitud movida');
+            toast({ title: 'Solicitud movida' });
             loadData();
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
     };
 
     // ── Team Management ──────────────────────────────────────
-    const handleCreateTeam = async (nombre: string, zona?: string) => {
+    const handleCreateTeam = async (nombre: string, zona?: string, miembroIds?: string[]) => {
         try {
-            await crearEquipo(nombre, zona);
-            toast.success('Equipo creado');
+            await crearEquipo(nombre, zona, miembroIds);
+            toast({ title: 'Equipo creado' });
             loadData();
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
     };
 
-    const handleEditTeam = async (nombre: string, zona?: string) => {
+    const handleEditTeam = async (nombre: string, zona?: string, miembroIds?: string[]) => {
         if (!teamModalData) return;
         try {
-            await actualizarEquipo(teamModalData.id, { nombre, zona_asignada: zona || null });
-            toast.success('Equipo actualizado');
+            await actualizarEquipo(teamModalData.id, { nombre, zona_asignada: zona || null }, miembroIds);
+            toast({ title: 'Equipo actualizado' });
             loadData();
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
     };
 
@@ -213,11 +214,11 @@ export function PlanificacionBoard() {
         if (!confirm('¿Eliminar este equipo? Las solicitudes asignadas volverán a pendiente.')) return;
         try {
             await eliminarEquipo(teamId);
-            toast.success('Equipo eliminado');
+            toast({ title: 'Equipo eliminado' });
             setActiveTeamMenu(null);
             loadData();
         } catch (e: any) {
-            toast.error(e.message);
+            toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
     };
 
@@ -469,7 +470,7 @@ export function PlanificacionBoard() {
                 isOpen={teamModalOpen}
                 onClose={() => { setTeamModalOpen(false); setTeamModalData(undefined); }}
                 onConfirm={teamModalData ? handleEditTeam : handleCreateTeam}
-                initialData={teamModalData ? { id: teamModalData.id, nombre: teamModalData.nombre, zona_asignada: teamModalData.zona_asignada } : undefined}
+                initialData={teamModalData ? { id: teamModalData.id, nombre: teamModalData.nombre, zona_asignada: teamModalData.zona_asignada, miembros: teamModalData.miembros } : undefined}
             />
         </DragDropContext>
     );
