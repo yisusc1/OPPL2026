@@ -30,17 +30,45 @@ export async function getTecnicos(): Promise<TecnicoDisponible[]> {
 
 export async function getEquipos(): Promise<Equipo[]> {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    
+    // 1. Fetch teams first (no joins that might fail due to schema cache staleness)
+    const { data: equiposData, error: eqError } = await supabase
         .from("equipos")
-        .select("*, miembros:equipo_miembros(*, profile:profiles(id, first_name, last_name, department, job_title))")
+        .select("*")
         .eq("activo", true)
         .order("nombre");
 
-    if (error) {
-        console.error("Error getEquipos:", error);
-        throw new Error(error.message);
+    if (eqError) {
+        console.error("Error getEquipos (equipos):", eqError);
+        throw new Error(eqError.message);
     }
-    return data || [];
+
+    if (!equiposData || equiposData.length === 0) return [];
+
+    // 2. Try to fetch members
+    try {
+        const equipoIds = equiposData.map(e => e.id);
+        const { data: miembrosData, error: miembrosError } = await supabase
+            .from("equipo_miembros")
+            .select("*, profile:profiles(id, first_name, last_name, department, job_title)")
+            .in("equipo_id", equipoIds);
+
+        if (miembrosError) {
+            console.error("Error getEquipos (miembros relation):", miembrosError);
+            // Don't throw. Just return teams without members if schema cache is stale
+            return equiposData;
+        }
+
+        // Map members to their teams
+        return equiposData.map(eq => ({
+            ...eq,
+            miembros: miembrosData ? miembrosData.filter((m: any) => m.equipo_id === eq.id) : []
+        }));
+
+    } catch (e) {
+        console.error("Exception fetching members:", e);
+        return equiposData; // Fallback
+    }
 }
 
 export async function crearEquipo(nombre: string, zona?: string, miembroIds?: string[]): Promise<Equipo> {
