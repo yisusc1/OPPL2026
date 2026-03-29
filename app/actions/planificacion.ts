@@ -28,122 +28,104 @@ export async function getTecnicos(): Promise<TecnicoDisponible[]> {
 
 // ── Equipos CRUD ────────────────────────────────────────────────
 
-export async function getEquipos(): Promise<Equipo[]> {
-    const supabase = await createClient();
-    
-    // 1. Fetch teams first (no joins that might fail due to schema cache staleness)
-    const { data: equiposData, error: eqError } = await supabase
-        .from("equipos")
-        .select("*")
-        .or("activo.eq.true,activo.is.null")
-        .order("nombre");
-
-    if (eqError) {
-        console.error("Error getEquipos (equipos):", eqError);
-        throw new Error(eqError.message);
-    }
-
-    if (!equiposData || equiposData.length === 0) return [];
-
-    // 2. Try to fetch members
+export async function getEquipos(): Promise<{ success: boolean; data?: Equipo[]; error?: string }> {
     try {
+        const supabase = await createClient();
+        
+        const { data: equiposData, error: eqError } = await supabase
+            .from("equipos")
+            .select("*")
+            .or("activo.eq.true,activo.is.null")
+            .order("nombre");
+
+        if (eqError) throw eqError;
+        if (!equiposData || equiposData.length === 0) return { success: true, data: [] };
+
         const equipoIds = equiposData.map(e => e.id);
         const { data: miembrosData, error: miembrosError } = await supabase
             .from("equipo_miembros")
             .select("*, profile:profiles(id, first_name, last_name, department, job_title)")
             .in("equipo_id", equipoIds);
 
-        if (miembrosError) {
-            console.error("Error getEquipos (miembros relation):", miembrosError);
-            // Don't throw. Just return teams without members if schema cache is stale
-            return equiposData;
-        }
-
-        // Map members to their teams
-        return equiposData.map(eq => ({
+        const dataToReturn = equiposData.map(eq => ({
             ...eq,
-            miembros: miembrosData ? miembrosData.filter((m: any) => m.equipo_id === eq.id) : []
+            miembros: miembrosError ? [] : (miembrosData ? miembrosData.filter((m: any) => m.equipo_id === eq.id) : [])
         }));
-
-    } catch (e) {
-        console.error("Exception fetching members:", e);
-        return equiposData; // Fallback
+        
+        // Force JSON copy to strip out Supabase proxy prototypes that might cause serialization 500s
+        return { success: true, data: JSON.parse(JSON.stringify(dataToReturn)) };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
     }
 }
 
-export async function crearEquipo(nombre: string, zona?: string, miembroIds?: string[]): Promise<Equipo> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("equipos")
-        .insert([{ nombre, zona_asignada: zona || null, activo: true }])
-        .select()
-        .single();
+export async function crearEquipo(nombre: string, zona?: string, miembroIds?: string[]): Promise<{ success: boolean; data?: Equipo; error?: string }> {
+    try {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+            .from("equipos")
+            .insert([{ nombre, zona_asignada: zona || null, activo: true }])
+            .select()
+            .single();
 
-    if (error) {
-        console.error("Error creating team:", error);
-        throw new Error(error.message);
-    }
+        if (error) throw error;
 
-    // Add members
-    if (miembroIds && miembroIds.length > 0 && data) {
-        const miembrosInsert = miembroIds.map(uid => ({ equipo_id: data.id, user_id: uid }));
-        const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
-        if (errorMiembros) {
-            console.error("Error adding team members:", errorMiembros);
-            throw new Error(errorMiembros.message);
+        if (miembroIds && miembroIds.length > 0 && data) {
+            const miembrosInsert = miembroIds.map(uid => ({ equipo_id: data.id, user_id: uid }));
+            const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
+            if (errorMiembros) throw errorMiembros;
         }
-    }
 
-    revalidatePath("/planificacion");
-    return data;
+        revalidatePath("/planificacion");
+        return { success: true, data: JSON.parse(JSON.stringify(data)) };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
 }
 
 export async function actualizarEquipo(
     id: number,
     updates: { nombre?: string; zona_asignada?: string | null },
     miembroIds?: string[]
-): Promise<void> {
-    const supabase = await createClient();
-    const { error } = await supabase
-        .from("equipos")
-        .update(updates)
-        .eq("id", id);
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = await createClient();
+        const { error } = await supabase.from("equipos").update(updates).eq("id", id);
+        if (error) throw error;
 
-    if (error) throw new Error(error.message);
-
-    // Sync members: delete old, insert new
-    if (miembroIds !== undefined) {
-        await supabase.from("equipo_miembros").delete().eq("equipo_id", id);
-        if (miembroIds.length > 0) {
-            const miembrosInsert = miembroIds.map(uid => ({ equipo_id: id, user_id: uid }));
-            const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
-            if (errorMiembros) {
-                console.error("Error updating team members:", errorMiembros);
-                throw new Error(errorMiembros.message);
+        if (miembroIds !== undefined) {
+            await supabase.from("equipo_miembros").delete().eq("equipo_id", id);
+            if (miembroIds.length > 0) {
+                const miembrosInsert = miembroIds.map(uid => ({ equipo_id: id, user_id: uid }));
+                const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
+                if (errorMiembros) throw errorMiembros;
             }
         }
+        revalidatePath("/planificacion");
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
     }
-
-    revalidatePath("/planificacion");
 }
 
-export async function eliminarEquipo(id: number): Promise<void> {
-    const supabase = await createClient();
+export async function eliminarEquipo(id: number): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = await createClient();
+        
+        const { error: errorMove } = await supabase
+            .from("solicitudes")
+            .update({ equipo_id: null, estatus_planificacion: "pendiente" })
+            .eq("equipo_id", id);
+        if (errorMove) throw errorMove;
 
-    // First unassign any solicitudes from this team
-    await supabase
-        .from("solicitudes")
-        .update({ equipo_id: null, estatus_planificacion: "pendiente", fecha_instalacion: null })
-        .eq("equipo_id", id);
+        const { error: errorDel } = await supabase.from("equipos").delete().eq("id", id);
+        if (errorDel) throw errorDel;
 
-    // Members cascade-delete automatically
-    const { error } = await supabase
-        .from("equipos")
-        .delete()
-        .eq("id", id);
-
-    if (error) throw new Error(error.message);
-    revalidatePath("/planificacion");
+        revalidatePath("/planificacion");
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
 }
 
 // ── Solicitudes - Lectura ───────────────────────────────────────

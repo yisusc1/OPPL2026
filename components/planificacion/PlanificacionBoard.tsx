@@ -48,14 +48,21 @@ export function PlanificacionBoard() {
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            const [eq, pend, plan] = await Promise.all([
+            const [eqRes, pendRes, planRes] = await Promise.all([
                 getEquipos(),
                 getSolicitudesPendientes(),
                 getSolicitudesPlanificadas(selectedDate),
             ]);
-            setEquipos(eq);
-            setPendientes(pend);
-            setPlanificadas(plan);
+            
+            if (!eqRes.success) {
+                toast({ title: 'Error cargando equipos', description: eqRes.error, variant: 'destructive' });
+                setEquipos([]);
+            } else {
+                setEquipos(eqRes.data || []);
+            }
+            
+            setPendientes(pendRes);
+            setPlanificadas(planRes);
         } catch (e: any) {
             toast({ title: 'Error al cargar datos', description: e.message, variant: 'destructive' });
         } finally {
@@ -190,38 +197,36 @@ export function PlanificacionBoard() {
 
     // ── Team Management ──────────────────────────────────────
     const handleCreateTeam = async (nombre: string, zona?: string, miembroIds?: string[]) => {
-        try {
-            await crearEquipo(nombre, zona, miembroIds);
-            toast({ title: 'Equipo creado' });
-            loadData();
-        } catch (e: any) {
-            toast({ title: 'Error', description: e.message, variant: 'destructive' });
-            throw e;
+        const res = await crearEquipo(nombre, zona, miembroIds);
+        if (!res.success) {
+            toast({ title: 'Error de Servidor', description: res.error, variant: 'destructive', duration: 10000 });
+            throw new Error(res.error); // throw so modal knows it failed
         }
+        toast({ title: 'Equipo creado' });
+        loadData();
     };
 
     const handleEditTeam = async (nombre: string, zona?: string, miembroIds?: string[]) => {
         if (!teamModalData) return;
-        try {
-            await actualizarEquipo(teamModalData.id, { nombre, zona_asignada: zona || null }, miembroIds);
-            toast({ title: 'Equipo actualizado' });
-            loadData();
-        } catch (e: any) {
-            toast({ title: 'Error', description: e.message, variant: 'destructive' });
-            throw e;
+        const res = await actualizarEquipo(teamModalData.id, { nombre, zona_asignada: zona || null }, miembroIds);
+        if (!res.success) {
+            toast({ title: 'Error de Servidor', description: res.error, variant: 'destructive', duration: 10000 });
+            throw new Error(res.error);
         }
+        toast({ title: 'Equipo actualizado' });
+        loadData();
     };
 
     const handleDeleteTeam = async (teamId: number) => {
         if (!confirm('¿Eliminar este equipo? Las solicitudes asignadas volverán a pendiente.')) return;
-        try {
-            await eliminarEquipo(teamId);
-            toast({ title: 'Equipo eliminado' });
-            setActiveTeamMenu(null);
-            loadData();
-        } catch (e: any) {
-            toast({ title: 'Error', description: e.message, variant: 'destructive' });
+        const res = await eliminarEquipo(teamId);
+        if (!res.success) {
+            toast({ title: 'Error', description: res.error, variant: 'destructive' });
+            return;
         }
+        toast({ title: 'Equipo eliminado' });
+        setActiveTeamMenu(null);
+        loadData();
     };
 
     // ── Helpers ───────────────────────────────────────────────
