@@ -130,6 +130,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL("/unauthorized", request.url))
     }
 
+    // 6. Planificación
+    if (path.startsWith("/planificacion") && !hasRole("planificacion")) {
+        return NextResponse.redirect(new URL("/unauthorized", request.url))
+    }
+
     return response
 }
 

@@ -158,6 +158,17 @@ export default function Home() {
       show: isModuleEnabled("module_ventas") && canAccess("ventas", "Comercialización")
     },
     {
+      key: "module_planificacion",
+      title: "Planificación",
+      description: "Agendamiento de instalaciones y asignación de equipos.",
+      icon: CalendarRange,
+      href: "/planificacion",
+      cta: "Planificar",
+      bgImage: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?auto=format&fit=crop&q=60&w=500",
+      className: "col-span-1",
+      show: isModuleEnabled("module_planificacion") && canAccess("planificacion", "Planificación")
+    },
+    {
       key: "admin_panel",
       title: "Administración",
       description: "Gestión de usuarios y configuración.",

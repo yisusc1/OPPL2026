@@ -102,4 +102,5 @@ export const INITIAL_MODULES_CONFIG = [
     { key: "module_procesador", label: "Procesador de Datos", path: "/instalaciones", default: true },
     { key: "module_gerencia", label: "Gerencia", path: "/gerencia", default: true },
     { key: "module_ventas", label: "Ventas / Comercialización", path: "/ventas", default: true },
+    { key: "module_planificacion", label: "Planificación", path: "/planificacion", default: true },
 ] as const
