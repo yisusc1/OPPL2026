@@ -35,7 +35,7 @@ export async function getEquipos(): Promise<Equipo[]> {
     const { data: equiposData, error: eqError } = await supabase
         .from("equipos")
         .select("*")
-        .eq("activo", true)
+        .or("activo.eq.true,activo.is.null")
         .order("nombre");
 
     if (eqError) {
@@ -75,7 +75,7 @@ export async function crearEquipo(nombre: string, zona?: string, miembroIds?: st
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("equipos")
-        .insert([{ nombre, zona_asignada: zona || null }])
+        .insert([{ nombre, zona_asignada: zona || null, activo: true }])
         .select()
         .single();
 
