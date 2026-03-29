@@ -9,7 +9,7 @@ import { getTecnicos } from '@/app/actions/planificacion';
 interface NuevoEquipoModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onConfirm: (nombre: string, zona: string | undefined, miembroIds: string[]) => void;
+    onConfirm: (nombre: string, zona: string | undefined, miembroIds: string[]) => Promise<void>;
     initialData?: {
         id: number;
         nombre: string;
@@ -24,6 +24,7 @@ export function NuevoEquipoModal({ isOpen, onClose, onConfirm, initialData }: Nu
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [tecnicos, setTecnicos] = useState<TecnicoDisponible[]>([]);
     const [loadingTecnicos, setLoadingTecnicos] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isEditing = !!initialData;
 
@@ -50,14 +51,22 @@ export function NuevoEquipoModal({ isOpen, onClose, onConfirm, initialData }: Nu
         );
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!nombre.trim()) return;
-        onConfirm(nombre.trim(), zona.trim() || undefined, selectedIds);
-        setNombre('');
-        setZona('');
-        setSelectedIds([]);
-        onClose();
+        
+        setIsSubmitting(true);
+        try {
+            await onConfirm(nombre.trim(), zona.trim() || undefined, selectedIds);
+            setNombre('');
+            setZona('');
+            setSelectedIds([]);
+            onClose();
+        } catch (error) {
+            // Error is handled by the parent components (toast)
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -184,17 +193,20 @@ export function NuevoEquipoModal({ isOpen, onClose, onConfirm, initialData }: Nu
                     <div className="flex gap-3 pt-2">
                         <button
                             type="button"
+                            disabled={isSubmitting}
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-white/10 text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
+                            className="flex-1 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-white/10 text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
-                            disabled={!nombre.trim()}
-                            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            disabled={!nombre.trim() || isSubmitting}
+                            className="flex-1 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center"
                         >
-                            {isEditing ? 'Guardar' : 'Crear Equipo'}
+                            {isSubmitting ? (
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : isEditing ? 'Guardar' : 'Crear Equipo'}
                         </button>
                     </div>
                 </form>

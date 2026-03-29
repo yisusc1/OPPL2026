@@ -196,6 +196,7 @@ export function PlanificacionBoard() {
             loadData();
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
+            throw e;
         }
     };
 
@@ -207,6 +208,7 @@ export function PlanificacionBoard() {
             loadData();
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
+            throw e;
         }
     };
 

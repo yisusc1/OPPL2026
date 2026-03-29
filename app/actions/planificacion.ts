@@ -36,7 +36,10 @@ export async function getEquipos(): Promise<Equipo[]> {
         .eq("activo", true)
         .order("nombre");
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        console.error("Error getEquipos:", error);
+        throw new Error(error.message);
+    }
     return data || [];
 }
 
@@ -48,12 +51,19 @@ export async function crearEquipo(nombre: string, zona?: string, miembroIds?: st
         .select()
         .single();
 
-    if (error) throw new Error(error.message);
+    if (error) {
+        console.error("Error creating team:", error);
+        throw new Error(error.message);
+    }
 
     // Add members
     if (miembroIds && miembroIds.length > 0 && data) {
         const miembrosInsert = miembroIds.map(uid => ({ equipo_id: data.id, user_id: uid }));
-        await supabase.from("equipo_miembros").insert(miembrosInsert);
+        const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
+        if (errorMiembros) {
+            console.error("Error adding team members:", errorMiembros);
+            throw new Error(errorMiembros.message);
+        }
     }
 
     revalidatePath("/planificacion");
@@ -78,7 +88,11 @@ export async function actualizarEquipo(
         await supabase.from("equipo_miembros").delete().eq("equipo_id", id);
         if (miembroIds.length > 0) {
             const miembrosInsert = miembroIds.map(uid => ({ equipo_id: id, user_id: uid }));
-            await supabase.from("equipo_miembros").insert(miembrosInsert);
+            const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
+            if (errorMiembros) {
+                console.error("Error updating team members:", errorMiembros);
+                throw new Error(errorMiembros.message);
+            }
         }
     }
 
