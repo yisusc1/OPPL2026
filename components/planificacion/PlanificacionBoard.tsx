@@ -62,6 +62,7 @@ export function PlanificacionBoard() {
     // Realtime UI state
     const [nuevosIds, setNuevosIds] = useState<string[]>([]);
     const [isRinging, setIsRinging] = useState(false);
+    const [networkMode, setNetworkMode] = useState<'connecting' | 'realtime' | 'polling'>('connecting');
 
     // Board scroll ref
     const boardRef = useRef<HTMLDivElement>(null);
@@ -126,17 +127,22 @@ export function PlanificacionBoard() {
                         });
                     }
                 }
+                // Silently refresh data
                 loadData(false);
             })
             .subscribe((status) => {
-                console.log(`Realtime auth status:`, status);
+                if (status === 'SUBSCRIBED') {
+                    setNetworkMode('realtime');
+                } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                    setNetworkMode('polling');
+                }
             });
 
-        // 2. Fallback Seguro: Polling cada 30 segundos
-        // Si el WebSocket falla por antivirus, bloqueadores o la red, el panel nunca quedará ciego.
+        // 2. Fallback Seguro: Polling cada 8 segundos
+        // Al reducirlo a 8 segs logramos una sensación de "tiempo real" incluso con la red bloqueada
         const pollInterval = setInterval(() => {
             loadData(false);
-        }, 30000);
+        }, 8000);
 
         return () => {
             supabase.removeChannel(sub);
@@ -424,6 +430,17 @@ export function PlanificacionBoard() {
                         <SidebarTrigger className="-ml-2" />
                         <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
                             Planificación
+                            {networkMode === 'realtime' && (
+                                <span className="flex h-2 w-2 relative -mt-3 ml-0.5" title="Conexión Instantánea Activa (Ultra rápida)">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            )}
+                            {networkMode === 'polling' && (
+                                <span className="flex h-2 w-2 relative -mt-3 ml-0.5" title="Conexión Segura (Sincronización cada 8 segs)">
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                                </span>
+                            )}
                             {isRinging ? (
                                 <BellRing className="w-5 h-5 text-blue-500 animate-bounce" />
                             ) : nuevosIds.length > 0 ? (
