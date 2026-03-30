@@ -71,6 +71,9 @@ export async function crearEquipo(nombre: string, zona?: string, miembroIds?: st
         if (error) throw error;
 
         if (miembroIds && miembroIds.length > 0 && data) {
+            // First remove these members from any other teams they might be in
+            await supabase.from("equipo_miembros").delete().in("user_id", miembroIds);
+            
             const miembrosInsert = miembroIds.map(uid => ({ equipo_id: data.id, user_id: uid }));
             const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
             if (errorMiembros) throw errorMiembros;
@@ -94,8 +97,13 @@ export async function actualizarEquipo(
         if (error) throw error;
 
         if (miembroIds !== undefined) {
+            // Remove existing members of this team
             await supabase.from("equipo_miembros").delete().eq("equipo_id", id);
+
             if (miembroIds.length > 0) {
+                // Ensure the new members are removed from any other teams
+                await supabase.from("equipo_miembros").delete().in("user_id", miembroIds);
+
                 const miembrosInsert = miembroIds.map(uid => ({ equipo_id: id, user_id: uid }));
                 const { error: errorMiembros } = await supabase.from("equipo_miembros").insert(miembrosInsert);
                 if (errorMiembros) throw errorMiembros;
