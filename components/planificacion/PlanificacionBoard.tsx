@@ -11,9 +11,9 @@ import {
     getEquipos, crearEquipo, actualizarEquipo, eliminarEquipo,
     getSolicitudesPendientes, getSolicitudesPlanificadas,
     agendarSolicitud, moverSolicitud, actualizarEstatus,
-    transferirTecnico
+    transferirTecnico, getTecnicos
 } from '@/app/actions/planificacion';
-import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion } from '@/lib/types/planificacion';
+import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion, TecnicoDisponible } from '@/lib/types/planificacion';
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X } from 'lucide-react';
@@ -34,6 +34,7 @@ const PENDING_DROPPABLE = 'pending-pool';
 export function PlanificacionBoard() {
     const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
     const [equipos, setEquipos] = useState<Equipo[]>([]);
+    const [allTecnicos, setAllTecnicos] = useState<TecnicoDisponible[]>([]);
     const [pendientes, setPendientes] = useState<SolicitudPlanificacion[]>([]);
     const [planificadas, setPlanificadas] = useState<SolicitudPlanificacion[]>([]);
     const [loading, setLoading] = useState(true);
@@ -65,10 +66,11 @@ export function PlanificacionBoard() {
     const loadData = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);
         try {
-            const [eqRes, pendRes, planRes] = await Promise.all([
+            const [eqRes, pendRes, planRes, tecData] = await Promise.all([
                 getEquipos(),
                 getSolicitudesPendientes(selectedDate),
                 getSolicitudesPlanificadas(selectedDate),
+                getTecnicos()
             ]);
             
             if (!eqRes.success) {
@@ -78,6 +80,7 @@ export function PlanificacionBoard() {
                 setEquipos(eqRes.data || []);
             }
             
+            setAllTecnicos(tecData || []);
             setPendientes(pendRes.success ? (pendRes.data || []) : []);
             setPlanificadas(planRes.success ? (planRes.data || []) : []);
         } catch (e: any) {
@@ -298,6 +301,16 @@ export function PlanificacionBoard() {
         }
     };
 
+    const handleAddTecnico = async (userId: string, targetTeamId: number) => {
+        const res = await transferirTecnico(userId, targetTeamId);
+        if (res.success) {
+            toast({ title: 'Técnico asignado' });
+            await loadData(false);
+        } else {
+            toast({ title: 'Error al asignar', description: res.error, variant: 'destructive' });
+        }
+    };
+
     // ── Grab to Pan Horizontal Scroll ────────────────────────
     useEffect(() => {
         const board = boardRef.current;
@@ -354,6 +367,9 @@ export function PlanificacionBoard() {
     };
 
     // ── Render ────────────────────────────────────────────────
+    const assignedUserIds = new Set(equipos.flatMap(eq => eq.miembros?.map(m => m.user_id) || []));
+    const unassignedTecnicos = allTecnicos.filter(t => !assignedUserIds.has(t.id));
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950 w-max min-w-full relative">
@@ -528,7 +544,7 @@ export function PlanificacionBoard() {
                                                                         </button>
                                                                     </div>
                                                                     
-                                                                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                                                                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1 items-center">
                                                                         {team.miembros && team.miembros.map(m => {
                                                                             if (!m.profile) return null;
                                                                             const fullName = `${m.profile.first_name} ${m.profile.last_name}`.trim();
@@ -563,6 +579,33 @@ export function PlanificacionBoard() {
                                                                                 </div>
                                                                             );
                                                                         })}
+
+                                                                        {/* Píldora para Añadir Técnico */}
+                                                                        <DropdownMenu>
+                                                                            <DropdownMenuTrigger asChild>
+                                                                                <button className="inline-flex items-center justify-center w-4 h-4 rounded bg-zinc-200 dark:bg-white/10 hover:bg-zinc-300 dark:hover:bg-white/20 text-zinc-500 transition-colors focus:outline-none" title="Añadir Técnico Disponible">
+                                                                                    <Plus className="w-2.5 h-2.5" />
+                                                                                </button>
+                                                                            </DropdownMenuTrigger>
+                                                                            <DropdownMenuContent align="start" className="w-[200px] max-h-[300px] overflow-y-auto">
+                                                                                <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-1 border-b border-zinc-100 dark:border-white/5">
+                                                                                    Añadir Disponible...
+                                                                                </div>
+                                                                                {unassignedTecnicos.length === 0 ? (
+                                                                                    <div className="px-2 py-3 text-xs text-zinc-400 text-center italic">No hay disponibles</div>
+                                                                                ) : (
+                                                                                    unassignedTecnicos.map(t => (
+                                                                                        <DropdownMenuItem 
+                                                                                            key={t.id}
+                                                                                            onClick={() => handleAddTecnico(t.id, team.id)}
+                                                                                            className="text-xs cursor-pointer focus:bg-indigo-50 focus:text-indigo-600 dark:focus:bg-indigo-500/10 dark:focus:text-indigo-400"
+                                                                                        >
+                                                                                            {t.first_name} {t.last_name}
+                                                                                        </DropdownMenuItem>
+                                                                                    ))
+                                                                                )}
+                                                                            </DropdownMenuContent>
+                                                                        </DropdownMenu>
                                                                     </div>
 
                                                                     {team.zona_asignada && (
