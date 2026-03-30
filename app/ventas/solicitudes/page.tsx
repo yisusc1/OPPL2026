@@ -142,6 +142,17 @@ export default function SolicitudesPage() {
                     </Badge>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
+                    {sol.estatus_planificacion && (
+                      <Badge variant="outline" className={
+                        sol.estatus_planificacion === 'pendiente' ? 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 border-0' :
+                        sol.estatus_planificacion === 'agendado' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 border-0' :
+                        sol.estatus_planificacion === 'instalada' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 border-0' :
+                        sol.estatus_planificacion === 'reagendada' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0' :
+                        sol.estatus_planificacion === 'cancelada' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-0' : ''
+                      }>
+                        {sol.estatus_planificacion.charAt(0).toUpperCase() + sol.estatus_planificacion.slice(1)}
+                      </Badge>
+                    )}
                     <Badge variant="outline">{sol.plan}</Badge>
                     <Badge variant="outline">{sol.tipo_servicio}</Badge>
                     {sol.power_go && <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-0">{tvLabel}</Badge>}
@@ -212,6 +223,36 @@ export default function SolicitudesPage() {
                         <span className="text-zinc-400">Fuente:</span>
                         <span className="ml-2 text-zinc-700 dark:text-zinc-300">{sol.fuente}</span>
                       </div>
+
+                      {sol.estatus_planificacion && sol.estatus_planificacion !== 'pendiente' && (
+                        <div className="col-span-2 pt-3 mt-1 border-t border-zinc-200 dark:border-zinc-800">
+                          <h5 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider mb-2">Detalles de Instalación</h5>
+                          <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
+                            <div>
+                                <span className="text-zinc-400">Estatus:</span>
+                                <span className="ml-2 font-medium capitalize text-zinc-900 dark:text-zinc-100">{sol.estatus_planificacion}</span>
+                            </div>
+                            {sol.fecha_instalacion && (
+                                <div>
+                                    <span className="text-zinc-400">Asignado para:</span>
+                                    <span className="ml-2 font-medium text-zinc-900 dark:text-zinc-100">{new Date(sol.fecha_instalacion + 'T12:00:00').toLocaleDateString("es-ES")}</span>
+                                </div>
+                            )}
+                            {sol.motivo_reprogramacion && (
+                                <div className="col-span-2">
+                                    <span className="text-zinc-400">Motivo:</span>
+                                    <span className="ml-2 font-medium text-orange-600 dark:text-orange-400">{sol.motivo_reprogramacion}</span>
+                                </div>
+                            )}
+                            {sol.notas_reprogramacion && (
+                                <div className="col-span-2">
+                                    <span className="text-zinc-400">Notas:</span>
+                                    <span className="ml-2 text-zinc-700 dark:text-zinc-300">{sol.notas_reprogramacion}</span>
+                                </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* WA Re-send button */}
