@@ -116,6 +116,31 @@ export async function actualizarEquipo(
     }
 }
 
+export async function transferirTecnico(
+    userId: string,
+    nuevoEquipoId: number
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = await createClient();
+        
+        // Remove from existing team
+        await supabase.from("equipo_miembros").delete().eq("user_id", userId);
+
+        // Add to new team
+        const { error: insertErr } = await supabase.from("equipo_miembros").insert([{
+            equipo_id: nuevoEquipoId,
+            user_id: userId
+        }]);
+
+        if (insertErr) throw insertErr;
+
+        revalidatePath("/planificacion");
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
+}
+
 export async function eliminarEquipo(id: number): Promise<{ success: boolean; error?: string }> {
     try {
         const supabase = await createClient();

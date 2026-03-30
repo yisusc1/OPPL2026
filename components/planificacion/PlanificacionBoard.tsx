@@ -10,13 +10,20 @@ import { NuevoEquipoModal } from './NuevoEquipoModal';
 import {
     getEquipos, crearEquipo, actualizarEquipo, eliminarEquipo,
     getSolicitudesPendientes, getSolicitudesPlanificadas,
-    agendarSolicitud, moverSolicitud, actualizarEstatus
+    agendarSolicitud, moverSolicitud, actualizarEstatus,
+    transferirTecnico
 } from '@/app/actions/planificacion';
 import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion } from '@/lib/types/planificacion';
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from '@/lib/utils';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ModeToggle } from '@/components/mode-toggle';
@@ -41,7 +48,14 @@ export function PlanificacionBoard() {
     const [teamModalData, setTeamModalData] = useState<Equipo | undefined>();
 
     // Team management menu
-    const [activeTeamMenu, setActiveTeamMenu] = useState<number | null>(null);
+    const [editingTeamId, setEditingTeamId] = useState<number | null>(null);
+    const [editTeamName, setEditTeamName] = useState("");
+    const [editTeamZone, setEditTeamZone] = useState("");
+    const [savingTeamId, setSavingTeamId] = useState<number | null>(null);
+
+    // Transfer Technician Confirmation
+    const [transferData, setTransferData] = useState<{ userId: string, userName: string, newTeam: Equipo } | null>(null);
+    const [isTransferring, setIsTransferring] = useState(false);
 
     // Board scroll ref
     const boardRef = useRef<HTMLDivElement>(null);
@@ -219,16 +233,51 @@ export function PlanificacionBoard() {
         loadData();
     };
 
-    const handleDeleteTeam = async (teamId: number) => {
-        if (!confirm('¿Eliminar este equipo? Las solicitudes asignadas volverán a pendiente.')) return;
-        const res = await eliminarEquipo(teamId);
-        if (!res.success) {
-            toast({ title: 'Error', description: res.error, variant: 'destructive' });
-            return;
+    const handleDeleteTeam = async (id: number) => {
+        if (!window.confirm('¿Seguro que quieres eliminar este equipo? Las solicitudes volverán a pendientes y se mantendrá el historial de la gestión.')) return;
+        
+        try {
+            const res = await eliminarEquipo(id);
+            if (!res.success) throw new Error(res.error);
+            toast({ title: 'Equipo eliminado', description: 'Las solicitudes regresaron a pendientes' });
+            await loadData();
+        } catch (e: any) {
+            toast({ title: 'Error eliminando equipo', description: e.message, variant: 'destructive' });
         }
-        toast({ title: 'Equipo eliminado' });
-        setActiveTeamMenu(null);
-        loadData();
+    };
+
+    const startEditingTeam = (team: Equipo) => {
+        setEditingTeamId(team.id);
+        setEditTeamName(team.nombre);
+        setEditTeamZone(team.zona_asignada || "");
+    };
+
+    const saveTeamInline = async (teamId: number) => {
+        if (!editTeamName.trim()) return;
+        setSavingTeamId(teamId);
+        const res = await actualizarEquipo(teamId, { nombre: editTeamName, zona_asignada: editTeamZone });
+        setSavingTeamId(null);
+        if (res.success) {
+            toast({ title: 'Equipo actualizado' });
+            setEditingTeamId(null);
+            await loadData();
+        } else {
+            toast({ title: 'Error al guardar', description: res.error, variant: 'destructive' });
+        }
+    };
+
+    const confirmTransfer = async () => {
+        if (!transferData) return;
+        setIsTransferring(true);
+        const res = await transferirTecnico(transferData.userId, transferData.newTeam.id);
+        setIsTransferring(false);
+        if (res.success) {
+            toast({ title: 'Técnico transferido exitosamente' });
+            setTransferData(null);
+            await loadData();
+        } else {
+            toast({ title: 'Error en la transferencia', description: res.error, variant: 'destructive' });
+        }
     };
 
     // ── Grab to Pan Horizontal Scroll ────────────────────────
@@ -325,7 +374,7 @@ export function PlanificacionBoard() {
                         {/* New Team */}
                         <button
                             onClick={() => { setTeamModalData(undefined); setTeamModalOpen(true); }}
-                            className="flex items-center gap-2 px-3 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+                            className="flex items-center gap-2 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-lg shadow-indigo-500/20"
                         >
                             <Plus className="w-4 h-4" />
                             <span className="hidden sm:inline">Nuevo Equipo</span>
@@ -418,56 +467,99 @@ export function PlanificacionBoard() {
                                         return (
                                             <div key={team.id} className="w-[320px] flex-none flex flex-col border-r border-zinc-100 dark:border-white/5 last:border-r-0 h-full">
                                                 {/* Team Header */}
-                                                <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 bg-white/30 dark:bg-white/[0.02] flex items-center justify-between relative">
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black text-xs font-black shrink-0 mt-0.5 self-start">
-                                                            {team.nombre.charAt(0).toUpperCase()}
+                                                <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 bg-white/30 dark:bg-white/[0.02] relative group">
+                                                    
+                                                    {editingTeamId === team.id ? (
+                                                        <div className="flex flex-col gap-2 relative">
+                                                            <input 
+                                                                autoFocus
+                                                                value={editTeamName}
+                                                                onChange={e => setEditTeamName(e.target.value)}
+                                                                className="w-full text-sm font-bold bg-white dark:bg-zinc-900 border border-indigo-200 dark:border-indigo-500/30 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                                                placeholder="Nombre de Equipo"
+                                                            />
+                                                            <input 
+                                                                value={editTeamZone}
+                                                                onChange={e => setEditTeamZone(e.target.value)}
+                                                                className="w-full text-[10px] font-bold uppercase bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/50"
+                                                                placeholder="Zona (Opcional)"
+                                                            />
+                                                            <div className="flex justify-end gap-1 mt-1">
+                                                                <button onClick={() => handleDeleteTeam(team.id)} className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/40 text-red-500 transition-colors mr-auto" title="Eliminar Equipo">
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button onClick={() => setEditingTeamId(null)} className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-500 transition-colors">
+                                                                    <X className="w-3.5 h-3.5" />
+                                                                </button>
+                                                                <button onClick={() => saveTeamInline(team.id)} disabled={savingTeamId === team.id || !editTeamName.trim()} className="p-1.5 rounded-md bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-500/20 dark:hover:bg-indigo-500/30 text-indigo-600 dark:text-indigo-400 transition-colors disabled:opacity-50">
+                                                                    {savingTeamId === team.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="min-w-0 flex-1">
-                                                            <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{team.nombre}</h3>
-                                                            {team.miembros && team.miembros.length > 0 && (
-                                                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate max-w-full">
-                                                                    {team.miembros.map(m => m.profile ? `${m.profile.first_name} ${m.profile.last_name}`.trim() : '').filter(Boolean).join(', ')}
-                                                                </p>
-                                                            )}
-                                                            {team.zona_asignada && (
-                                                                <p className="text-[9px] uppercase tracking-wider text-blue-500 font-bold truncate mt-1">
-                                                                    {team.zona_asignada}
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1">
-                                                        <span className="text-[10px] font-mono font-bold bg-zinc-100 dark:bg-white/10 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full mr-1">
-                                                            {teamSolicitudes.length}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => setActiveTeamMenu(activeTeamMenu === team.id ? null : team.id)}
-                                                            className="p-1 rounded-md hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-400 transition-colors"
-                                                        >
-                                                            <Settings className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
+                                                    ) : (
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                                <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black text-xs font-black shrink-0 self-start">
+                                                                    {team.nombre.charAt(0).toUpperCase()}
+                                                                </div>
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{team.nombre}</h3>
+                                                                        <button onClick={() => startEditingTeam(team)} className="opacity-0 group-hover:opacity-100 p-0.5 text-zinc-400 hover:text-indigo-500 transition-all rounded" title="Editar Equipo">
+                                                                            <Pencil className="w-3 h-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                    
+                                                                    <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                                                                        {team.miembros && team.miembros.map(m => {
+                                                                            if (!m.profile) return null;
+                                                                            const fullName = `${m.profile.first_name} ${m.profile.last_name}`.trim();
+                                                                            return (
+                                                                                <div key={m.id} className="inline-flex items-center bg-zinc-100 dark:bg-white/5 bg-opacity-50 rounded px-1 group/tec">
+                                                                                    <span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium">
+                                                                                        {fullName}
+                                                                                    </span>
+                                                                                    {equipos.length > 1 && (
+                                                                                        <DropdownMenu>
+                                                                                            <DropdownMenuTrigger asChild>
+                                                                                                <button className="ml-1 text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 opacity-0 group-hover/tec:opacity-100 transition-opacity focus:outline-none" title="Transferir Técnico">
+                                                                                                    <ArrowRightLeft className="w-2.5 h-2.5" />
+                                                                                                </button>
+                                                                                            </DropdownMenuTrigger>
+                                                                                            <DropdownMenuContent align="start" className="w-[180px]">
+                                                                                                <div className="px-2 py-1.5 text-xs font-bold uppercase text-zinc-500 mb-1 border-b border-zinc-100 dark:border-white/5">
+                                                                                                    Mover a...
+                                                                                                </div>
+                                                                                                {equipos.filter(eq => eq.id !== team.id).map(destinationTeam => (
+                                                                                                    <DropdownMenuItem 
+                                                                                                        key={destinationTeam.id}
+                                                                                                        onClick={() => setTransferData({ userId: m.user_id, userName: fullName, newTeam: destinationTeam })}
+                                                                                                        className="text-xs cursor-pointer focus:bg-blue-50 focus:text-blue-600 dark:focus:bg-blue-500/10 dark:focus:text-blue-400"
+                                                                                                    >
+                                                                                                        {destinationTeam.nombre}
+                                                                                                    </DropdownMenuItem>
+                                                                                                ))}
+                                                                                            </DropdownMenuContent>
+                                                                                        </DropdownMenu>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
 
-                                                    {/* Team Dropdown */}
-                                                    {activeTeamMenu === team.id && (
-                                                        <div className="absolute top-full right-2 mt-1 z-40 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-white/10 rounded-xl shadow-xl overflow-hidden min-w-[140px]">
-                                                            <button
-                                                                onClick={() => {
-                                                                    setActiveTeamMenu(null);
-                                                                    setTeamModalData(team);
-                                                                    setTeamModalOpen(true);
-                                                                }}
-                                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
-                                                            >
-                                                                <Pencil className="w-3.5 h-3.5" /> Editar
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDeleteTeam(team.id)}
-                                                                className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" /> Eliminar
-                                                            </button>
+                                                                    {team.zona_asignada && (
+                                                                        <p className="text-[9px] uppercase tracking-wider text-blue-500 font-bold truncate mt-1.5 flex items-center group/zone">
+                                                                            {team.zona_asignada}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="flex items-center gap-1 shrink-0 ml-2">
+                                                                <span className="text-[10px] font-mono font-bold bg-zinc-100 dark:bg-white/10 text-zinc-600 dark:text-zinc-400 px-2 py-0.5 rounded-full" title="Solicitudes Asignadas">
+                                                                    {teamSolicitudes.length}
+                                                                </span>
+                                                            </div>
                                                         </div>
                                                     )}
                                                 </div>
@@ -522,14 +614,55 @@ export function PlanificacionBoard() {
             </div>
 
             {/* Modals */}
-            <EditarSolicitudModal
-                isOpen={editModalOpen}
-                onClose={() => setEditModalOpen(false)}
-                onSave={handleEditSave}
-                solicitud={editModalData}
-                equipos={equipos}
-                initialMode={editModalMode}
-            />
+            {transferData && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 dark:bg-black/60 backdrop-blur-[2px]">
+                    <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-8 shadow-2xl max-w-md w-full border border-zinc-200 dark:border-white/10 text-center animate-in fade-in zoom-in-95 duration-200">
+                        <div className="w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 mx-auto flex items-center justify-center mb-6 ring-8 ring-blue-50 dark:ring-blue-500/10">
+                            <ArrowRightLeft className="w-10 h-10" />
+                        </div>
+                        <h3 className="text-2xl font-black text-zinc-900 dark:text-white mb-3 tracking-tight">
+                            Transferir Operador
+                        </h3>
+                        <p className="text-base text-zinc-600 dark:text-zinc-400 mb-8 max-w-[280px] mx-auto leading-relaxed">
+                            ¿Estás seguro que deseas mover a <span className="font-bold text-zinc-900 dark:text-white">{transferData.userName}</span> al <span className="font-bold text-blue-600 dark:text-blue-400">"{transferData.newTeam.nombre}"</span>?
+                        </p>
+                        
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setTransferData(null)}
+                                disabled={isTransferring}
+                                className="flex-1 px-5 py-3.5 rounded-2xl border border-zinc-200 dark:border-white/10 text-sm font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 transition-all outline-none focus:ring-2 focus:ring-zinc-500/50"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={confirmTransfer}
+                                disabled={isTransferring}
+                                className="flex-1 px-5 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-500/25 transition-all outline-none focus:ring-2 focus:ring-blue-500/50 disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {isTransferring ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <>
+                                        <ArrowRightLeft className="w-4 h-4" /> Transferir
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {editModalOpen && editModalData && (
+                <EditarSolicitudModal
+                    isOpen={editModalOpen}
+                    onClose={() => setEditModalOpen(false)}
+                    onSave={handleEditSave}
+                    solicitud={editModalData}
+                    equipos={equipos}
+                    initialMode={editModalMode}
+                />
+            )}
             <MoverSolicitudModal
                 isOpen={moveModalOpen}
                 onClose={() => setMoveModalOpen(false)}
