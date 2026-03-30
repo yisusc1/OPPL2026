@@ -229,6 +229,55 @@ export function PlanificacionBoard() {
         loadData();
     };
 
+    // ── Grab to Pan Horizontal Scroll ────────────────────────
+    useEffect(() => {
+        const board = boardRef.current;
+        if (!board) return;
+
+        let isDown = false;
+        let startX = 0;
+        let scrollLeft = 0;
+
+        const handleMouseDown = (e: MouseEvent) => {
+            // Don't intercept if clicking inside a draggable card (so we don't block actual dragging)
+            if ((e.target as HTMLElement).closest('[data-rbd-draggable-id]')) return;
+            isDown = true;
+            board.style.cursor = 'grabbing';
+            startX = e.pageX - board.offsetLeft;
+            scrollLeft = board.scrollLeft;
+        };
+
+        const handleMouseLeave = () => {
+            isDown = false;
+            board.style.cursor = '';
+        };
+
+        const handleMouseUp = () => {
+            isDown = false;
+            board.style.cursor = '';
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - board.offsetLeft;
+            const walk = (x - startX) * 2; // Scroll fast
+            board.scrollLeft = scrollLeft - walk;
+        };
+
+        board.addEventListener('mousedown', handleMouseDown);
+        board.addEventListener('mouseleave', handleMouseLeave);
+        board.addEventListener('mouseup', handleMouseUp);
+        board.addEventListener('mousemove', handleMouseMove);
+
+        return () => {
+            board.removeEventListener('mousedown', handleMouseDown);
+            board.removeEventListener('mouseleave', handleMouseLeave);
+            board.removeEventListener('mouseup', handleMouseUp);
+            board.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, []);
+
     // ── Helpers ───────────────────────────────────────────────
     const getSolicitudesForTeam = (teamId: number) => {
         return planificadas.filter(s => s.equipo_id === teamId);
@@ -341,9 +390,10 @@ export function PlanificacionBoard() {
                         {/* Team Columns Board */}
                         <div
                             ref={boardRef}
-                            className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden custom-scrollbar pb-2"
+                            className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden"
+                            style={{ scrollBehavior: 'smooth' }}
                         >
-                            <div className="flex h-full w-max min-w-full">
+                            <div className="flex h-full w-max">
                                 {equipos.length === 0 ? (
                                     <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-4">
                                         <Users className="w-16 h-16 opacity-20" />
@@ -359,7 +409,7 @@ export function PlanificacionBoard() {
                                     equipos.map((team) => {
                                         const teamSolicitudes = getSolicitudesForTeam(team.id);
                                         return (
-                                            <div key={team.id} className="w-[320px] shrink-0 flex flex-col border-r border-zinc-100 dark:border-white/5 last:border-r-0">
+                                            <div key={team.id} className="w-[320px] flex-none flex flex-col border-r border-zinc-100 dark:border-white/5 last:border-r-0 h-full">
                                                 {/* Team Header */}
                                                 <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 bg-white/30 dark:bg-white/[0.02] flex items-center justify-between relative">
                                                     <div className="flex items-center gap-3 min-w-0">
