@@ -18,6 +18,8 @@ import { es } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { ModeToggle } from '@/components/mode-toggle';
 
 const PENDING_DROPPABLE = 'pending-pool';
 
@@ -291,12 +293,14 @@ export function PlanificacionBoard() {
 
                 {/* Header Bar */}
                 <header className="sticky top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-white/5 w-screen max-w-full">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                        <SidebarTrigger className="-ml-2" />
                         <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white tracking-tight">Planificación</h1>
                     </div>
 
-                    {/* Date Navigator */}
-                    <div className="flex items-center gap-1 bg-zinc-100 dark:bg-white/5 rounded-full px-1 py-1">
+                    <div className="flex items-center gap-3">
+                        {/* Date Navigator */}
+                        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-white/5 rounded-full px-1 py-1">
                         <button onClick={() => goToDay(-1)} className="p-1.5 rounded-full hover:bg-white dark:hover:bg-white/10 transition-colors">
                             <ChevronLeft className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                         </button>
@@ -314,16 +318,19 @@ export function PlanificacionBoard() {
                         <button onClick={() => goToDay(1)} className="p-1.5 rounded-full hover:bg-white dark:hover:bg-white/10 transition-colors">
                             <ChevronRight className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
                         </button>
-                    </div>
+                        </div>
+                        
+                        <ModeToggle />
 
-                    {/* New Team */}
-                    <button
-                        onClick={() => { setTeamModalData(undefined); setTeamModalOpen(true); }}
-                        className="flex items-center gap-2 px-3 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Nuevo Equipo</span>
-                    </button>
+                        {/* New Team */}
+                        <button
+                            onClick={() => { setTeamModalData(undefined); setTeamModalOpen(true); }}
+                            className="flex items-center gap-2 px-3 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black text-xs font-bold rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span className="hidden sm:inline">Nuevo Equipo</span>
+                        </button>
+                    </div>
                 </header>
 
                 {loading ? (
