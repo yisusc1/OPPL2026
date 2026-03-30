@@ -208,7 +208,8 @@ export async function actualizarEstatus(
     id: string,
     estatus: EstatusPlanificacion,
     motivo?: string,
-    notas?: string
+    notas?: string,
+    nuevaFechaDisponibilidad?: string
 ): Promise<void> {
     const supabase = await createClient();
     const updates: Record<string, any> = {
@@ -236,6 +237,31 @@ export async function actualizarEstatus(
         .eq("id", id);
 
     if (error) throw new Error(error.message);
+
+    // Flujo de Clonación para Reagendamiento
+    if (estatus === "reprogramado" && nuevaFechaDisponibilidad) {
+        const { data: originalReq, error: fetchErr } = await supabase
+            .from("solicitudes")
+            .select("*")
+            .eq("id", id)
+            .single();
+            
+        if (!fetchErr && originalReq) {
+            const clone = { ...originalReq };
+            delete clone.id; // Dejar que DB genere nuevo UUID
+            delete clone.created_at; // (si existiera en DB localmente)
+            clone.estatus_planificacion = "pendiente";
+            clone.equipo_id = null;
+            clone.fecha_instalacion = null;
+            clone.motivo_reprogramacion = null;
+            clone.notas_planificacion = null;
+            clone.fecha_disponibilidad = nuevaFechaDisponibilidad;
+
+            const { error: insertErr } = await supabase.from("solicitudes").insert([clone]);
+            if (insertErr) throw new Error(insertErr.message);
+        }
+    }
+
     revalidatePath("/planificacion");
 }
 

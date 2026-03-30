@@ -172,12 +172,12 @@ export function PlanificacionBoard() {
         }
     };
 
-    const handleEditSave = async (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => {
+    const handleEditSave = async (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string; nueva_fecha_disponibilidad?: string }) => {
         try {
-            if (updates.equipo_id && updates.equipo_id !== editModalData?.equipo_id) {
+            if (updates.equipo_id && updates.equipo_id !== editModalData?.equipo_id && updates.estatus !== 'reprogramado') {
                 await moverSolicitud(id, updates.equipo_id);
             }
-            await actualizarEstatus(id, updates.estatus, updates.motivo, updates.notas);
+            await actualizarEstatus(id, updates.estatus, updates.motivo, updates.notas, updates.nueva_fecha_disponibilidad);
             toast({ title: 'Solicitud actualizada' });
             loadData();
         } catch (e: any) {
@@ -341,9 +341,9 @@ export function PlanificacionBoard() {
                         {/* Team Columns Board */}
                         <div
                             ref={boardRef}
-                            className="flex-1 overflow-x-auto overflow-y-hidden"
+                            className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar pb-2"
                         >
-                            <div className="flex h-full min-w-max">
+                            <div className="flex h-full w-max min-w-full">
                                 {equipos.length === 0 ? (
                                     <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-4">
                                         <Users className="w-16 h-16 opacity-20" />
@@ -363,13 +363,20 @@ export function PlanificacionBoard() {
                                                 {/* Team Header */}
                                                 <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 bg-white/30 dark:bg-white/[0.02] flex items-center justify-between relative">
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black text-xs font-black shrink-0">
+                                                        <div className="w-7 h-7 rounded-lg bg-zinc-900 dark:bg-white flex items-center justify-center text-white dark:text-black text-xs font-black shrink-0 mt-0.5 self-start">
                                                             {team.nombre.charAt(0).toUpperCase()}
                                                         </div>
-                                                        <div className="min-w-0">
+                                                        <div className="min-w-0 flex-1">
                                                             <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{team.nombre}</h3>
+                                                            {team.miembros && team.miembros.length > 0 && (
+                                                                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate max-w-full">
+                                                                    {team.miembros.join(', ')}
+                                                                </p>
+                                                            )}
                                                             {team.zona_asignada && (
-                                                                <p className="text-[9px] uppercase tracking-wider text-zinc-400 dark:text-zinc-500 font-semibold truncate">{team.zona_asignada}</p>
+                                                                <p className="text-[9px] uppercase tracking-wider text-blue-500 font-bold truncate mt-1">
+                                                                    {team.zona_asignada}
+                                                                </p>
                                                             )}
                                                         </div>
                                                     </div>

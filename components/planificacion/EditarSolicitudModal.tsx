@@ -8,7 +8,7 @@ import type { SolicitudPlanificacion, EstatusPlanificacion, Equipo } from '@/lib
 interface EditarSolicitudModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => void;
+    onSave: (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string; nueva_fecha_disponibilidad?: string }) => void;
     solicitud?: SolicitudPlanificacion;
     equipos: Equipo[];
     initialMode?: 'edit' | 'move' | 'status';
@@ -21,6 +21,7 @@ export function EditarSolicitudModal({
     const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
     const [motivo, setMotivo] = useState('');
     const [notas, setNotas] = useState('');
+    const [nuevaFecha, setNuevaFecha] = useState('');
     const [currentMode, setCurrentMode] = useState(initialMode);
 
     useEffect(() => {
@@ -46,6 +47,7 @@ export function EditarSolicitudModal({
             equipo_id: selectedTeamId || undefined,
             motivo: motivo || undefined,
             notas: notas || undefined,
+            nueva_fecha_disponibilidad: (status === 'reprogramado' && nuevaFecha) ? nuevaFecha : undefined,
         });
         onClose();
     };
@@ -184,17 +186,29 @@ export function EditarSolicitudModal({
                                 )}
 
                                 {status === 'reprogramado' && (
-                                    <div className="space-y-1.5 pt-2">
-                                        <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Motivo del Reagendamiento</label>
-                                        <textarea
-                                            className="w-full px-4 py-3 bg-orange-50 dark:bg-zinc-800 border border-orange-200 dark:border-orange-900/40 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-zinc-900 dark:text-white resize-none"
-                                            rows={3}
-                                            placeholder="Ej: Cliente no se encontraba en el domicilio..."
-                                            value={motivo}
-                                            onChange={e => setMotivo(e.target.value)}
-                                            autoFocus
-                                            required
-                                        />
+                                    <div className="space-y-4 pt-2">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Motivo del Reagendamiento</label>
+                                            <textarea
+                                                className="w-full px-4 py-3 bg-orange-50 dark:bg-zinc-800 border border-orange-200 dark:border-orange-900/40 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-zinc-900 dark:text-white resize-none"
+                                                rows={2}
+                                                placeholder="Ej: Cliente no se encontraba en el domicilio..."
+                                                value={motivo}
+                                                onChange={e => setMotivo(e.target.value)}
+                                                autoFocus
+                                                required
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-wide">Nueva Fecha Solicitada</label>
+                                            <input
+                                                type="date"
+                                                className="w-full px-4 py-3 bg-orange-50 dark:bg-zinc-800 border border-orange-200 dark:border-orange-900/40 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none text-zinc-900 dark:text-white"
+                                                value={nuevaFecha}
+                                                onChange={e => setNuevaFecha(e.target.value)}
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                 )}
 
