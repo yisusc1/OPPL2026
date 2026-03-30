@@ -99,28 +99,34 @@ export function PlanificacionBoard() {
         
         // ── Realtime Setup ────────────────────────────────────────
         const supabase = createClient();
-        const sub = supabase.channel('planificacion-board-realtime')
+        const channelName = `plan-board-${Date.now()}`;
+        const sub = supabase.channel(channelName)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, (payload) => {
+                console.log('Realtime event received!', payload);
                 if (payload.eventType === 'INSERT') {
                     const newSol = payload.new as any;
-                    const dateToCheck = newSol.fecha_instalacion || newSol.fecha_disponibilidad;
+                    const dateToCheck = newSol.fecha_instalacion || newSol.fecha_disponibilidad || selectedDate;
                     
-                    if (dateToCheck && dateToCheck.startsWith(selectedDate)) {
+                    // The backend fetches items where date <= selectedDate. So we mimic that logic.
+                    if (dateToCheck <= selectedDate) {
                         setNuevosIds(prev => [...new Set([...prev, newSol.id])]);
                         setIsRinging(true);
                         setTimeout(() => setIsRinging(false), 8000);
                         toast({
                             title: '🔔 Nueva Solicitud',
-                            description: `${newSol.nombres} ${newSol.apellidos} - ${newSol.sector || 'Añadido al panel'}`,
+                            description: `${newSol.nombres} ${newSol.apellidos} - ${newSol.sector || 'Añadida al panel'}`,
                         });
                     }
                 }
                 // Silently refresh data
                 loadData(false);
             })
-            .subscribe();
+            .subscribe((status) => {
+                console.log(`Realtime subscription status for ${channelName}:`, status);
+            });
 
         return () => {
+            console.log(`Unsubscribing from ${channelName}`);
             supabase.removeChannel(sub);
         };
     }, [loadData]);
