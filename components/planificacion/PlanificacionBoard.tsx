@@ -97,7 +97,8 @@ export function PlanificacionBoard() {
     useEffect(() => { 
         loadData(); 
         
-        // ── Realtime Setup ────────────────────────────────────────
+        // ── Realtime & Polling Setup ────────────────────────────────────────
+        // 1. WebSocket Realtime
         const supabase = createClient();
         const channelName = `plan-board-${Date.now()}`;
         const sub = supabase.channel(channelName)
@@ -107,29 +108,48 @@ export function PlanificacionBoard() {
                     const newSol = payload.new as any;
                     const dateToCheck = newSol.fecha_instalacion || newSol.fecha_disponibilidad || selectedDate;
                     
-                    // The backend fetches items where date <= selectedDate. So we mimic that logic.
                     if (dateToCheck <= selectedDate) {
                         setNuevosIds(prev => [...new Set([...prev, newSol.id])]);
                         setIsRinging(true);
                         setTimeout(() => setIsRinging(false), 8000);
+                        
+                        // Show OS Notification if granted
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            new Notification("🔔 Nueva Solicitud Recibida", {
+                                body: `${newSol.nombres} ${newSol.apellidos} - ${newSol.sector || 'Nuevo'}`,
+                            });
+                        }
+                        
                         toast({
                             title: '🔔 Nueva Solicitud',
                             description: `${newSol.nombres} ${newSol.apellidos} - ${newSol.sector || 'Añadida al panel'}`,
                         });
                     }
                 }
-                // Silently refresh data
                 loadData(false);
             })
             .subscribe((status) => {
-                console.log(`Realtime subscription status for ${channelName}:`, status);
+                console.log(`Realtime auth status:`, status);
             });
 
+        // 2. Fallback Seguro: Polling cada 30 segundos
+        // Si el WebSocket falla por antivirus, bloqueadores o la red, el panel nunca quedará ciego.
+        const pollInterval = setInterval(() => {
+            loadData(false);
+        }, 30000);
+
         return () => {
-            console.log(`Unsubscribing from ${channelName}`);
             supabase.removeChannel(sub);
+            clearInterval(pollInterval);
         };
     }, [loadData]);
+
+    // Solicitar permiso de notificaciones de Windows/Mac al cargar
+    useEffect(() => {
+        if ("Notification" in window && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    }, []);
 
     // ── Date Navigation ──────────────────────────────────────
     const goToDay = (offset: number) => {
