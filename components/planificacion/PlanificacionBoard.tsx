@@ -341,7 +341,7 @@ export function PlanificacionBoard() {
                         {/* Team Columns Board */}
                         <div
                             ref={boardRef}
-                            className="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar pb-2"
+                            className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden custom-scrollbar pb-2"
                         >
                             <div className="flex h-full w-max min-w-full">
                                 {equipos.length === 0 ? (
