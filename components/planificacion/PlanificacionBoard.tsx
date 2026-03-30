@@ -239,30 +239,31 @@ export function PlanificacionBoard() {
         let scrollLeft = 0;
 
         const handleMouseDown = (e: MouseEvent) => {
-            // Don't intercept if clicking inside a draggable card (so we don't block actual dragging)
             if ((e.target as HTMLElement).closest('[data-rbd-draggable-id]')) return;
+            if ((e.target as HTMLElement).closest('.pending-sidebar')) return;
+            
             isDown = true;
-            board.style.cursor = 'grabbing';
-            startX = e.pageX - board.offsetLeft;
-            scrollLeft = board.scrollLeft;
+            document.body.style.cursor = 'grabbing';
+            startX = e.pageX;
+            scrollLeft = window.scrollX || document.documentElement.scrollLeft;
         };
 
         const handleMouseLeave = () => {
             isDown = false;
-            board.style.cursor = '';
+            document.body.style.cursor = '';
         };
 
         const handleMouseUp = () => {
             isDown = false;
-            board.style.cursor = '';
+            document.body.style.cursor = '';
         };
 
         const handleMouseMove = (e: MouseEvent) => {
             if (!isDown) return;
             e.preventDefault();
-            const x = e.pageX - board.offsetLeft;
-            const walk = (x - startX) * 2; // Scroll fast
-            board.scrollLeft = scrollLeft - walk;
+            const x = e.pageX;
+            const walk = (x - startX) * 1.5;
+            window.scrollTo(scrollLeft - walk, window.scrollY);
         };
 
         board.addEventListener('mousedown', handleMouseDown);
@@ -286,10 +287,10 @@ export function PlanificacionBoard() {
     // ── Render ────────────────────────────────────────────────
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
-            <div className="flex flex-col h-[100dvh] bg-zinc-50 dark:bg-zinc-950 overflow-hidden">
+            <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950 w-max min-w-full relative">
 
                 {/* Header Bar */}
-                <header className="flex items-center justify-between px-4 sm:px-6 py-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-white/5 shrink-0 z-30">
+                <header className="sticky top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-white/5 w-screen max-w-full">
                     <div className="flex items-center gap-2">
                         <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white tracking-tight">Planificación</h1>
                     </div>
@@ -326,14 +327,14 @@ export function PlanificacionBoard() {
                 </header>
 
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex-1 flex items-center justify-center h-[calc(100vh-60px)]">
                         <Loader2 className="w-8 h-8 animate-spin text-zinc-400" />
                     </div>
                 ) : (
-                    <div className="flex flex-1 overflow-hidden">
+                    <div className="flex flex-1 items-stretch">
 
                         {/* Pending Sidebar */}
-                        <div className="w-[280px] sm:w-[320px] shrink-0 border-r border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 flex flex-col">
+                        <div className="pending-sidebar w-[280px] sm:w-[320px] shrink-0 border-r border-zinc-200 dark:border-white/5 bg-white/50 dark:bg-zinc-900/30 flex flex-col sticky left-0 z-30 h-[calc(100vh-60px)] top-[60px]">
                             <div className="px-4 py-3 border-b border-zinc-100 dark:border-white/5 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Inbox className="w-4 h-4 text-zinc-400" />
@@ -390,12 +391,11 @@ export function PlanificacionBoard() {
                         {/* Team Columns Board */}
                         <div
                             ref={boardRef}
-                            className="flex-1 min-w-0 overflow-x-auto overflow-y-hidden"
-                            style={{ scrollBehavior: 'smooth' }}
+                            className="flex-1"
                         >
-                            <div className="flex h-full w-max">
+                            <div className="flex w-max min-h-[calc(100vh-60px)]">
                                 {equipos.length === 0 ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-4">
+                                    <div className="flex-1 flex flex-col items-center justify-center text-zinc-400 gap-4 min-w-[50vw]">
                                         <Users className="w-16 h-16 opacity-20" />
                                         <p className="text-sm font-medium">No hay equipos creados</p>
                                         <button
