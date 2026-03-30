@@ -131,32 +131,40 @@ export async function eliminarEquipo(id: number): Promise<{ success: boolean; er
 // ── Solicitudes - Lectura ───────────────────────────────────────
 
 /** Solicitudes que aún no han sido agendadas (sin equipo ni fecha) */
-export async function getSolicitudesPendientes(): Promise<SolicitudPlanificacion[]> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("solicitudes")
-        .select("*")
-        .eq("estatus_planificacion", "pendiente")
-        .is("equipo_id", null)
-        .order("created_at", { ascending: false })
-        .limit(200);
+export async function getSolicitudesPendientes(): Promise<{ success: boolean; data?: SolicitudPlanificacion[]; error?: string }> {
+    try {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+            .from("solicitudes")
+            .select("*")
+            .eq("estatus_planificacion", "pendiente")
+            .is("equipo_id", null)
+            .order("created_at", { ascending: false })
+            .limit(200);
 
-    if (error) throw new Error(error.message);
-    return data || [];
+        if (error) throw error;
+        return { success: true, data: JSON.parse(JSON.stringify(data || [])) };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
 }
 
 /** Solicitudes agendadas para una fecha específica (todas las que tienen esa fecha, de cualquier equipo) */
-export async function getSolicitudesPlanificadas(fecha: string): Promise<SolicitudPlanificacion[]> {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-        .from("solicitudes")
-        .select("*, equipo:equipos(*)")
-        .eq("fecha_instalacion", fecha)
-        .not("equipo_id", "is", null)
-        .order("created_at", { ascending: true });
+export async function getSolicitudesPlanificadas(fecha: string): Promise<{ success: boolean; data?: SolicitudPlanificacion[]; error?: string }> {
+    try {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+            .from("solicitudes")
+            .select("*, equipo:equipos(*)")
+            .eq("fecha_instalacion", fecha)
+            .not("equipo_id", "is", null)
+            .order("created_at", { ascending: true });
 
-    if (error) throw new Error(error.message);
-    return data || [];
+        if (error) throw error;
+        return { success: true, data: JSON.parse(JSON.stringify(data || [])) };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
 }
 
 // ── Solicitudes - Acciones de Planificación ─────────────────────

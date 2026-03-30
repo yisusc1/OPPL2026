@@ -61,8 +61,8 @@ export function PlanificacionBoard() {
                 setEquipos(eqRes.data || []);
             }
             
-            setPendientes(pendRes);
-            setPlanificadas(planRes);
+            setPendientes(pendRes.success ? (pendRes.data || []) : []);
+            setPlanificadas(planRes.success ? (planRes.data || []) : []);
         } catch (e: any) {
             toast({ title: 'Error al cargar datos', description: e.message, variant: 'destructive' });
         } finally {
