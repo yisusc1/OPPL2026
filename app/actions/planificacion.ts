@@ -139,7 +139,7 @@ export async function getSolicitudesPendientes(): Promise<{ success: boolean; da
             .select("*")
             .eq("estatus_planificacion", "pendiente")
             .is("equipo_id", null)
-            .order("created_at", { ascending: false })
+            .order("fecha_solicitud", { ascending: false })
             .limit(200);
 
         if (error) throw error;
@@ -158,7 +158,7 @@ export async function getSolicitudesPlanificadas(fecha: string): Promise<{ succe
             .select("*, equipo:equipos(*)")
             .eq("fecha_instalacion", fecha)
             .not("equipo_id", "is", null)
-            .order("created_at", { ascending: true });
+            .order("fecha_solicitud", { ascending: true });
 
         if (error) throw error;
         return { success: true, data: JSON.parse(JSON.stringify(data || [])) };
