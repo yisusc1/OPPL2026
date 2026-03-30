@@ -16,7 +16,7 @@ import {
 import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion, TecnicoDisponible } from '@/lib/types/planificacion';
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X, Bell, BellRing } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
     DropdownMenu,
@@ -59,6 +59,10 @@ export function PlanificacionBoard() {
     const [transferData, setTransferData] = useState<{ userId: string, userName: string, newTeam: Equipo } | null>(null);
     const [isTransferring, setIsTransferring] = useState(false);
 
+    // Realtime UI state
+    const [nuevosIds, setNuevosIds] = useState<string[]>([]);
+    const [isRinging, setIsRinging] = useState(false);
+
     // Board scroll ref
     const boardRef = useRef<HTMLDivElement>(null);
 
@@ -96,8 +100,22 @@ export function PlanificacionBoard() {
         // ── Realtime Setup ────────────────────────────────────────
         const supabase = createClient();
         const sub = supabase.channel('planificacion-board-realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, () => {
-                // Silently refresh data when any solicitud changes
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                    const newSol = payload.new as any;
+                    const dateToCheck = newSol.fecha_instalacion || newSol.fecha_disponibilidad;
+                    
+                    if (dateToCheck && dateToCheck.startsWith(selectedDate)) {
+                        setNuevosIds(prev => [...new Set([...prev, newSol.id])]);
+                        setIsRinging(true);
+                        setTimeout(() => setIsRinging(false), 8000);
+                        toast({
+                            title: '🔔 Nueva Solicitud',
+                            description: `${newSol.nombres} ${newSol.apellidos} - ${newSol.sector || 'Añadido al panel'}`,
+                        });
+                    }
+                }
+                // Silently refresh data
                 loadData(false);
             })
             .subscribe();
@@ -378,7 +396,17 @@ export function PlanificacionBoard() {
                 <header className="sticky top-0 left-0 right-0 z-40 flex items-center justify-between px-4 sm:px-6 py-3 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-zinc-200 dark:border-white/5 w-screen max-w-full">
                     <div className="flex items-center gap-3">
                         <SidebarTrigger className="-ml-2" />
-                        <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white tracking-tight">Planificación</h1>
+                        <h1 className="text-base sm:text-lg font-black text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+                            Planificación
+                            {isRinging ? (
+                                <BellRing className="w-5 h-5 text-blue-500 animate-bounce" />
+                            ) : nuevosIds.length > 0 ? (
+                                <div className="relative">
+                                    <Bell className="w-5 h-5 text-blue-500" />
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse border border-white dark:border-zinc-900"></span>
+                                </div>
+                            ) : null}
+                        </h1>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -466,6 +494,7 @@ export function PlanificacionBoard() {
                                                                 onAction={handleCardAction}
                                                                 onStatusUpdate={handleQuickStatusUpdate}
                                                                 compact
+                                                                isNew={nuevosIds.includes(sol.id)}
                                                             />
                                                         </div>
                                                     )}
@@ -655,6 +684,7 @@ export function PlanificacionBoard() {
                                                                                 solicitud={sol}
                                                                                 onAction={handleCardAction}
                                                                                 onStatusUpdate={handleQuickStatusUpdate}
+                                                                                isNew={nuevosIds.includes(sol.id)}
                                                                             />
                                                                         </div>
                                                                     )}

@@ -11,6 +11,7 @@ interface PlanificacionCardProps {
     onAction: (action: 'edit' | 'move' | 'status', sol: SolicitudPlanificacion) => void;
     onStatusUpdate: (status: EstatusPlanificacion, sol: SolicitudPlanificacion) => void;
     compact?: boolean; // For pending sidebar
+    isNew?: boolean;
 }
 
 const STATUS_MAP: Record<EstatusPlanificacion, { color: string; label: string }> = {
@@ -21,7 +22,7 @@ const STATUS_MAP: Record<EstatusPlanificacion, { color: string; label: string }>
     error: { color: 'text-blue-600 dark:text-blue-400', label: 'Error' },
 };
 
-export function PlanificacionCard({ solicitud, onAction, onStatusUpdate, compact }: PlanificacionCardProps) {
+export function PlanificacionCard({ solicitud, onAction, onStatusUpdate, compact, isNew }: PlanificacionCardProps) {
     const [showOverlay, setShowOverlay] = useState(false);
     const [overlayMode, setOverlayMode] = useState<'menu' | 'status'>('menu');
 
@@ -67,9 +68,10 @@ export function PlanificacionCard({ solicitud, onAction, onStatusUpdate, compact
             <div
                 className="relative flex flex-col gap-1.5 rounded-xl p-3 cursor-grab bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-white/10 shadow-sm hover:shadow-md transition-all"
             >
-                <div className="flex justify-between items-start gap-2">
-                    <h4 className="font-bold text-[13px] text-zinc-900 dark:text-zinc-100 leading-tight truncate">
+                <div className="flex justify-between items-start gap-2 pr-1">
+                    <h4 className="font-bold text-[13px] text-zinc-900 dark:text-zinc-100 leading-tight truncate relative">
                         {clientName}
+                        {isNew && <span className="absolute -top-0.5 -right-2 w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(59,130,246,0.5)]"></span>}
                     </h4>
                     <span className="text-[8px] font-bold uppercase tracking-wider text-amber-500 shrink-0">
                         {solicitud.plan}
@@ -102,8 +104,9 @@ export function PlanificacionCard({ solicitud, onAction, onStatusUpdate, compact
             >
                 {/* Header */}
                 <div className="flex justify-between items-start gap-3">
-                    <h4 className="font-bold text-[14px] text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight">
+                    <h4 className="font-bold text-[14px] text-zinc-900 dark:text-zinc-100 leading-tight tracking-tight relative max-w-[70%]">
                         {clientName}
+                        {isNew && <span className="absolute -top-1 -right-3 w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>}
                     </h4>
                     <span className={cn("text-[9px] font-bold uppercase tracking-wider shrink-0", statusInfo.color)}>
                         {statusInfo.label}
