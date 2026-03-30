@@ -66,10 +66,26 @@ export function PlanificacionBoard() {
 
     // Board scroll ref
     const boardRef = useRef<HTMLDivElement>(null);
+    const lastLoadTimestamp = useRef<number>(0);
+    const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+    const pendingIdsRef = useRef<Set<string>>(new Set());
+
+    const startPending = useCallback((id: string) => {
+        pendingIdsRef.current.add(id);
+        setPendingIds(new Set(pendingIdsRef.current));
+    }, []);
+    
+    const stopPending = useCallback((id: string) => {
+        pendingIdsRef.current.delete(id);
+        setPendingIds(new Set(pendingIdsRef.current));
+    }, []);
 
     // ── Data Loading ─────────────────────────────────────────
     const loadData = useCallback(async (showLoading = true) => {
         if (showLoading) setLoading(true);
+        const timestamp = Date.now();
+        lastLoadTimestamp.current = timestamp;
+
         try {
             const [eqRes, pendRes, planRes, tecData] = await Promise.all([
                 getEquipos(),
@@ -78,6 +94,9 @@ export function PlanificacionBoard() {
                 getTecnicos()
             ]);
             
+            // Race condition check: only update if this is the latest fetch
+            if (lastLoadTimestamp.current !== timestamp) return;
+
             if (!eqRes.success) {
                 toast({ title: 'Error cargando equipos', description: eqRes.error, variant: 'destructive' });
                 setEquipos([]);
@@ -86,14 +105,39 @@ export function PlanificacionBoard() {
             }
             
             setAllTecnicos(tecData || []);
-            setPendientes(pendRes.success ? (pendRes.data || []) : []);
-            setPlanificadas(planRes.success ? (planRes.data || []) : []);
+
+            // Helper to merge server data with optimistic state for pending IDs
+            const mergeWithOptimistic = (serverItems: SolicitudPlanificacion[], currentLocalItems: SolicitudPlanificacion[]) => {
+                const currentPending = pendingIdsRef.current;
+                // If no pending IDs, just return server items
+                if (currentPending.size === 0) return serverItems;
+
+                // Create a map of items currently in flight (optimistic state)
+                const optimisticMap = new Map(currentLocalItems.filter(item => currentPending.has(item.id)).map(item => [item.id, item]));
+
+                const result = serverItems.filter(item => !currentPending.has(item.id));
+                optimisticMap.forEach(item => {
+                    result.push(item);
+                });
+                return result;
+            };
+
+            setPendientes(prev => {
+                const fetched = pendRes.success ? (pendRes.data || []) : [];
+                return mergeWithOptimistic(fetched, prev).filter(s => s.estatus_planificacion === 'pendiente');
+            });
+
+            setPlanificadas(prev => {
+                const fetched = planRes.success ? (planRes.data || []) : [];
+                return mergeWithOptimistic(fetched, prev).filter(s => s.estatus_planificacion !== 'pendiente' && s.fecha_instalacion === selectedDate);
+            });
+
         } catch (e: any) {
             toast({ title: 'Error al cargar datos', description: e.message, variant: 'destructive' });
         } finally {
             if (showLoading) setLoading(false);
         }
-    }, [selectedDate]);
+    }, [selectedDate]); // No longer depends on pendingIds
 
     useEffect(() => { 
         loadData(); 
@@ -181,6 +225,7 @@ export function PlanificacionBoard() {
         // From pending pool → team column
         if (source.droppableId === PENDING_DROPPABLE && destination.droppableId !== PENDING_DROPPABLE) {
             const teamId = parseInt(destination.droppableId);
+            startPending(solId);
             // Optimistic update
             const sol = pendientes.find(s => s.id === solId);
             if (sol) {
@@ -193,6 +238,8 @@ export function PlanificacionBoard() {
             } catch (e: any) {
                 toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData(false);
+            } finally {
+                stopPending(solId);
             }
             return;
         }
@@ -200,6 +247,7 @@ export function PlanificacionBoard() {
         // Between team columns
         if (source.droppableId !== PENDING_DROPPABLE && destination.droppableId !== PENDING_DROPPABLE) {
             const newTeamId = parseInt(destination.droppableId);
+            startPending(solId);
             // Optimistic
             setPlanificadas(prev => prev.map(s => s.id === solId ? { ...s, equipo_id: newTeamId } : s));
             try {
@@ -208,12 +256,15 @@ export function PlanificacionBoard() {
             } catch (e: any) {
                 toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData(false);
+            } finally {
+                stopPending(solId);
             }
             return;
         }
 
         // From team → pending (desagendar)
         if (source.droppableId !== PENDING_DROPPABLE && destination.droppableId === PENDING_DROPPABLE) {
+            startPending(solId);
             const sol = planificadas.find(s => s.id === solId);
             if (sol) {
                 setPlanificadas(prev => prev.filter(s => s.id !== solId));
@@ -225,6 +276,8 @@ export function PlanificacionBoard() {
             } catch (e: any) {
                 toast({ title: 'Error', description: e.message, variant: 'destructive' });
                 loadData();
+            } finally {
+                stopPending(solId);
             }
         }
     };
@@ -242,6 +295,7 @@ export function PlanificacionBoard() {
     };
 
     const handleQuickStatusUpdate = async (status: EstatusPlanificacion, sol: SolicitudPlanificacion) => {
+        startPending(sol.id);
         // Optimistic UI for quick change
         if (status === 'pendiente') {
             setPlanificadas(prev => prev.filter(s => s.id !== sol.id));
@@ -255,10 +309,13 @@ export function PlanificacionBoard() {
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
             loadData(false);
+        } finally {
+            stopPending(sol.id);
         }
     };
 
     const handleEditSave = async (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string; nueva_fecha_disponibilidad?: string }) => {
+        startPending(id);
         try {
             if (updates.equipo_id && updates.equipo_id !== editModalData?.equipo_id && updates.estatus !== 'reprogramado') {
                 await moverSolicitud(id, updates.equipo_id);
@@ -269,16 +326,21 @@ export function PlanificacionBoard() {
             loadData(false);
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
+        } finally {
+            stopPending(id);
         }
     };
 
     const handleMoveConfirm = async (solId: string, newTeamId: number) => {
+        startPending(solId);
         try {
             await moverSolicitud(solId, newTeamId);
             toast({ title: 'Solicitud movida' });
             loadData(false);
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
+        } finally {
+            stopPending(solId);
         }
     };
 
@@ -538,6 +600,7 @@ export function PlanificacionBoard() {
                                                                 onStatusUpdate={handleQuickStatusUpdate}
                                                                 compact
                                                                 isNew={nuevosIds.includes(sol.id)}
+                                                                isLoading={pendingIds.has(sol.id)}
                                                             />
                                                         </div>
                                                     )}
@@ -728,6 +791,7 @@ export function PlanificacionBoard() {
                                                                                 onAction={handleCardAction}
                                                                                 onStatusUpdate={handleQuickStatusUpdate}
                                                                                 isNew={nuevosIds.includes(sol.id)}
+                                                                                isLoading={pendingIds.has(sol.id)}
                                                                             />
                                                                         </div>
                                                                     )}
