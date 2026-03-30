@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 interface MoverSolicitudModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onMove: (solicitudId: number, newTeamId: number) => void;
+    onMove: (solicitudId: string, newTeamId: number) => void;
     equipos: Equipo[];
     solicitud?: SolicitudPlanificacion;
 }

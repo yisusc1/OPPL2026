@@ -39,7 +39,7 @@ export interface TecnicoDisponible {
  * Extends the data already captured by the sales team.
  */
 export interface SolicitudPlanificacion {
-    id: number;
+    id: string; // UUID from DB
     created_at?: string;
 
     // --- From Sales Form ---

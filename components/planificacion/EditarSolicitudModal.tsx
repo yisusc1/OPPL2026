@@ -8,7 +8,7 @@ import type { SolicitudPlanificacion, EstatusPlanificacion, Equipo } from '@/lib
 interface EditarSolicitudModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (id: number, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => void;
+    onSave: (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => void;
     solicitud?: SolicitudPlanificacion;
     equipos: Equipo[];
     initialMode?: 'edit' | 'move' | 'status';

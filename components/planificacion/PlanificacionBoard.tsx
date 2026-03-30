@@ -50,7 +50,7 @@ export function PlanificacionBoard() {
         try {
             const [eqRes, pendRes, planRes] = await Promise.all([
                 getEquipos(),
-                getSolicitudesPendientes(),
+                getSolicitudesPendientes(selectedDate),
                 getSolicitudesPlanificadas(selectedDate),
             ]);
             
@@ -91,7 +91,7 @@ export function PlanificacionBoard() {
         if (!destination) return;
         if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
-        const solId = parseInt(draggableId);
+        const solId = draggableId.replace('sol-', '');
 
         // From pending pool → team column
         if (source.droppableId === PENDING_DROPPABLE && destination.droppableId !== PENDING_DROPPABLE) {
@@ -172,7 +172,7 @@ export function PlanificacionBoard() {
         }
     };
 
-    const handleEditSave = async (id: number, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => {
+    const handleEditSave = async (id: string, updates: { estatus: EstatusPlanificacion; equipo_id?: number; motivo?: string; notas?: string }) => {
         try {
             if (updates.equipo_id && updates.equipo_id !== editModalData?.equipo_id) {
                 await moverSolicitud(id, updates.equipo_id);
@@ -185,7 +185,7 @@ export function PlanificacionBoard() {
         }
     };
 
-    const handleMoveConfirm = async (solId: number, newTeamId: number) => {
+    const handleMoveConfirm = async (solId: string, newTeamId: number) => {
         try {
             await moverSolicitud(solId, newTeamId);
             toast({ title: 'Solicitud movida' });

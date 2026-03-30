@@ -131,7 +131,7 @@ export async function eliminarEquipo(id: number): Promise<{ success: boolean; er
 // ── Solicitudes - Lectura ───────────────────────────────────────
 
 /** Solicitudes que aún no han sido agendadas (sin equipo ni fecha) */
-export async function getSolicitudesPendientes(): Promise<{ success: boolean; data?: SolicitudPlanificacion[]; error?: string }> {
+export async function getSolicitudesPendientes(fecha: string): Promise<{ success: boolean; data?: SolicitudPlanificacion[]; error?: string }> {
     try {
         const supabase = await createClient();
         const { data, error } = await supabase
@@ -139,6 +139,7 @@ export async function getSolicitudesPendientes(): Promise<{ success: boolean; da
             .select("*")
             .eq("estatus_planificacion", "pendiente")
             .is("equipo_id", null)
+            .eq("fecha_disponibilidad", fecha)
             .order("fecha_solicitud", { ascending: false })
             .limit(200);
 
@@ -171,7 +172,7 @@ export async function getSolicitudesPlanificadas(fecha: string): Promise<{ succe
 
 /** Agendar una solicitud: asignarle equipo + fecha + cambiar estatus */
 export async function agendarSolicitud(
-    id: number,
+    id: string,
     equipoId: number,
     fechaInstalacion: string
 ): Promise<void> {
@@ -191,7 +192,7 @@ export async function agendarSolicitud(
 }
 
 /** Mover solicitud a otro equipo (manteniendo la fecha) */
-export async function moverSolicitud(id: number, nuevoEquipoId: number): Promise<void> {
+export async function moverSolicitud(id: string, nuevoEquipoId: number): Promise<void> {
     const supabase = await createClient();
     const { error } = await supabase
         .from("solicitudes")
@@ -204,7 +205,7 @@ export async function moverSolicitud(id: number, nuevoEquipoId: number): Promise
 
 /** Actualizar estatus de una solicitud */
 export async function actualizarEstatus(
-    id: number,
+    id: string,
     estatus: EstatusPlanificacion,
     motivo?: string,
     notas?: string
@@ -239,6 +240,6 @@ export async function actualizarEstatus(
 }
 
 /** Desagendar: devolver solicitud a pendiente */
-export async function desagendarSolicitud(id: number): Promise<void> {
+export async function desagendarSolicitud(id: string): Promise<void> {
     return actualizarEstatus(id, "pendiente");
 }
