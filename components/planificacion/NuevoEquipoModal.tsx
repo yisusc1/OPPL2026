@@ -10,6 +10,7 @@ interface NuevoEquipoModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: (nombre: string, zona: string | undefined, miembroIds: string[]) => Promise<void>;
+    equipos: import('@/lib/types/planificacion').Equipo[];
     initialData?: {
         id: number;
         nombre: string;
@@ -18,7 +19,7 @@ interface NuevoEquipoModalProps {
     };
 }
 
-export function NuevoEquipoModal({ isOpen, onClose, onConfirm, initialData }: NuevoEquipoModalProps) {
+export function NuevoEquipoModal({ isOpen, onClose, onConfirm, equipos, initialData }: NuevoEquipoModalProps) {
     const [nombre, setNombre] = useState('');
     const [zona, setZona] = useState('');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -46,6 +47,23 @@ export function NuevoEquipoModal({ isOpen, onClose, onConfirm, initialData }: Nu
     if (!isOpen) return null;
 
     const toggleTecnico = (id: string) => {
+        const isAdding = !selectedIds.includes(id);
+
+        if (isAdding) {
+            const currentTeam = equipos.find(eq => 
+                eq.id !== initialData?.id && 
+                eq.miembros?.some(m => m.user_id === id)
+            );
+
+            if (currentTeam) {
+                const tec = tecnicos.find(t => t.id === id);
+                const confirmMsg = `El técnico ${tec?.first_name} ${tec?.last_name} ya se encuentra asignado al "${currentTeam.nombre}".\n\n¿Desea moverlo a este equipo de todos modos?`;
+                if (!window.confirm(confirmMsg)) {
+                    return; // user cancelled
+                }
+            }
+        }
+
         setSelectedIds(prev =>
             prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
         );

@@ -370,7 +370,7 @@ export function PlanificacionBoard() {
                                                             <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{team.nombre}</h3>
                                                             {team.miembros && team.miembros.length > 0 && (
                                                                 <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate max-w-full">
-                                                                    {team.miembros.join(', ')}
+                                                                    {team.miembros.map(m => m.profile ? `${m.profile.first_name} ${m.profile.last_name}`.trim() : '').filter(Boolean).join(', ')}
                                                                 </p>
                                                             )}
                                                             {team.zona_asignada && (
@@ -485,6 +485,7 @@ export function PlanificacionBoard() {
                 onClose={() => { setTeamModalOpen(false); setTeamModalData(undefined); }}
                 onConfirm={teamModalData ? handleEditTeam : handleCreateTeam}
                 initialData={teamModalData ? { id: teamModalData.id, nombre: teamModalData.nombre, zona_asignada: teamModalData.zona_asignada, miembros: teamModalData.miembros } : undefined}
+                equipos={equipos}
             />
         </DragDropContext>
     );
