@@ -27,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ModeToggle } from '@/components/mode-toggle';
+import { createClient } from '@/lib/supabase/client';
 
 const PENDING_DROPPABLE = 'pending-pool';
 
@@ -61,8 +62,8 @@ export function PlanificacionBoard() {
     const boardRef = useRef<HTMLDivElement>(null);
 
     // ── Data Loading ─────────────────────────────────────────
-    const loadData = useCallback(async () => {
-        setLoading(true);
+    const loadData = useCallback(async (showLoading = true) => {
+        if (showLoading) setLoading(true);
         try {
             const [eqRes, pendRes, planRes] = await Promise.all([
                 getEquipos(),
@@ -82,11 +83,26 @@ export function PlanificacionBoard() {
         } catch (e: any) {
             toast({ title: 'Error al cargar datos', description: e.message, variant: 'destructive' });
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
     }, [selectedDate]);
 
-    useEffect(() => { loadData(); }, [loadData]);
+    useEffect(() => { 
+        loadData(); 
+        
+        // ── Realtime Setup ────────────────────────────────────────
+        const supabase = createClient();
+        const sub = supabase.channel('planificacion-board-realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitudes' }, () => {
+                // Silently refresh data when any solicitud changes
+                loadData(false);
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(sub);
+        };
+    }, [loadData]);
 
     // ── Date Navigation ──────────────────────────────────────
     const goToDay = (offset: number) => {
@@ -123,7 +139,7 @@ export function PlanificacionBoard() {
                 toast({ title: 'Solicitud agendada' });
             } catch (e: any) {
                 toast({ title: 'Error', description: e.message, variant: 'destructive' });
-                loadData();
+                loadData(false);
             }
             return;
         }
@@ -138,7 +154,7 @@ export function PlanificacionBoard() {
                 toast({ title: 'Solicitud movida' });
             } catch (e: any) {
                 toast({ title: 'Error', description: e.message, variant: 'destructive' });
-                loadData();
+                loadData(false);
             }
             return;
         }
@@ -173,7 +189,7 @@ export function PlanificacionBoard() {
     };
 
     const handleQuickStatusUpdate = async (status: EstatusPlanificacion, sol: SolicitudPlanificacion) => {
-        // Optimistic
+        // Optimistic UI for quick change
         if (status === 'pendiente') {
             setPlanificadas(prev => prev.filter(s => s.id !== sol.id));
             setPendientes(prev => [{ ...sol, equipo_id: null, fecha_instalacion: null, estatus_planificacion: 'pendiente' }, ...prev]);
@@ -182,9 +198,10 @@ export function PlanificacionBoard() {
         }
         try {
             await actualizarEstatus(sol.id, status);
+            toast({ title: 'Estatus actualizado' });
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
-            loadData();
+            loadData(false);
         }
     };
 
@@ -194,8 +211,9 @@ export function PlanificacionBoard() {
                 await moverSolicitud(id, updates.equipo_id);
             }
             await actualizarEstatus(id, updates.estatus, updates.motivo, updates.notas, updates.nueva_fecha_disponibilidad);
-            toast({ title: 'Solicitud actualizada' });
-            loadData();
+            toast({ title: 'Solicitud actualizada', description: updates.nueva_fecha_disponibilidad ? 'Se creó un ticket pendiente para la nueva fecha.' : undefined });
+            setEditModalOpen(false);
+            loadData(false);
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
@@ -205,7 +223,7 @@ export function PlanificacionBoard() {
         try {
             await moverSolicitud(solId, newTeamId);
             toast({ title: 'Solicitud movida' });
-            loadData();
+            loadData(false);
         } catch (e: any) {
             toast({ title: 'Error', description: e.message, variant: 'destructive' });
         }
@@ -219,7 +237,7 @@ export function PlanificacionBoard() {
             throw new Error(res.error); // throw so modal knows it failed
         }
         toast({ title: 'Equipo creado' });
-        loadData();
+        loadData(false);
     };
 
     const handleEditTeam = async (nombre: string, zona?: string, miembroIds?: string[]) => {
@@ -230,7 +248,7 @@ export function PlanificacionBoard() {
             throw new Error(res.error);
         }
         toast({ title: 'Equipo actualizado' });
-        loadData();
+        loadData(false);
     };
 
     const handleDeleteTeam = async (id: number) => {
@@ -240,7 +258,7 @@ export function PlanificacionBoard() {
             const res = await eliminarEquipo(id);
             if (!res.success) throw new Error(res.error);
             toast({ title: 'Equipo eliminado', description: 'Las solicitudes regresaron a pendientes' });
-            await loadData();
+            await loadData(false);
         } catch (e: any) {
             toast({ title: 'Error eliminando equipo', description: e.message, variant: 'destructive' });
         }
@@ -260,7 +278,7 @@ export function PlanificacionBoard() {
         if (res.success) {
             toast({ title: 'Equipo actualizado' });
             setEditingTeamId(null);
-            await loadData();
+            await loadData(false);
         } else {
             toast({ title: 'Error al guardar', description: res.error, variant: 'destructive' });
         }
@@ -274,7 +292,7 @@ export function PlanificacionBoard() {
         if (res.success) {
             toast({ title: 'Técnico transferido exitosamente' });
             setTransferData(null);
-            await loadData();
+            await loadData(false);
         } else {
             toast({ title: 'Error en la transferencia', description: res.error, variant: 'destructive' });
         }
