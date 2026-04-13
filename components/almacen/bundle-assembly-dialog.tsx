@@ -195,7 +195,7 @@ export function BundleAssemblyDialog({ open, onOpenChange, product, onSave }: Bu
 
                 <div className="py-4">
                     <h4 className="text-sm font-medium mb-3">Receta y Disponibilidad</h4>
-                    <div className="space-y-2 border rounded-md p-3 bg-zinc-50 max-h-[200px] overflow-y-auto">
+                    <div className="space-y-2 border dark:border-zinc-800 rounded-md p-3 bg-zinc-50 dark:bg-zinc-900/50 max-h-[200px] overflow-y-auto">
                         {recipe.map((item) => {
                             const needed = item.quantity * (form.watch("quantity") as number)
                             const hasStock = item.child_product.current_stock >= needed
@@ -203,20 +203,20 @@ export function BundleAssemblyDialog({ open, onOpenChange, product, onSave }: Bu
                                 <div key={item.id} className="flex items-center justify-between text-sm">
                                     <div className="flex flex-col">
                                         <span className="font-medium">{item.child_product.name}</span>
-                                        <span className="text-zinc-500 text-xs">SKU: {item.child_product.sku}</span>
+                                        <span className="text-zinc-500 dark:text-muted-foreground text-xs">SKU: {item.child_product.sku}</span>
                                     </div>
                                     <div className="text-right">
-                                        <div className={hasStock ? "text-green-600" : "text-red-600 font-bold"}>
+                                        <div className={hasStock ? "text-green-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500 font-bold"}>
                                             {needed} / {item.child_product.current_stock}
                                         </div>
-                                        <span className="text-xs text-zinc-400">Requerido / Disp.</span>
+                                        <span className="text-xs text-zinc-400 dark:text-zinc-500">Requerido / Disp.</span>
                                     </div>
                                 </div>
                             )
                         })}
                     </div>
 
-                    <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 text-blue-800 rounded-md">
+                    <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 border border-transparent dark:border-blue-800/50 rounded-md">
                         <span className="text-sm font-medium">Máximo posible a armar:</span>
                         <span className="text-lg font-bold">{maxPossible} unidades</span>
                     </div>

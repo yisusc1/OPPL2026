@@ -561,7 +561,7 @@ export function DispatchDialog({ open, onOpenChange, onSave, title = "Nueva Sali
                                 const qty = (form.watch(`items.${index}.quantity`) || 0) as number
 
                                 return (
-                                    <div key={field.id} className="p-3 bg-white rounded-md border space-y-3">
+                                    <div key={field.id} className="p-3 bg-background dark:bg-zinc-900/50 rounded-md border dark:border-zinc-800 space-y-3">
                                         <div className="flex items-end gap-3">
                                             <FormField
                                                 control={form.control}

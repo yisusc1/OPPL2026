@@ -31,7 +31,7 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                     transactions.map((tx) => (
                         <div
                             key={tx.id}
-                            className="flex items-center justify-between p-3 hover:bg-zinc-50 rounded-xl transition-colors border border-transparent hover:border-zinc-100 cursor-pointer"
+                            className="flex items-center justify-between p-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 rounded-xl transition-colors border border-transparent hover:border-zinc-100 dark:hover:border-zinc-800 cursor-pointer"
                             onClick={() => {
                                 const match = tx.reason?.match(/(DES|CMB)-[A-Za-z0-9]+/)
                                 if (match) {
@@ -40,26 +40,26 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                             }}
                         >
                             <div className="flex items-center gap-3">
-                                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'IN' ? 'bg-green-100 text-green-700' : tx.type === 'OUT' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'IN' ? 'bg-green-100 dark:bg-emerald-900/40 text-green-700 dark:text-emerald-400' : tx.type === 'OUT' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'}`}>
                                     {tx.type === 'IN' ? <ArrowDownRight size={18} /> : tx.type === 'OUT' ? <ArrowUpRight size={18} /> : <History size={18} />}
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="font-medium text-zinc-900">
+                                    <span className="font-medium text-foreground">
                                         {tx.inventory_products?.name || "Producto desconocido"}
                                     </span>
-                                    <span className="text-xs text-zinc-500">
+                                    <span className="text-xs text-muted-foreground">
                                         {new Date(tx.created_at).toLocaleDateString()} • {tx.reason || "Sin motivo"}
                                     </span>
                                     {tx.received_by && (
                                         <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-[10px] bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded border border-orange-100 font-medium">
+                                            <span className="text-[10px] bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-100 dark:border-orange-900/50 font-medium">
                                                 Recibido por: {tx.received_by}
                                             </span>
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className={`font-bold ${tx.type === 'IN' ? 'text-green-700' : tx.type === 'OUT' ? 'text-red-700' : 'text-blue-700'}`}>
+                            <div className={`font-bold ${tx.type === 'IN' ? 'text-green-700 dark:text-emerald-400' : tx.type === 'OUT' ? 'text-red-700 dark:text-red-400' : 'text-blue-700 dark:text-blue-400'}`}>
                                 {tx.type === 'IN' ? '+' : '-'}{tx.quantity}
                             </div>
                         </div>

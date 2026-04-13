@@ -604,14 +604,14 @@ id,
 
                     {/* Assignment Details */}
                     {assignment && (
-                        <Card className="bg-zinc-50 border-zinc-200">
+                        <Card className="bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
                             <CardContent className="p-4 space-y-2">
                                 <div className="flex justify-between items-start">
                                     <div>
-                                        <p className="font-semibold text-zinc-900">
+                                        <p className="font-semibold text-foreground">
                                             {assignment.profiles?.first_name} {assignment.profiles?.last_name}
                                         </p>
-                                        <p className="text-sm text-zinc-500">
+                                        <p className="text-sm text-muted-foreground">
                                             {assignment.profiles?.department}
                                         </p>
                                     </div>
@@ -619,8 +619,8 @@ id,
                                         assignment.status === 'ACTIVE' ? 'default' :
                                             assignment.status === 'RETURNED' ? 'secondary' : 'outline'
                                     } className={
-                                        assignment.status === 'PARTIAL_RETURN' ? 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100' :
-                                            assignment.status === 'RETURNED' ? 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100' : ''
+                                        assignment.status === 'PARTIAL_RETURN' ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800 hover:bg-yellow-100 dark:hover:bg-yellow-900/50' :
+                                            assignment.status === 'RETURNED' ? 'bg-green-100 dark:bg-emerald-900/40 text-green-800 dark:text-emerald-400 border-green-200 dark:border-emerald-800 hover:bg-green-100 dark:hover:bg-emerald-900/50' : ''
                                     }>
                                         {(() => {
                                             switch (assignment.status) {
@@ -659,13 +659,13 @@ id,
                                         const pending = qtyAssigned - qtyPrev
 
                                         return (
-                                            <div key={field.id} className="flex flex-col sm:flex-row gap-4 items-center p-3 bg-white border rounded-md shadow-sm">
+                                            <div key={field.id} className="flex flex-col sm:flex-row gap-4 items-center p-3 bg-background dark:bg-zinc-900/50 border dark:border-zinc-800 rounded-md shadow-sm">
                                                 <div className="flex-1 w-full">
                                                     <p className="text-sm font-medium">{form.getValues(`items.${index}.product_name` as any)}</p>
-                                                    <div className="flex gap-2 text-xs text-zinc-500 mt-1">
-                                                        <span className="bg-zinc-100 px-1.5 py-0.5 rounded">Asig: {qtyAssigned}</span>
-                                                        <span className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded">Dev: {qtyPrev}</span>
-                                                        <span className="bg-blue-50 text-blue-700 font-medium px-1.5 py-0.5 rounded">Pend: {pending}</span>
+                                                    <div className="flex gap-2 text-xs text-zinc-500 dark:text-muted-foreground mt-1">
+                                                        <span className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">Asig: {qtyAssigned}</span>
+                                                        <span className="bg-green-50 dark:bg-emerald-900/20 text-green-700 dark:text-emerald-400 px-1.5 py-0.5 rounded">Dev: {qtyPrev}</span>
+                                                        <span className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium px-1.5 py-0.5 rounded">Pend: {pending}</span>
                                                     </div>
 
                                                     {/* Serial Number Inputs (GRANULAR RETURN) */}
@@ -687,7 +687,7 @@ id,
                                                                             }}
                                                                             defaultValue={form.getValues(`items.${index}.returned_serials.${sIndex}.value`)}
                                                                         >
-                                                                            <SelectTrigger className="h-8 text-xs bg-white flex-1">
+                                                                            <SelectTrigger className="h-8 text-xs bg-background flex-1">
                                                                                 <SelectValue placeholder={`Serial #${sIndex + 1}`} />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
@@ -725,8 +725,8 @@ id,
                                                                             defaultValue={form.getValues(`items.${index}.returned_serials.${sIndex}.condition`) || "GOOD"}
                                                                         >
                                                                             <SelectTrigger className={`h-8 w-24 text-xs ${form.watch(`items.${index}.returned_serials.${sIndex}.condition`) === 'DAMAGED'
-                                                                                ? 'bg-red-50 text-red-700 border-red-200'
-                                                                                : 'bg-green-50 text-green-700 border-green-200'
+                                                                                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50'
+                                                                                : 'bg-green-50 dark:bg-emerald-900/20 text-green-700 dark:text-emerald-400 border-green-200 dark:border-emerald-800/50'
                                                                                 }`}>
                                                                                 <SelectValue />
                                                                             </SelectTrigger>
@@ -890,8 +890,8 @@ id,
                     )}
 
                     {assignment && assignment.status === 'RETURNED' && (
-                        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-6 text-center space-y-2">
-                            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600" />
+                        <div className="bg-green-50 dark:bg-emerald-900/20 border border-green-200 dark:border-emerald-800/50 text-green-800 dark:text-emerald-400 rounded-lg p-6 text-center space-y-2">
+                            <CheckCircle2 className="w-12 h-12 mx-auto text-green-600 dark:text-emerald-500" />
                             <h3 className="text-lg font-medium">Despacho Completado</h3>
                             <p className="text-sm opacity-90">Este despacho ya ha sido cerrado, no tiene items pendientes por devolver.</p>
                         </div>
@@ -903,7 +903,7 @@ id,
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirmar finalización</AlertDialogTitle>
-                        <AlertDialogDescription className="whitespace-pre-line text-zinc-900 font-medium">
+                        <AlertDialogDescription className="whitespace-pre-line text-foreground font-medium">
                             Se detectaron materiales NO devueltos que se registrarán como UTILIZADOS:
                             {'\n\n'}
                             {confirmData?.message}
@@ -913,7 +913,7 @@ id,
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirm} className="bg-zinc-900 text-white hover:bg-zinc-800">
+                        <AlertDialogAction onClick={handleConfirm} className="bg-foreground text-background hover:bg-foreground/90">
                             Confirmar y Cerrar
                         </AlertDialogAction>
                     </AlertDialogFooter>
