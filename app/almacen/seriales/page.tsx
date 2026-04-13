@@ -3,7 +3,8 @@ import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { PremiumCard } from "@/components/ui/premium-card"
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Box, QrCode } from "lucide-react"
+import { Box } from "lucide-react"
+import { SerialListClient } from "./client-list"
 
 export default async function SerializedStockPage() {
     const supabase = await createClient()
@@ -89,38 +90,7 @@ export default async function SerializedStockPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <div className="divide-y divide-border max-h-[600px] overflow-auto">
-                                {serials && serials.length > 0 ? (
-                                    serials.map((serial: any) => (
-                                        <div key={serial.serial_number} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-lg bg-background border border-border text-muted-foreground flex items-center justify-center">
-                                                    <QrCode size={20} />
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-foreground font-mono text-lg tracking-wide">{serial.serial_number}</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-xs font-bold text-blue-500">{serial.product?.sku}</span>
-                                                        <span className="text-xs text-muted-foreground">•</span>
-                                                        <span className="text-xs text-muted-foreground">{serial.product?.name}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                {getStatusBadge(serial.status)}
-                                                <p className="text-[10px] text-muted-foreground/70 mt-1">
-                                                    Ingreso: {new Date(serial.created_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="py-12 text-center text-muted-foreground">
-                                        <QrCode size={48} className="mx-auto mb-3 opacity-20" />
-                                        <p>No se encontraron seriales en el sistema.</p>
-                                    </div>
-                                )}
-                            </div>
+                            <SerialListClient serials={serials || []} />
                         </CardContent>
                     </PremiumCard>
                 </div>
