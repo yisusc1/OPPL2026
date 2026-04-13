@@ -42,7 +42,8 @@ const productSchema = z.object({
     bundle_items: z.array(z.object({
         child_product_id: z.string(),
         quantity: z.coerce.number().min(1)
-    })).default([])
+    })).default([]),
+    initial_serials: z.array(z.string()).optional()
 })
 
 interface ProductDialogProps {
@@ -84,6 +85,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
             is_bundle: false,
             requires_serial: false,
             bundle_items: [],
+            initial_serials: [],
         },
     })
 
@@ -111,6 +113,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                 location: "",
                 requires_serial: false,
                 initial_stock: 0,
+                initial_serials: [],
             })
         }
     }, [product, form, open])
@@ -118,6 +121,35 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
     const onSubmit = async (values: z.infer<typeof productSchema>) => {
         setLoading(true)
         try {
+            // Validation for serials BEFORE creating product
+            let serialsArray: string[] = []
+            if (!product && values.requires_serial && values.initial_stock && values.initial_stock > 0) {
+                 serialsArray = (values.initial_serials || []).slice(0, values.initial_stock).filter(s => s?.trim() !== '')
+                 if (serialsArray.length !== values.initial_stock) {
+                      toast.error("Debe ingresar todos los seriales para el stock inicial.")
+                      setLoading(false)
+                      return
+                 }
+                 const unique = new Set(serialsArray)
+                 if (unique.size !== serialsArray.length) {
+                      toast.error("Hay seriales duplicados en la lista inicial.")
+                      setLoading(false)
+                      return
+                 }
+                 
+                 // Check if serials already exist in DB across any product
+                 const { data: existing } = await supabase
+                     .from("inventory_serials")
+                     .select("serial_number")
+                     .in("serial_number", serialsArray)
+                     
+                 if (existing && existing.length > 0) {
+                     toast.error(`Los siguientes seriales ya existen: ${existing.map(e => e.serial_number).join(', ')}`)
+                     setLoading(false)
+                     return
+                 }
+            }
+
             let productId = product?.id
 
             if (product) {
@@ -157,8 +189,8 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                 if (error) throw error
                 productId = data.id
 
-                // IF initial_stock was provided and it's > 0 (for non-serialized), insert transaction
-                if (!values.requires_serial && values.initial_stock && values.initial_stock > 0) {
+                // IF initial_stock was provided and it's > 0, insert transaction
+                if (values.initial_stock && values.initial_stock > 0) {
                     const { data: userData } = await supabase.auth.getUser()
                     
                     if (userData.user) {
@@ -169,8 +201,19 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                             previous_stock: 0,
                             new_stock: values.initial_stock,
                             reason: 'STOCK INICIAL',
-                            user_id: userData.user.id
+                            user_id: userData.user.id,
+                            serials: serialsArray.length > 0 ? serialsArray : null
                         })
+                        
+                        if (values.requires_serial && serialsArray.length > 0) {
+                            const serialRows = serialsArray.map(s => ({
+                                serial_number: s,
+                                product_id: productId,
+                                status: 'AVAILABLE',
+                                location: values.location
+                            }))
+                            await supabase.from("inventory_serials").insert(serialRows)
+                        }
                     }
                 }
             }
@@ -305,28 +348,45 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                             )}
                         />
 
-                        {!form.watch("requires_serial") ? (
-                            <FormField
-                                control={form.control}
-                                name="initial_stock"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Stock Inicial</FormLabel>
-                                        <FormControl>
-                                            <Input type="number" {...field} value={(field.value as number) ?? ''} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        ) : (
-                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-800/50">
-                                <p className="text-sm text-blue-800 dark:text-blue-400 font-medium">
-                                    Productos Serializados
-                                </p>
-                                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">
-                                    Para agregar inventario de este producto y capturar sus números de serie, primero guarde el producto y luego utilice la opción <strong>"Movimiento Stock" (Entrada)</strong> desde el listado general.
-                                </p>
+                        <FormField
+                            control={form.control}
+                            name="initial_stock"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Stock Inicial</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" disabled={!!product} {...field} value={(field.value as number) ?? ''} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {!product && form.watch("requires_serial") && (form.watch("initial_stock") || 0) > 0 && (
+                            <div className="space-y-3 pt-2 border-t dark:border-zinc-800">
+                                <FormLabel className="text-blue-600 dark:text-blue-400">Ingrese Seriales para Stock Inicial</FormLabel>
+                                <div className="grid grid-cols-2 gap-3 max-h-[160px] overflow-y-auto p-1 pr-2">
+                                    {Array.from({ length: form.watch("initial_stock") || 0 }).map((_, index) => (
+                                        <FormField
+                                            key={index}
+                                            control={form.control}
+                                            name={`initial_serials.${index}`}
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder={`Serial #${index + 1}`}
+                                                            {...field}
+                                                            value={field.value || ""}
+                                                            className="h-8 border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
 
