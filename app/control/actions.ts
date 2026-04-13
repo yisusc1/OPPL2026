@@ -472,7 +472,7 @@ export async function saveAudit(auditData: any) {
             .from("inventory_audits")
             .update({
                 notes: auditData.notes,
-                status: 'COMPLETED' // Supervisor Finalize
+                status: 'AUDITADO' // Supervisor Finalize
             })
             .eq("id", auditData.auditId)
 
@@ -489,32 +489,15 @@ export async function saveAudit(auditData: any) {
                 .eq("product_sku", item.sku)
         }
 
-        // 3. Reconcile (Transactions)
-        if (auditData.reconcileStock) {
-            const transactions = []
-            const { data: { user } } = await supabase.auth.getUser()
+        // 3. Ya no hay Reconciliación (Movimientos) desde Auditoría
+        // Esto pasa a Almacén. Solo cambiamos el estatus de las asignaciones a AUDITADO
 
-            for (const item of auditData.items) {
-                const diff = (item.physical || 0) - (item.theoretical || 0)
-                if (diff !== 0) {
-                    const type = diff > 0 ? 'IN' : 'OUT'
-                    const qty = Math.abs(diff)
-                    transactions.push({
-                        product_id: item.productId,
-                        type: type,
-                        quantity: qty,
-                        reason: `Ajuste Auditoría: ${diff > 0 ? 'Sobrante' : 'Faltante'}`,
-                        assigned_to: auditData.entityId, // Simplification
-                        received_by: user?.email || 'Sistema',
-                        receiver_id: user?.id,
-                        created_at: new Date().toISOString()
-                    })
-                }
-            }
-            if (transactions.length > 0) {
-                await supabase.from("inventory_transactions").insert(transactions)
-            }
-        }
+        const assignMatchCol = auditData.entityType === 'TEAM' ? 'team_id' : 'assigned_to';
+        await supabase
+            .from("inventory_assignments")
+            .update({ status: "AUDITADO" })
+            .eq(assignMatchCol, auditData.entityId)
+            .eq("status", "EN_REVISION")
 
         return { success: true, auditId: auditData.auditId }
     }
@@ -555,53 +538,13 @@ export async function saveAudit(auditData: any) {
             product_sku: item.sku,
             product_name: item.name,
             theoretical_quantity: item.theoretical,
-            physical_quantity: item.physical,
+            physical_quantity: item.physical, // Supervisor counts what they see if remote
             reported_quantity: item.reported || 0,
             item_name: item.name,
             item_sku: item.sku,
             product_id: item.productId || null,
             unit_type: item.sku.includes('CARRETE') ? 'METERS' : 'UNITS'
         })
-
-        // B. Reconcile Logic
-        if (auditData.reconcileStock) {
-            const diff = item.physical - item.theoretical
-
-            if (diff !== 0) {
-                // If diff > 0: Found MORE than expected. We need to ADD to their stock -> IN
-                // If diff < 0: Found LESS than expected. We need to REMOVE from their stock -> OUT
-                const type = diff > 0 ? 'IN' : 'OUT'
-                const qty = Math.abs(diff)
-
-                transactions.push({
-                    product_id: item.productId,
-                    type: type,
-                    quantity: qty,
-                    reason: `Ajuste Auditoría: ${diff > 0 ? 'Sobrante' : 'Faltante'}`,
-                    assigned_to: auditData.entityType === 'TEAM'
-                        ? auditData.members[0] // Default to first member for team assignment valid FK? Or Team ID? 
-                        // Wait, transactions use 'assigned_to' UUID (Profile). Teams don't own stock directly in this schema usually, 
-                        // stock is calculated by "assigned_to IN team_members".
-                        // So we assign to the first member found, or the entityId if it's a user.
-                        : auditData.entityId,
-                    received_by: user?.email || 'Sistema',
-                    receiver_id: user?.id,
-                    created_at: new Date().toISOString()
-                })
-
-                // Small correction for TEAM assignments:
-                // If entityType is TEAM, we need a valid User UUID. 
-                // We'll use the first member's ID as the "Holder" of the adjustment.
-                if (auditData.entityType === 'TEAM' && (!auditData.members || auditData.members.length === 0)) {
-                    // Fallback: Cannot assign if no members. Skip transaction to avoid FK error.
-                    // But we should have members from getAuditData.
-                } else if (auditData.entityType === 'TEAM') {
-                    // Ensure we use a valid UUID from the members list
-                    // transactions[last].assigned_to = auditData.members[0]; 
-                    // Logic checked above.
-                }
-            }
-        }
     }
 
     const { error: itemsError } = await supabase
@@ -610,18 +553,13 @@ export async function saveAudit(auditData: any) {
 
     if (itemsError) throw new Error(itemsError.message)
 
-    // Execute Adjustments if any
-    if (transactions.length > 0) {
-        const { error: txError } = await supabase
-            .from("inventory_transactions")
-            .insert(transactions)
-
-        if (txError) {
-            // Log error but don't fail the whole audit? Or fail hard?
-            // Let's fail hard so they know adjustment didn't work.
-            throw new Error("Error creando ajustes de inventario: " + txError.message)
-        }
-    }
+    // Update assignment status to AUDITADO
+    const assignMatchCol = auditData.entityType === 'TEAM' ? 'team_id' : 'assigned_to';
+    await supabase
+        .from("inventory_assignments")
+        .update({ status: "AUDITADO" })
+        .eq(assignMatchCol, auditData.entityId)
+        .eq("status", "EN_REVISION")
 
     return { success: true, auditId: audit.id }
 }
@@ -921,12 +859,17 @@ export async function getPendingAudits() {
         }
     )
 
-    const { data: audits } = await supabase
-        .from("inventory_audits")
-        .select("id, team_id, technician_id, created_at")
-        .eq("status", "PENDING")
+    const { data: assignments } = await supabase
+        .from("inventory_assignments")
+        .select("assigned_to, team_id")
+        .eq("status", "EN_REVISION")
 
-    return audits || []
+    if (!assignments) return []
+
+    return assignments.map(a => ({
+        team_id: a.team_id,
+        technician_id: a.assigned_to
+    }))
 }
 
 export async function updateAndApproveAudit(auditId: string, items: any[], notes?: string, spoolUpdates?: { serial: string, physical: number, theoretical: number, reported: number }[]) {
@@ -962,12 +905,6 @@ export async function updateAndApproveAudit(auditId: string, items: any[], notes
         const { data: { user } } = await supabase.auth.getUser()
 
         for (const update of updates) {
-            // A. Update Serial Master Record
-            await supabase
-                .from("inventory_serials")
-                .update({ current_quantity: update.physical })
-                .eq("serial_number", update.serial)
-
             // C. Persist Spool Count to Audit Items (for history)
             // Use product_sku to store SERIAL for reliable lookup
             const { data: existingItem } = await supabase
@@ -999,31 +936,36 @@ export async function updateAndApproveAudit(auditId: string, items: any[], notes
                     })
             }
 
-            // B. Log Adjustment Transaction (Only if diff?)
-            // Logic implies this is an override, so we log the adjustment to the Master Record.
-            await supabase.from("inventory_transactions").insert({
-                type: 'ADJUST',
-                quantity: update.physical,
-                previous_stock: 0,
-                new_stock: update.physical,
-                reason: `Auditoría Supervisada: Ajuste de Bobina ${update.serial}`,
-                user_id: user?.id,
-                serials: [update.serial]
-            })
         }
     }
 
-    // 2. Update Audit Status & Notes
+    // 2. Fetch the corresponding team or technician to update their assignments
+    const { data: auditInfo } = await supabase
+        .from("inventory_audits")
+        .select("team_id, technician_id")
+        .eq("id", auditId)
+        .single()
+
+    // 3. Update Audit Status & Notes
     const { error } = await supabase
         .from("inventory_audits")
         .update({
-            status: 'COMPLETED',
+            status: 'AUDITADO',
             notes: notes ? notes : undefined, // Only update if provided
             updated_at: new Date().toISOString() // Crucial for usage cutoff
         })
         .eq("id", auditId)
 
     if (error) throw new Error(error.message)
+
+    // 4. Update Assignments to AUDITADO
+    if (auditInfo) {
+        if (auditInfo.team_id) {
+            await supabase.from("inventory_assignments").update({ status: "AUDITADO" }).eq("team_id", auditInfo.team_id).eq("status", "EN_REVISION")
+        } else if (auditInfo.technician_id) {
+            await supabase.from("inventory_assignments").update({ status: "AUDITADO" }).eq("assigned_to", auditInfo.technician_id).eq("status", "EN_REVISION")
+        }
+    }
 
     revalidatePath("/control")
     revalidatePath(`/control/history/view/${auditId}`)

@@ -89,6 +89,12 @@ export default async function WarehouseDashboard() {
                             Historial
                         </Button>
                     </Link>
+                    <Link href="/almacen/recepcion">
+                        <Button variant="ghost" className="rounded-xl h-10 border border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-emerald-500">
+                            <ShieldCheck size={16} className="mr-2" />
+                            Cierre de Combos
+                        </Button>
+                    </Link>
                     <Link href="/almacen/rastreo">
                         <Button variant="ghost" className="rounded-xl h-10 border border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-blue-500">
                             <Search size={16} className="mr-2" />

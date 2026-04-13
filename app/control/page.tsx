@@ -11,6 +11,39 @@ import { Users, User, ShieldCheck, ChevronRight, ArrowLeft, AlertCircle, Disc, F
 import { DesktopModeToggle } from "@/components/desktop-mode-toggle"
 import { DailyReportDialog } from "@/components/daily-report-dialog"
 
+function getStatusBadge(status: string | undefined) {
+    switch (status) {
+        case "ACTIVE":
+            return (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-blue-500/10 text-blue-500 px-2 py-0.5 rounded border border-blue-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                    EN LABOR
+                </span>
+            )
+        case "EN_REVISION":
+            return (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
+                    <AlertCircle size={10} />
+                    POR AUDITAR
+                </span>
+            )
+        case "AUDITADO":
+            return (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded border border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    AUDITADO
+                </span>
+            )
+        default:
+            return (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-zinc-500/10 text-zinc-500 px-2 py-0.5 rounded border border-zinc-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                    SIN ASIGNACIÓN
+                </span>
+            )
+    }
+}
+
 export default async function ControlPage() {
     const cookieStore = await cookies()
 
@@ -37,9 +70,24 @@ export default async function ControlPage() {
         .select("id, first_name, last_name, email, team_id")
         .contains("roles", ["tecnico"])
 
-    // 3. Fetch Pending Audits
-    const pendingAudits = await getPendingAudits()
-    const pendingSet = new Set(pendingAudits.map((a: any) => a.team_id || a.technician_id))
+    // 3. Fetch Assignment Statuses for Real-Time Status
+    const { data: assignments } = await supabase
+        .from("inventory_assignments")
+        .select("assigned_to, team_id, status")
+        .in("status", ["ACTIVE", "EN_REVISION", "AUDITADO"])
+
+    const statusMap = new Map<string, string>()
+    assignments?.forEach(a => {
+        const id = a.team_id || a.assigned_to
+        // Priority: EN_REVISION > ACTIVE > AUDITADO
+        if (!statusMap.has(id)) {
+            statusMap.set(id, a.status)
+        } else {
+            const current = statusMap.get(id)
+            if (a.status === "EN_REVISION") statusMap.set(id, "EN_REVISION")
+            else if (a.status === "ACTIVE" && current !== "EN_REVISION") statusMap.set(id, "ACTIVE")
+        }
+    })
 
     // Filter techs without team
     const soloTechs = technicians?.filter(t => !t.team_id) || []
@@ -93,15 +141,7 @@ export default async function ControlPage() {
                                                 <div>
                                                     <h3 className="font-bold text-lg text-foreground group-hover:text-blue-500 transition-colors">{team.name}</h3>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-xs font-medium bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded">
-                                                            Activo
-                                                        </span>
-                                                        {pendingSet.has(team.id) && (
-                                                            <span className="flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
-                                                                <AlertCircle size={10} />
-                                                                AUDITAR
-                                                            </span>
-                                                        )}
+                                                        {getStatusBadge(statusMap.get(team.id))}
                                                     </div>
                                                 </div>
                                             </div>
@@ -170,12 +210,9 @@ export default async function ControlPage() {
                                         <div>
                                             <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors">{tech.first_name} {tech.last_name}</h3>
                                             <p className="text-xs text-muted-foreground font-mono">{tech.email}</p>
-                                            {pendingSet.has(tech.id) && (
-                                                <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20 animate-pulse">
-                                                    <AlertCircle size={10} />
-                                                    PENDIENTE
-                                                </div>
-                                            )}
+                                            <div className="mt-2 inline-flex items-center gap-1">
+                                                {getStatusBadge(statusMap.get(tech.id))}
+                                            </div>
                                         </div>
                                         <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity text-primary">
                                             <ChevronRight size={18} />

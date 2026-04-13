@@ -68,7 +68,7 @@ export default async function TechnicianDashboard() {
             product:inventory_products(sku, name)
         )
     `)
-    .in("status", ["ACTIVE", "PARTIAL_RETURN"]) // Filters out RETURNED/CLOSED
+    .in("status", ["ACTIVE", "PARTIAL_RETURN", "EN_REVISION", "AUDITADO"]) // Permite ver el stock local hasta el cierre oficial
 
   // Safe OR filter construction
   if (profile.team?.id) {
