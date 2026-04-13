@@ -43,7 +43,7 @@ const productSchema = z.object({
         child_product_id: z.string(),
         quantity: z.coerce.number().min(1)
     })).default([]),
-    initial_serials: z.string().optional()
+    initial_serials: z.array(z.string()).optional()
 })
 
 interface ProductDialogProps {
@@ -55,6 +55,7 @@ interface ProductDialogProps {
 
 export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDialogProps) {
     const [loading, setLoading] = useState(false)
+    const [inputMode, setInputMode] = useState<"individual" | "masiva">("individual")
     const supabase = createClient()
 
     const [availableProducts, setAvailableProducts] = useState<Product[]>([])
@@ -85,7 +86,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
             is_bundle: false,
             requires_serial: false,
             bundle_items: [],
-            initial_serials: "",
+            initial_serials: [],
         },
     })
 
@@ -113,7 +114,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                 location: "",
                 requires_serial: false,
                 initial_stock: 0,
-                initial_serials: "",
+                initial_serials: [],
             })
         }
     }, [product, form, open])
@@ -124,9 +125,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
             // Validation for serials BEFORE creating product
             let serialsArray: string[] = []
             if (!product && values.requires_serial && values.initial_stock && values.initial_stock > 0) {
-                 serialsArray = values.initial_serials 
-                     ? values.initial_serials.split('\n').map(s => s.trim()).filter(s => s !== '')
-                     : []
+                 serialsArray = (values.initial_serials || []).slice(0, values.initial_stock).filter(s => s?.trim() !== '')
                  
                  if (serialsArray.length !== values.initial_stock) {
                       toast.error(`Ingresó ${serialsArray.length} seriales, pero el stock inicial es de ${values.initial_stock}.`)
@@ -354,26 +353,68 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                         />
 
                         {!product && form.watch("requires_serial") && (form.watch("initial_stock") || 0) > 0 && (
-                            <FormField
-                                control={form.control}
-                                name="initial_serials"
-                                render={({ field }) => (
-                                    <FormItem className="pt-2 border-t dark:border-zinc-800">
-                                        <FormLabel className="text-blue-600 dark:text-blue-400">Números de Serie (Uno por línea)</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder={`Pegue o escriba aquí los ${form.watch("initial_stock")} seriales...`}
-                                                className="min-h-[100px] max-h-[160px] font-mono resize-none border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
-                                                {...field}
+                            <div className="space-y-3 pt-2 border-t dark:border-zinc-800">
+                                <div className="flex items-center justify-between">
+                                    <FormLabel className="text-blue-600 dark:text-blue-400">Números de Serie</FormLabel>
+                                    <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-md">
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode("individual")}
+                                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${inputMode === "individual" ? "bg-white dark:bg-zinc-700 shadow-sm font-medium" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+                                        >
+                                            Cuadros
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setInputMode("masiva")}
+                                            className={`px-3 py-1 text-xs rounded-sm transition-colors ${inputMode === "masiva" ? "bg-white dark:bg-zinc-700 shadow-sm font-medium" : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300"}`}
+                                        >
+                                            Lista
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {inputMode === "individual" ? (
+                                    <div className="grid grid-cols-2 gap-3 max-h-[160px] overflow-y-auto p-1 pr-2">
+                                        {Array.from({ length: form.watch("initial_stock") || 0 }).map((_, index) => (
+                                            <FormField
+                                                key={index}
+                                                control={form.control}
+                                                name={`initial_serials.${index}`}
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder={`Serial #${index + 1}`}
+                                                                {...field}
+                                                                value={field.value || ""}
+                                                                className="h-8 border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
                                             />
-                                        </FormControl>
-                                        <p className="text-xs text-zinc-500 text-right">
-                                            {(field.value || '').split('\n').filter((l: string) => l.trim().length > 0).length} / {form.watch("initial_stock")} ingresados
-                                        </p>
-                                        <FormMessage />
-                                    </FormItem>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder={`Pegue o escriba aquí los ${form.watch("initial_stock")} seriales (Uno por línea)...`}
+                                            className="min-h-[100px] max-h-[160px] font-mono resize-none border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                            value={(form.watch("initial_serials") || []).join('\n')}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                form.setValue("initial_serials", val ? val.split('\n') : [])
+                                            }}
+                                        />
+                                    </FormControl>
                                 )}
-                            />
+                                
+                                <p className="text-xs text-zinc-500 text-right">
+                                    {(form.watch("initial_serials") || []).filter(s => s.trim() !== "").length} / {form.watch("initial_stock")} ingresados
+                                </p>
+                            </div>
                         )}
 
                         <DialogFooter>
