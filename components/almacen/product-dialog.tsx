@@ -43,7 +43,7 @@ const productSchema = z.object({
         child_product_id: z.string(),
         quantity: z.coerce.number().min(1)
     })).default([]),
-    initial_serials: z.array(z.string()).optional()
+    initial_serials: z.string().optional()
 })
 
 interface ProductDialogProps {
@@ -85,7 +85,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
             is_bundle: false,
             requires_serial: false,
             bundle_items: [],
-            initial_serials: [],
+            initial_serials: "",
         },
     })
 
@@ -113,7 +113,7 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                 location: "",
                 requires_serial: false,
                 initial_stock: 0,
-                initial_serials: [],
+                initial_serials: "",
             })
         }
     }, [product, form, open])
@@ -124,29 +124,20 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
             // Validation for serials BEFORE creating product
             let serialsArray: string[] = []
             if (!product && values.requires_serial && values.initial_stock && values.initial_stock > 0) {
-                 serialsArray = (values.initial_serials || []).slice(0, values.initial_stock).filter(s => s?.trim() !== '')
+                 serialsArray = values.initial_serials 
+                     ? values.initial_serials.split('\n').map(s => s.trim()).filter(s => s !== '')
+                     : []
+                 
                  if (serialsArray.length !== values.initial_stock) {
-                      toast.error("Debe ingresar todos los seriales para el stock inicial.")
+                      toast.error(`Ingresó ${serialsArray.length} seriales, pero el stock inicial es de ${values.initial_stock}.`)
                       setLoading(false)
                       return
                  }
                  const unique = new Set(serialsArray)
                  if (unique.size !== serialsArray.length) {
-                      toast.error("Hay seriales duplicados en la lista inicial.")
+                      toast.error("Hay seriales duplicados en la lista ingresada.")
                       setLoading(false)
                       return
-                 }
-                 
-                 // Check if serials already exist in DB across any product
-                 const { data: existing } = await supabase
-                     .from("inventory_serials")
-                     .select("serial_number")
-                     .in("serial_number", serialsArray)
-                     
-                 if (existing && existing.length > 0) {
-                     toast.error(`Los siguientes seriales ya existen: ${existing.map(e => e.serial_number).join(', ')}`)
-                     setLoading(false)
-                     return
                  }
             }
 
@@ -363,31 +354,26 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                         />
 
                         {!product && form.watch("requires_serial") && (form.watch("initial_stock") || 0) > 0 && (
-                            <div className="space-y-3 pt-2 border-t dark:border-zinc-800">
-                                <FormLabel className="text-blue-600 dark:text-blue-400">Ingrese Seriales para Stock Inicial</FormLabel>
-                                <div className="grid grid-cols-2 gap-3 max-h-[160px] overflow-y-auto p-1 pr-2">
-                                    {Array.from({ length: form.watch("initial_stock") || 0 }).map((_, index) => (
-                                        <FormField
-                                            key={index}
-                                            control={form.control}
-                                            name={`initial_serials.${index}`}
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder={`Serial #${index + 1}`}
-                                                            {...field}
-                                                            value={field.value || ""}
-                                                            className="h-8 border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
+                            <FormField
+                                control={form.control}
+                                name="initial_serials"
+                                render={({ field }) => (
+                                    <FormItem className="pt-2 border-t dark:border-zinc-800">
+                                        <FormLabel className="text-blue-600 dark:text-blue-400">Números de Serie (Uno por línea)</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder={`Pegue o escriba aquí los ${form.watch("initial_stock")} seriales...`}
+                                                className="min-h-[100px] max-h-[160px] font-mono resize-none border-blue-200 dark:border-blue-900 focus-visible:ring-blue-500 bg-blue-50/30 dark:bg-blue-900/10"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <p className="text-xs text-zinc-500 text-right">
+                                            {(field.value || '').split('\n').filter((l: string) => l.trim().length > 0).length} / {form.watch("initial_stock")} ingresados
+                                        </p>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         )}
 
                         <DialogFooter>
