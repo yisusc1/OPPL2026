@@ -203,7 +203,7 @@ export function BundleAssemblyDialog({ open, onOpenChange, product, onSave }: Bu
                                 <div key={item.id} className="flex items-center justify-between text-sm">
                                     <div className="flex flex-col">
                                         <span className="font-medium">{item.child_product.name}</span>
-                                        <span className="text-zinc-500 dark:text-muted-foreground text-xs">SKU: {item.child_product.sku}</span>
+                                        <span className="text-zinc-500 dark:text-muted-foreground text-xs">Cód: {item.child_product.sku}</span>
                                     </div>
                                     <div className="text-right">
                                         <div className={hasStock ? "text-green-600 dark:text-emerald-500" : "text-red-600 dark:text-red-500 font-bold"}>

@@ -191,7 +191,7 @@ export default async function WarehouseDashboard() {
                                         <div key={item.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                                             <div className="flex flex-col">
                                                 <span className="font-semibold text-foreground">{item.name}</span>
-                                                <span className="text-xs text-muted-foreground font-mono">SKU: {item.sku}</span>
+                                                <span className="text-xs text-muted-foreground font-mono">Cód: {item.sku}</span>
                                             </div>
                                             <div className="text-right">
                                                 <span className="font-bold text-amber-500 text-lg">{item.current_stock}</span>

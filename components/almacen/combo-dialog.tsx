@@ -30,7 +30,7 @@ import { toast } from "sonner"
 import type { Product } from "@/app/almacen/productos/page"
 
 const comboSchema = z.object({
-    sku: z.string().min(2, "El SKU debe tener al menos 2 caracteres"),
+    sku: z.string().min(2, "El código debe tener al menos 2 caracteres"),
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
     description: z.string().optional(),
     category: z.string().optional(),
@@ -222,9 +222,9 @@ export function ComboDialog({ open, onOpenChange, product, onSave }: ComboDialog
                                 name="sku"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>SKU / Código</FormLabel>
+                                        <FormLabel>Código Interno</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="CMB-001" {...field} />
+                                            <Input placeholder="Ej. COMB-001" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -305,7 +305,7 @@ export function ComboDialog({ open, onOpenChange, product, onSave }: ComboDialog
                                                     <SelectContent>
                                                         {availableProducts.map((p) => (
                                                             <SelectItem key={p.id} value={p.id}>
-                                                                {p.name} (SKU: {p.sku})
+                                                                {p.name} (Cód: {p.sku})
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>

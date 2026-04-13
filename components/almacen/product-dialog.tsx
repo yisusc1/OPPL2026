@@ -30,7 +30,7 @@ import { toast } from "sonner"
 import type { Product } from "@/app/almacen/productos/page"
 
 const productSchema = z.object({
-    sku: z.string().min(2, "El SKU debe tener al menos 2 caracteres"),
+    sku: z.string().min(2, "El código debe tener al menos 2 caracteres"),
     name: z.string().min(3, "El nombre debe tener al menos 3 caracteres"),
     description: z.string().optional(),
     category: z.string().optional(),
@@ -156,6 +156,23 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
 
                 if (error) throw error
                 productId = data.id
+
+                // IF initial_stock was provided and it's > 0 (for non-serialized), insert transaction
+                if (!values.requires_serial && values.initial_stock && values.initial_stock > 0) {
+                    const { data: userData } = await supabase.auth.getUser()
+                    
+                    if (userData.user) {
+                        await supabase.from("inventory_transactions").insert({
+                            product_id: productId,
+                            type: 'IN',
+                            quantity: values.initial_stock,
+                            previous_stock: 0,
+                            new_stock: values.initial_stock,
+                            reason: 'STOCK INICIAL',
+                            user_id: userData.user.id
+                        })
+                    }
+                }
             }
 
             toast.success(product ? "Producto actualizado" : "Producto creado")
@@ -185,9 +202,9 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                                 name="sku"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>SKU / Código</FormLabel>
+                                        <FormLabel>Código Interno</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="COD-001" {...field} />
+                                            <Input placeholder="Ej. ONU-001" {...field} />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -288,19 +305,30 @@ export function ProductDialog({ open, onOpenChange, product, onSave }: ProductDi
                             )}
                         />
 
-                        <FormField
-                            control={form.control}
-                            name="initial_stock"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Stock Inicial</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" {...field} value={(field.value as number) ?? ''} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {!form.watch("requires_serial") ? (
+                            <FormField
+                                control={form.control}
+                                name="initial_stock"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Stock Inicial</FormLabel>
+                                        <FormControl>
+                                            <Input type="number" {...field} value={(field.value as number) ?? ''} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        ) : (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md border border-blue-100 dark:border-blue-800/50">
+                                <p className="text-sm text-blue-800 dark:text-blue-400 font-medium">
+                                    Productos Serializados
+                                </p>
+                                <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">
+                                    Para agregar inventario de este producto y capturar sus números de serie, primero guarde el producto y luego utilice la opción <strong>"Movimiento Stock" (Entrada)</strong> desde el listado general.
+                                </p>
+                            </div>
+                        )}
 
                         <DialogFooter>
                             <Button type="submit" disabled={loading}>

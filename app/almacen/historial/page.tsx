@@ -249,7 +249,7 @@ export default function HistoryPage() {
                                                     {tx.inventory_products?.name || "Producto Eliminado"}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">
-                                                    SKU: {tx.inventory_products?.sku || "?"}
+                                                    Cód: {tx.inventory_products?.sku || "?"}
                                                 </span>
                                             </div>
                                         </TableCell>

@@ -249,7 +249,7 @@ export default function ProductsPage() {
                                     <TableCell className="pl-6">
                                         <div className="flex flex-col">
                                             <span className="font-semibold text-foreground">{product.name}</span>
-                                            <span className="text-xs text-mono text-muted-foreground">Código: {product.sku}</span>
+                                            <span className="text-xs text-mono text-muted-foreground">Cód: {product.sku}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>

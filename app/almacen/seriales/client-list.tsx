@@ -30,7 +30,7 @@ export function SerialListClient({ serials }: { serials: any[] }) {
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                     <Input 
-                        placeholder="Buscar por serial, SKU o producto..." 
+                        placeholder="Buscar por serial, código o producto..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 bg-background/50 border-border/50 focus-visible:ring-emerald-500/20"
@@ -49,7 +49,7 @@ export function SerialListClient({ serials }: { serials: any[] }) {
                                 <div>
                                     <p className="font-bold text-foreground font-mono text-lg tracking-wide">{serial.serial_number}</p>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-xs font-bold text-blue-500">{serial.product?.sku}</span>
+                                        <span className="text-xs font-bold text-blue-500">Cód: {serial.product?.sku}</span>
                                         <span className="text-xs text-muted-foreground">•</span>
                                         <span className="text-xs text-muted-foreground">{serial.product?.name}</span>
                                     </div>
