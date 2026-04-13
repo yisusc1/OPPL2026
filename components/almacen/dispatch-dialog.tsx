@@ -353,14 +353,9 @@ export function DispatchDialog({ open, onOpenChange, onSave, title = "Nueva Sali
             }
 
             // 2. Call Atomic RPC
-            const { data, error } = await supabase.rpc('create_dispatch_transaction_v2', payload)
+            const { data, error } = await supabase.rpc('create_dispatch_transaction', payload)
 
             if (error) throw error
-
-            // 2. Update Product
-            await supabase
-                .from("inventory_products")
-
 
             // 3. Save Template if requested
             // 3. Save Template if requested

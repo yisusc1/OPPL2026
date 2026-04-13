@@ -60,7 +60,7 @@ export function RecepcionClient({ assignment }: { assignment: any }) {
                         <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded uppercase flex items-center gap-1">
                             <ShieldCheck size={12} /> Auditado
                         </span>
-                        <span className="text-xs text-muted-foreground font-mono">#{assignment.reference_number || assignment.id.substring(0, 8)}</span>
+                        <span className="text-xs text-muted-foreground font-mono">#{assignment.code || assignment.id.substring(0, 8)}</span>
                     </div>
                     <h3 className="text-lg font-bold">{title}</h3>
                 </div>

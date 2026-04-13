@@ -22,7 +22,7 @@ export default async function RecepcionPage() {
             id,
             created_at,
             status,
-            reference_number,
+            code,
             assigned_to,
             team_id,
             team:teams(id, name),

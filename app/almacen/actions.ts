@@ -96,7 +96,7 @@ export async function closeAssignmentWithMovement(assignmentId: string, returnIt
             .insert({
                 assignment_id: assignmentId,
                 notes: "Cierre de combo y recepción final",
-                received_by: user?.id
+                user_id: user?.id
             })
             .select()
             .single()
@@ -123,7 +123,7 @@ export async function closeAssignmentWithMovement(assignmentId: string, returnIt
                     product_id: item.productId,
                     type: 'IN', // Receiving returned unused materials
                     quantity: item.quantity,
-                    reason: `Retorno de Combo: ${assignment.reference_number || assignmentId.substring(0, 8)}`,
+                    reason: `Retorno de Combo: ${assignment.code || assignmentId.substring(0, 8)}`,
                     received_by: user?.email || 'Almacen',
                     receiver_id: user?.id,
                     serials: item.serials || []
