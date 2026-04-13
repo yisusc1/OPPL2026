@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Package, ArrowRight, History, Plus, AlertTriangle, ArrowUpRight, ArrowDownRight, ArrowLeft, Search, Box, QrCode, CheckCircle2 } from "lucide-react"
+import { Package, ArrowRight, History, Plus, AlertTriangle, ArrowUpRight, ArrowDownRight, ArrowLeft, Search, Box, QrCode, CheckCircle2, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { DashboardActions } from "@/components/almacen/dashboard-actions"
 import { RecentTransactions } from "@/components/almacen/recent-transactions"
