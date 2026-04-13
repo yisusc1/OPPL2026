@@ -10,7 +10,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { History, ArrowUpRight, ArrowDownRight, Package, User, Search, ArrowLeft, Truck } from "lucide-react"
@@ -160,38 +162,28 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="p-8 space-y-6 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-                <div className="flex items-center gap-3">
-                    <Link href="/almacen">
-                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl mr-2 bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                    <div className="p-3 bg-zinc-900 rounded-xl shadow-lg shadow-zinc-900/10">
-                        <History className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Historial de Movimientos</h1>
-                        <p className="text-zinc-500">Registro detallado de entradas y salidas</p>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap gap-2 items-center">
+        <PremiumPageLayout 
+            title="Historial de Movimientos" 
+            description="Registro detallado de entradas y salidas"
+            backUrl="/almacen"
+            backLabel="Volver a Almacén"
+        >
+            <div className="space-y-6">
+                <div className="flex flex-wrap gap-2 items-center justify-end mb-6">
                     <Input
                         type="date"
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value)}
-                        className="w-[160px] bg-white"
+                        className="w-[160px] bg-background"
                     />
                     <Input
                         placeholder="Buscar producto..."
                         value={productFilter}
                         onChange={(e) => setProductFilter(e.target.value)}
-                        className="w-[200px] bg-white"
+                        className="w-[200px] bg-background"
                     />
                     <Select value={typeFilter} onValueChange={setTypeFilter}>
-                        <SelectTrigger className="w-[130px] bg-white">
+                        <SelectTrigger className="w-[130px] bg-background">
                             <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                         <SelectContent>
@@ -201,7 +193,7 @@ export default function HistoryPage() {
                             <SelectItem value="ADJUST">Ajustes</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={() => loadTransactions()} variant="default" size="icon" className="bg-zinc-900 text-white hover:bg-zinc-800">
+                    <Button onClick={() => loadTransactions()} variant="default" size="icon">
                         <Search size={16} />
                     </Button>
                     {(dateFilter || productFilter || typeFilter !== "ALL") && (
@@ -214,50 +206,49 @@ export default function HistoryPage() {
                         </Button>
                     )}
                 </div>
-            </div>
 
-            <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[24px]">
-                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100">
-                    <CardTitle>Últimos Movimientos</CardTitle>
+            <PremiumCard className="p-0 overflow-hidden" wrapperClassName="h-auto">
+                <CardHeader className="bg-muted/50 border-b border-border py-4 px-6">
+                    <CardTitle className="text-foreground">Últimos Movimientos</CardTitle>
                     <CardDescription>Mostrando los últimos 100 registros</CardDescription>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-zinc-50">
-                            <TableRow>
-                                <TableHead className="pl-6">Fecha</TableHead>
-                                <TableHead>Producto</TableHead>
-                                <TableHead>Tipo</TableHead>
-                                <TableHead>Detalle</TableHead>
-                                <TableHead className="text-right pr-6">Stock Resultante</TableHead>
+                        <TableHeader className="bg-muted/30">
+                            <TableRow className="border-border hover:bg-transparent">
+                                <TableHead className="pl-6 text-muted-foreground">Fecha</TableHead>
+                                <TableHead className="text-muted-foreground">Producto</TableHead>
+                                <TableHead className="text-muted-foreground">Tipo</TableHead>
+                                <TableHead className="text-muted-foreground">Detalle</TableHead>
+                                <TableHead className="text-right pr-6 text-muted-foreground">Stock Resultante</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-32 text-zinc-500">
+                                    <TableCell colSpan={5} className="text-center h-32 text-muted-foreground">
                                         Cargando historial...
                                     </TableCell>
                                 </TableRow>
                             ) : transactions.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center h-32 text-zinc-500">
+                                    <TableCell colSpan={5} className="text-center h-32 text-muted-foreground">
                                         No hay movimientos registrados.
                                     </TableCell>
                                 </TableRow>
                             ) : transactions.map((tx) => {
                                 const config = getTypeConfig(tx.type)
                                 return (
-                                    <TableRow key={tx.id} className="hover:bg-zinc-50/50 transition-colors">
-                                        <TableCell className="pl-6 text-zinc-500 text-sm">
+                                    <TableRow key={tx.id} className="border-border hover:bg-muted/50 transition-colors">
+                                        <TableCell className="pl-6 text-muted-foreground text-sm">
                                             {new Date(tx.created_at).toLocaleString()}
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-zinc-900">
+                                                <span className="font-medium text-foreground">
                                                     {tx.inventory_products?.name || "Producto Eliminado"}
                                                 </span>
-                                                <span className="text-xs text-zinc-500">
+                                                <span className="text-xs text-muted-foreground">
                                                     SKU: {tx.inventory_products?.sku || "?"}
                                                 </span>
                                             </div>
@@ -270,29 +261,29 @@ export default function HistoryPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col text-sm">
-                                                <span className="font-medium text-zinc-700">
+                                                <span className="font-medium text-foreground">
                                                     {tx.type === 'IN' ? '+' : tx.type === 'OUT' ? '-' : ''}{tx.quantity} unidades
                                                 </span>
-                                                <span className="text-zinc-500 text-xs italic">
+                                                <span className="text-muted-foreground text-xs italic">
                                                     {tx.reason}
                                                 </span>
                                                 {tx.receiver ? (
-                                                    <div className="mt-1 pt-1 border-t border-zinc-100 flex flex-col gap-0.5">
-                                                        <span className="text-xs font-medium text-zinc-600">
+                                                    <div className="mt-1 pt-1 border-t border-border flex flex-col gap-0.5">
+                                                        <span className="text-xs font-medium text-muted-foreground">
                                                             Entregado a: {tx.receiver.first_name} {tx.receiver.last_name}
                                                         </span>
-                                                        <span className="text-[10px] text-zinc-400">
+                                                        <span className="text-[10px] text-muted-foreground/70">
                                                             {tx.receiver.department} • {tx.receiver.job_title}
                                                         </span>
                                                     </div>
                                                 ) : tx.received_by ? (
-                                                    <div className="mt-1 pt-1 border-t border-zinc-100 flex flex-col gap-0.5">
-                                                        <span className="text-xs font-medium text-zinc-600 flex items-center gap-1">
+                                                    <div className="mt-1 pt-1 border-t border-border flex flex-col gap-0.5">
+                                                        <span className="text-xs font-medium text-orange-500 flex items-center gap-1">
                                                             <Truck size={12} className="text-orange-500" />
                                                             Entregado a: {tx.received_by}
                                                         </span>
                                                         {tx.receiver_id && (
-                                                            <span className="text-[10px] text-zinc-400 bg-zinc-100 px-1 rounded w-fit">
+                                                            <span className="text-[10px] text-muted-foreground bg-muted px-1 rounded w-fit">
                                                                 ID: {tx.receiver_id}
                                                             </span>
                                                         )}
@@ -300,7 +291,7 @@ export default function HistoryPage() {
                                                 ) : null}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-right pr-6 font-mono text-zinc-700">
+                                        <TableCell className="text-right pr-6 font-mono text-foreground">
                                             {tx.new_stock}
                                         </TableCell>
                                     </TableRow>
@@ -309,7 +300,8 @@ export default function HistoryPage() {
                         </TableBody>
                     </Table>
                 </CardContent>
-            </Card>
-        </div>
+            </PremiumCard>
+            </div>
+        </PremiumPageLayout>
     )
 }

@@ -12,6 +12,8 @@ interface PremiumPageLayoutProps {
     title?: string;
     description?: string;
     showBack?: boolean;
+    backUrl?: string;
+    backLabel?: string;
 }
 
 export function PremiumPageLayout({
@@ -19,6 +21,8 @@ export function PremiumPageLayout({
     title,
     description,
     showBack = true,
+    backUrl = "/",
+    backLabel = "Volver al inicio",
 }: PremiumPageLayoutProps) {
     const router = useRouter();
 
@@ -29,15 +33,17 @@ export function PremiumPageLayout({
             <div className="sticky top-0 z-50 flex items-center justify-between px-4 h-14 bg-background/80 backdrop-blur-md border-b border-border/40">
                 <div className="flex items-center">
                     <SidebarTrigger className="mr-2" />
-                    <Button
-                        variant="ghost"
-                        onClick={() => router.push("/")}
-                        className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
-                        aria-label="Volver al inicio"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="hidden sm:inline">Volver al inicio</span>
-                    </Button>
+                    {showBack && (
+                        <Button
+                            variant="ghost"
+                            onClick={() => router.push(backUrl)}
+                            className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
+                            aria-label={backLabel}
+                        >
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="hidden sm:inline">{backLabel}</span>
+                        </Button>
+                    )}
                 </div>
 
                 <ModeToggle />

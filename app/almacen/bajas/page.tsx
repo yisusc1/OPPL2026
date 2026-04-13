@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, ArrowLeft, Package, AlertOctagon, RefreshCw, Trash2 } from "lucide-react"
@@ -39,32 +41,26 @@ export default function BajasPage() {
     )
 
     return (
-        <div className="p-8 space-y-8 max-w-7xl mx-auto min-h-screen pb-20">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <Link href="/almacen">
-                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl mr-2 bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                    <div>
-                        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Bajas y Garantías</h1>
-                        <p className="text-zinc-500">Gestión de productos dañados, perdidos o para descarte</p>
-                    </div>
+        <PremiumPageLayout 
+            title="Bajas y Garantías" 
+            description="Gestión de productos dañados, perdidos o para descarte"
+            backUrl="/almacen"
+            backLabel="Volver a Almacén"
+        >
+            <div className="space-y-6 pb-20">
+                <div className="flex justify-end gap-2 mb-6">
+                    <Button variant="outline" onClick={loadData} disabled={loading}>
+                        <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                        Actualizar
+                    </Button>
                 </div>
-                <Button variant="outline" onClick={loadData} disabled={loading}>
-                    <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                    Actualizar
-                </Button>
-            </div>
 
             {/* Search */}
             <div className="relative max-w-md">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                     placeholder="Buscar producto..."
-                    className="pl-9"
+                    className="pl-9 bg-background"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -73,54 +69,55 @@ export default function BajasPage() {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filtered.map((product) => (
-                    <Card key={product.product_id}
-                        className="group overflow-hidden border-zinc-200 shadow-sm hover:shadow-md transition-all cursor-pointer bg-red-50/10 border-l-4 border-l-red-500"
+                    <PremiumCard key={product.product_id}
+                        wrapperClassName="cursor-pointer group"
+                        className="border-destructive/20 shadow-sm transition-all overflow-hidden bg-destructive/5 hover:bg-destructive/10 !border-l-4 !border-l-destructive"
                         onClick={() => setSelectedProduct(product)}
                     >
                         <CardHeader className="pb-2">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <Badge variant="outline" className="mb-2 border-red-200 text-red-700 bg-red-50">
+                                    <Badge variant="outline" className="mb-2 border-destructive/20 text-destructive bg-destructive/10">
                                         {product.product_sku}
                                     </Badge>
-                                    <CardTitle className="text-lg leading-tight">{product.product_name}</CardTitle>
+                                    <CardTitle className="text-lg leading-tight text-foreground">{product.product_name}</CardTitle>
                                 </div>
-                                <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center shrink-0 text-red-600">
+                                <div className="h-10 w-10 bg-destructive/10 rounded-full flex items-center justify-center shrink-0 text-destructive">
                                     <AlertOctagon size={20} />
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center justify-between mt-4">
-                                <div className="text-sm text-zinc-500">
+                                <div className="text-sm text-muted-foreground">
                                     Total Afectado
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <div className="text-sm font-medium text-red-600">
+                                    <div className="text-sm font-medium text-destructive">
                                         {Number(product.damaged_count) + Number(product.lost_count)} Total
                                     </div>
-                                    <div className="text-xs text-zinc-400">
+                                    <div className="text-xs text-muted-foreground/70">
                                         {Number(product.damaged_count)} Dañados • {Number(product.lost_count)} Perdidos
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-4 pt-4 border-t border-zinc-100 flex items-center justify-between text-xs text-zinc-400">
+                            <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                     <Package size={12} />
                                     {product.requires_serial ? "Serializado" : "Control Numérico"}
                                 </span>
-                                <span className="text-red-500 font-medium flex items-center gap-1">
+                                <span className="text-destructive font-medium flex items-center gap-1">
                                     Procesar Salida <ArrowLeft className="rotate-180" size={10} />
                                 </span>
                             </div>
                         </CardContent>
-                    </Card>
+                    </PremiumCard>
                 ))}
 
                 {filtered.length === 0 && !loading && (
-                    <div className="col-span-full text-center py-12 text-zinc-400">
-                        <div className="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="col-span-full text-center py-12 text-muted-foreground">
+                        <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                             <Package className="opacity-50" />
                         </div>
                         <p>No hay productos reportados como dañados.</p>
@@ -141,6 +138,7 @@ export default function BajasPage() {
                     }}
                 />
             )}
-        </div>
+            </div>
+        </PremiumPageLayout>
     )
 }

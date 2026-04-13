@@ -14,7 +14,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Package, Search, Plus, Filter, MoreHorizontal, Edit, Trash2, ArrowUpDown, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { PremiumCard } from "@/components/ui/premium-card"
+import { PremiumPageLayout } from "@/components/ui/premium-page-layout"
 import { Badge } from "@/components/ui/badge"
 import {
     DropdownMenu,
@@ -171,47 +173,37 @@ export default function ProductsPage() {
     })
 
     return (
-        <div className="p-8 space-y-6 max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                    <Link href="/almacen">
-                        <Button variant="outline" size="icon" className="h-10 w-10 rounded-xl mr-2 bg-white border-zinc-200 text-zinc-700 hover:bg-zinc-50">
-                            <ArrowLeft size={20} />
-                        </Button>
-                    </Link>
-                    <div className="p-3 bg-zinc-900 rounded-xl shadow-lg shadow-zinc-900/10">
-                        <Package className="text-white" size={24} />
-                    </div>
-                    <div>
-                        <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Inventario de Productos</h1>
-                        <p className="text-zinc-500">Gestiona el catálogo y stock de productos</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <Button onClick={() => setIsDispatchDialogOpen(true)} className="gap-2 bg-green-600 text-white hover:bg-green-700">
+        <PremiumPageLayout 
+            title="Inventario de Productos" 
+            description="Gestiona el catálogo y stock de productos"
+            backUrl="/almacen"
+            backLabel="Volver a Almacén"
+        >
+            <div className="space-y-6">
+                <div className="flex justify-end gap-2 mb-6">
+                    <Button onClick={() => setIsDispatchDialogOpen(true)} className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700">
                         <Package size={16} />
-                        Asinar Diario
+                        Asignar Diario
                     </Button>
 
-                    <Button onClick={handleCreateProduct} className="gap-2 bg-zinc-900 text-white hover:bg-zinc-800">
+                    <Button onClick={handleCreateProduct} variant="default" className="gap-2">
                         <Plus size={16} />
                         Nuevo Producto
                     </Button>
                 </div>
-            </div>
 
-            <Card className="border-zinc-200 shadow-sm overflow-hidden rounded-[24px]">
-                <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 flex flex-row items-center justify-between space-y-0 pb-4">
+            <PremiumCard className="p-0 overflow-hidden" wrapperClassName="h-auto">
+                <CardHeader className="bg-muted/50 border-b border-border flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0 py-4 px-6">
                     <div className="space-y-1">
-                        <CardTitle>Listado de Items</CardTitle>
+                        <CardTitle className="text-foreground">Listado de Items</CardTitle>
                         <CardDescription>Total: {filteredProducts.length} productos registrados</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="relative w-64">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-zinc-400" />
+                        <div className="relative w-full md:w-64">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Buscar por nombre o Código..."
-                                className="pl-8 bg-white"
+                                placeholder="Buscar por código..."
+                                className="pl-9 bg-background"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -227,63 +219,63 @@ export default function ProductsPage() {
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-zinc-50">
-                            <TableRow>
-                                <TableHead className="pl-6">Producto</TableHead>
-                                <TableHead>Categoría</TableHead>
-                                <TableHead>Ubicación</TableHead>
-                                <TableHead className="text-right">Stock Actual</TableHead>
-                                <TableHead className="text-right">En Baja / Garantía</TableHead>
-                                <TableHead className="text-right pr-6">Acciones</TableHead>
+                        <TableHeader className="bg-muted/30">
+                            <TableRow className="border-border hover:bg-transparent">
+                                <TableHead className="pl-6 text-muted-foreground">Producto</TableHead>
+                                <TableHead className="text-muted-foreground">Categoría</TableHead>
+                                <TableHead className="text-muted-foreground">Ubicación</TableHead>
+                                <TableHead className="text-right text-muted-foreground">Stock Actual</TableHead>
+                                <TableHead className="text-right text-muted-foreground">En Baja / Garantía</TableHead>
+                                <TableHead className="text-right pr-6 text-muted-foreground">Acciones</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center h-32 text-zinc-500">
+                                    <TableCell colSpan={6} className="text-center h-32 text-muted-foreground">
                                         Cargando productos...
                                     </TableCell>
                                 </TableRow>
                             ) : filteredProducts.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center h-32 text-zinc-500">
+                                    <TableCell colSpan={6} className="text-center h-32 text-muted-foreground">
                                         No se encontraron productos.
                                     </TableCell>
                                 </TableRow>
                             ) : filteredProducts.map((product) => (
-                                <TableRow key={product.id} className="hover:bg-zinc-50/50 transition-colors">
+                                <TableRow key={product.id} className="border-border hover:bg-muted/50 transition-colors">
                                     <TableCell className="pl-6">
                                         <div className="flex flex-col">
-                                            <span className="font-semibold text-zinc-900">{product.name}</span>
-                                            <span className="text-xs text-mono text-zinc-500">Código: {product.sku}</span>
+                                            <span className="font-semibold text-foreground">{product.name}</span>
+                                            <span className="text-xs text-mono text-muted-foreground">Código: {product.sku}</span>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="secondary" className="font-normal capitalize">
+                                        <Badge variant="secondary" className="font-normal capitalize bg-muted text-foreground">
                                             {product.category || "General"}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="text-sm text-zinc-600">{product.location || "-"}</span>
+                                        <span className="text-sm text-muted-foreground">{product.location || "-"}</span>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        <div className={`font-bold ${product.current_stock < product.min_stock ? "text-orange-600" : "text-zinc-900"}`}>
+                                        <div className={`font-bold ${product.current_stock < product.min_stock ? "text-orange-500" : "text-foreground"}`}>
                                             {product.current_stock}
                                         </div>
                                         {product.current_stock < product.min_stock && (
-                                            <span className="text-[10px] text-orange-600 font-medium block mt-0.5">Bajo Stock</span>
+                                            <span className="text-[10px] text-orange-500 font-medium block mt-0.5">Bajo Stock</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right">
                                         {(product.pending_bajas || 0) > 0 ? (
-                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-100">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
                                                 <span className="font-bold text-sm">{product.pending_bajas}</span>
                                                 <span className="text-[10px] uppercase font-medium">Afectados</span>
                                             </div>
                                         ) : (
-                                            <span className="text-zinc-300">-</span>
+                                            <span className="text-muted-foreground/30">-</span>
                                         )}
                                     </TableCell>
                                     <TableCell className="text-right pr-6">
@@ -327,7 +319,7 @@ export default function ProductsPage() {
                         </TableBody>
                     </Table>
                 </CardContent>
-            </Card>
+            </PremiumCard>
 
             <ProductDialog
                 open={isProductDialogOpen}
@@ -373,7 +365,8 @@ export default function ProductsPage() {
                     />
                 )
             }
-        </div >
+            </div>
+        </PremiumPageLayout>
     )
 }
 
