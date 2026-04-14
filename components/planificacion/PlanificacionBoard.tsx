@@ -11,12 +11,12 @@ import {
     getEquipos, crearEquipo, actualizarEquipo, eliminarEquipo,
     getSolicitudesPendientes, getSolicitudesPlanificadas,
     agendarSolicitud, moverSolicitud, actualizarEstatus,
-    transferirTecnico, getTecnicos
+    transferirTecnico, getTecnicos, designarLider
 } from '@/app/actions/planificacion';
 import type { Equipo, SolicitudPlanificacion, EstatusPlanificacion, TecnicoDisponible } from '@/lib/types/planificacion';
 import { format, addDays, subDays } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X, Bell, BellRing } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Users, Inbox, Loader2, Settings, Trash2, Pencil, ArrowRightLeft, Check, X, Bell, BellRing, Crown } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
     DropdownMenu,
@@ -423,6 +423,16 @@ export function PlanificacionBoard() {
         }
     };
 
+    const handleDesignarLider = async (equipoId: number, userId: string) => {
+        const res = await designarLider(equipoId, userId);
+        if (res.success) {
+            toast({ title: 'Líder designado', description: 'El material se ligará a este técnico.' });
+            await loadData(false);
+        } else {
+            toast({ title: 'No se pudo cambiar el líder', description: res.error, variant: 'destructive', duration: 8000 });
+        }
+    };
+
     // ── Grab to Pan Horizontal Scroll ────────────────────────
     useEffect(() => {
         const board = boardRef.current;
@@ -683,34 +693,60 @@ export function PlanificacionBoard() {
                                                                         {team.miembros && team.miembros.map(m => {
                                                                             if (!m.profile) return null;
                                                                             const fullName = `${m.profile.first_name} ${m.profile.last_name}`.trim();
+                                                                            const isLeader = team.leader_id === m.user_id;
                                                                             return (
-                                                                                <div key={m.id} className="inline-flex items-center bg-zinc-100 dark:bg-white/5 bg-opacity-50 rounded px-1 group/tec">
-                                                                                    <span className="text-[10px] text-zinc-600 dark:text-zinc-400 font-medium">
+                                                                                <div key={m.id} className={cn(
+                                                                                    "inline-flex items-center bg-opacity-50 rounded px-1 group/tec",
+                                                                                    isLeader 
+                                                                                        ? "bg-amber-100 dark:bg-amber-500/10 ring-1 ring-amber-300 dark:ring-amber-500/30" 
+                                                                                        : "bg-zinc-100 dark:bg-white/5"
+                                                                                )}>
+                                                                                    {isLeader && (
+                                                                                        <Crown className="w-2.5 h-2.5 text-amber-500 mr-0.5 shrink-0" />
+                                                                                    )}
+                                                                                    <span className={cn(
+                                                                                        "text-[10px] font-medium",
+                                                                                        isLeader ? "text-amber-700 dark:text-amber-400 font-bold" : "text-zinc-600 dark:text-zinc-400"
+                                                                                    )}>
                                                                                         {fullName}
                                                                                     </span>
-                                                                                    {equipos.length > 1 && (
-                                                                                        <DropdownMenu>
-                                                                                            <DropdownMenuTrigger asChild>
-                                                                                                <button className="ml-1 text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 opacity-0 group-hover/tec:opacity-100 transition-opacity focus:outline-none" title="Transferir Técnico">
-                                                                                                    <ArrowRightLeft className="w-2.5 h-2.5" />
-                                                                                                </button>
-                                                                                            </DropdownMenuTrigger>
-                                                                                            <DropdownMenuContent align="start" className="w-[180px]">
-                                                                                                <div className="px-2 py-1.5 text-xs font-bold uppercase text-zinc-500 mb-1 border-b border-zinc-100 dark:border-white/5">
-                                                                                                    Mover a...
-                                                                                                </div>
-                                                                                                {equipos.filter(eq => eq.id !== team.id).map(destinationTeam => (
-                                                                                                    <DropdownMenuItem 
-                                                                                                        key={destinationTeam.id}
-                                                                                                        onClick={() => setTransferData({ userId: m.user_id, userName: fullName, newTeam: destinationTeam })}
-                                                                                                        className="text-xs cursor-pointer focus:bg-blue-50 focus:text-blue-600 dark:focus:bg-blue-500/10 dark:focus:text-blue-400"
+                                                                                    <DropdownMenu>
+                                                                                        <DropdownMenuTrigger asChild>
+                                                                                            <button className="ml-1 text-zinc-400 hover:text-blue-500 dark:hover:text-blue-400 opacity-0 group-hover/tec:opacity-100 transition-opacity focus:outline-none" title="Acciones">
+                                                                                                <ArrowRightLeft className="w-2.5 h-2.5" />
+                                                                                            </button>
+                                                                                        </DropdownMenuTrigger>
+                                                                                        <DropdownMenuContent align="start" className="w-[200px]">
+                                                                                            {!isLeader && (
+                                                                                                <>
+                                                                                                    <DropdownMenuItem
+                                                                                                        onClick={() => handleDesignarLider(team.id, m.user_id)}
+                                                                                                        className="text-xs cursor-pointer focus:bg-amber-50 focus:text-amber-600 dark:focus:bg-amber-500/10 dark:focus:text-amber-400"
                                                                                                     >
-                                                                                                        {destinationTeam.nombre}
+                                                                                                        <Crown className="w-3 h-3 mr-2 text-amber-500" />
+                                                                                                        Designar Líder
                                                                                                     </DropdownMenuItem>
-                                                                                                ))}
-                                                                                            </DropdownMenuContent>
-                                                                                        </DropdownMenu>
-                                                                                    )}
+                                                                                                    <div className="h-px bg-zinc-100 dark:bg-white/5 my-1" />
+                                                                                                </>
+                                                                                            )}
+                                                                                            {equipos.length > 1 && (
+                                                                                                <>
+                                                                                                    <div className="px-2 py-1.5 text-[10px] font-bold uppercase text-zinc-500 border-b border-zinc-100 dark:border-white/5">
+                                                                                                        Mover a...
+                                                                                                    </div>
+                                                                                                    {equipos.filter(eq => eq.id !== team.id).map(destinationTeam => (
+                                                                                                        <DropdownMenuItem 
+                                                                                                            key={destinationTeam.id}
+                                                                                                            onClick={() => setTransferData({ userId: m.user_id, userName: fullName, newTeam: destinationTeam })}
+                                                                                                            className="text-xs cursor-pointer focus:bg-blue-50 focus:text-blue-600 dark:focus:bg-blue-500/10 dark:focus:text-blue-400"
+                                                                                                        >
+                                                                                                            {destinationTeam.nombre}
+                                                                                                        </DropdownMenuItem>
+                                                                                                    ))}
+                                                                                                </>
+                                                                                            )}
+                                                                                        </DropdownMenuContent>
+                                                                                    </DropdownMenu>
                                                                                 </div>
                                                                             );
                                                                         })}

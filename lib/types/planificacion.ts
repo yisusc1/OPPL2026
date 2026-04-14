@@ -4,6 +4,7 @@ export interface Equipo {
     id: number;
     nombre: string;
     zona_asignada?: string | null;
+    leader_id?: string | null;
     activo: boolean;
     created_at?: string;
     miembros?: EquipoMiembro[];

@@ -33,7 +33,7 @@ export default async function TechnicianDashboard() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  // 2. Get Profile & Team
+  // 2. Get Profile & Team (Legacy teams for inventory compatibility)
   const { data: profile } = await supabase
     .from("profiles")
     .select(`
@@ -45,7 +45,29 @@ export default async function TechnicianDashboard() {
 
   if (!profile) return <div>Error cargando perfil</div>
 
-  // 3. Determine Partner (if in team)
+  // 2b. Get Planificación Team (equipos system)
+  const { data: planMembership } = await supabase
+    .from("equipo_miembros")
+    .select("equipo_id, equipo:equipos(id, nombre, leader_id)")
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+  const planTeam = (planMembership as any)?.equipo || null
+  const isLeader = planTeam?.leader_id === user.id
+
+  // Get planificación team members for display
+  let planTeamMembers: { id: string; first_name: string; last_name: string }[] = []
+  if (planTeam) {
+    const { data: planMembers } = await supabase
+      .from("equipo_miembros")
+      .select("user_id, profile:profiles(id, first_name, last_name)")
+      .eq("equipo_id", planTeam.id)
+
+    planTeamMembers = (planMembers || []).map((m: any) => m.profile).filter(Boolean)
+  }
+  const planPartner = planTeamMembers.find(p => p.id !== user.id)
+
+  // 3. Determine Partner (if in team) — keep legacy for inventory queries
   const partner = profile.team?.profiles?.find((p: any) => p.id !== user.id)
   const teamMembersIDs = profile.team?.profiles?.map((p: any) => p.id) || [user.id]
 
@@ -409,11 +431,14 @@ export default async function TechnicianDashboard() {
               <div className="flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
                 <div className="flex items-center gap-1.5">
                   <Users size={14} className="text-zinc-400" />
-                  <span>Equipo: <strong className="text-zinc-700 dark:text-zinc-300">{profile.team ? profile.team.name : 'Individual'}</strong></span>
+                  <span>Equipo: <strong className="text-zinc-700 dark:text-zinc-300">{planTeam ? planTeam.nombre : 'Individual'}</strong></span>
+                  {isLeader && (
+                    <span className="text-[9px] font-bold uppercase bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-500/30">Líder</span>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5">
                   <User size={14} className="text-zinc-400" />
-                  <span>Compañero: <strong className="text-zinc-700 dark:text-zinc-300">{partner ? partner.first_name : 'N/A'}</strong></span>
+                  <span>Compañero: <strong className="text-zinc-700 dark:text-zinc-300">{planPartner ? planPartner.first_name : 'N/A'}</strong></span>
                 </div>
               </div>
             </div>
@@ -521,30 +546,45 @@ export default async function TechnicianDashboard() {
               <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {Object.entries(stock).map(([sku, item]) => (
                   item.quantity > 0 && (
-                    <div key={sku} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold
-                             ${item.isSpool ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
-                            sku.includes('ONU') ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400' :
-                              'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
-                          }`}>
-                          {item.isSpool ? 'B' : sku.substring(0, 2)}
+                    <div key={sku} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <div className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold
+                               ${item.isSpool ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' :
+                              sku.includes('ONU') ? 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400' :
+                                'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+                            }`}>
+                            {item.isSpool ? 'B' : sku.substring(0, 2)}
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm text-zinc-900 dark:text-zinc-100 leading-tight">{item.name}</p>
+                            {item.isSpool && item.serials.length > 0 && (
+                              <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                                {item.serials[0]} {item.serials.length > 1 && `+${item.serials.length - 1}`}
+                              </p>
+                            )}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm text-zinc-900 dark:text-zinc-100 leading-tight">{item.name}</p>
-                          {item.isSpool && item.serials.length > 0 && (
-                            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-                              {item.serials[0]} {item.serials.length > 1 && `+${item.serials.length - 1}`}
-                            </p>
+                        <div className="text-right">
+                          <span className="font-bold text-zinc-900 dark:text-zinc-100">{item.quantity}</span>
+                          {item.isSpool && (item.waste || 0) > 0 && (
+                            <p className="text-[9px] text-red-500 font-medium">-{item.waste}m</p>
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="font-bold text-zinc-900 dark:text-zinc-100">{item.quantity}</span>
-                        {item.isSpool && (item.waste || 0) > 0 && (
-                          <p className="text-[9px] text-red-500 font-medium">-{item.waste}m</p>
-                        )}
-                      </div>
+                      {/* Show individual serials for serialized items (ONUs, Routers, etc.) */}
+                      {!item.isSpool && item.serials && item.serials.length > 0 && (
+                        <div className="px-4 pb-3 pt-0 flex flex-wrap gap-1.5 ml-11">
+                          {item.serials.map((serial: string, idx: number) => (
+                            <span
+                              key={`${sku}-${serial}-${idx}`}
+                              className="inline-flex items-center text-[10px] font-mono font-medium bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400 px-2 py-0.5 rounded-md border border-purple-200 dark:border-purple-800"
+                            >
+                              {serial}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )
                 ))}

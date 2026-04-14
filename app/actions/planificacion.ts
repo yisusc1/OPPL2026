@@ -123,6 +123,32 @@ export async function transferirTecnico(
     try {
         const supabase = await createClient();
         
+        // Check if user is a leader with active materials
+        const { data: leaderOf } = await supabase
+            .from("equipos")
+            .select("id, nombre")
+            .eq("leader_id", userId)
+            .single();
+
+        if (leaderOf) {
+            // Check for active inventory assignments for this user
+            const { count } = await supabase
+                .from("inventory_assignments")
+                .select("*", { count: "exact", head: true })
+                .eq("assigned_to", userId)
+                .in("status", ["ACTIVE", "PARTIAL_RETURN", "EN_REVISION"]);
+
+            if (count && count > 0) {
+                return { 
+                    success: false, 
+                    error: `No se puede transferir a este técnico porque es Líder del "${leaderOf.nombre}" y tiene ${count} despacho(s) de material activo(s). Primero cierre o devuelva los materiales.` 
+                };
+            }
+
+            // Clear leader_id from old team
+            await supabase.from("equipos").update({ leader_id: null }).eq("id", leaderOf.id);
+        }
+
         // Remove from existing team
         await supabase.from("equipo_miembros").delete().eq("user_id", userId);
 
@@ -133,6 +159,62 @@ export async function transferirTecnico(
         }]);
 
         if (insertErr) throw insertErr;
+
+        revalidatePath("/planificacion");
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message || String(e) };
+    }
+}
+
+export async function designarLider(
+    equipoId: number,
+    userId: string
+): Promise<{ success: boolean; error?: string }> {
+    try {
+        const supabase = await createClient();
+
+        // Verify user belongs to the team
+        const { data: membership } = await supabase
+            .from("equipo_miembros")
+            .select("id")
+            .eq("equipo_id", equipoId)
+            .eq("user_id", userId)
+            .maybeSingle();
+
+        if (!membership) {
+            return { success: false, error: "El técnico no pertenece a este equipo." };
+        }
+
+        // Check if the current leader has active materials (prevent changing leader)
+        const { data: currentTeam } = await supabase
+            .from("equipos")
+            .select("leader_id")
+            .eq("id", equipoId)
+            .single();
+
+        if (currentTeam?.leader_id && currentTeam.leader_id !== userId) {
+            const { count } = await supabase
+                .from("inventory_assignments")
+                .select("*", { count: "exact", head: true })
+                .eq("assigned_to", currentTeam.leader_id)
+                .in("status", ["ACTIVE", "PARTIAL_RETURN", "EN_REVISION"]);
+
+            if (count && count > 0) {
+                return { 
+                    success: false, 
+                    error: `El líder actual tiene ${count} despacho(s) de material activo(s). No se puede cambiar el líder hasta que se cierren o devuelvan los materiales.` 
+                };
+            }
+        }
+
+        // Set new leader
+        const { error } = await supabase
+            .from("equipos")
+            .update({ leader_id: userId })
+            .eq("id", equipoId);
+
+        if (error) throw error;
 
         revalidatePath("/planificacion");
         return { success: true };

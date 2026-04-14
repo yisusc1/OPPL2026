@@ -7,7 +7,7 @@ import { PremiumContent } from "@/components/ui/premium-content"
 import { Button } from "@/components/ui/button"
 import { getPendingAudits } from "./actions"
 
-import { Users, User, ShieldCheck, ChevronRight, ArrowLeft, AlertCircle, Disc, Fuel } from "lucide-react"
+import { User, ShieldCheck, ChevronRight, ArrowLeft, AlertCircle, Disc, Fuel } from "lucide-react"
 import { DesktopModeToggle } from "@/components/desktop-mode-toggle"
 import { DailyReportDialog } from "@/components/daily-report-dialog"
 
@@ -99,12 +99,6 @@ export default async function ControlPage() {
                 <PremiumContent className="p-4 md:p-6">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                         <div className="flex items-center gap-4 w-full md:w-auto">
-                            <Link href="/admin/equipos" className="w-full md:w-auto">
-                                <Button variant="outline" className="w-full h-12 rounded-xl border-dashed border-2 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all">
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Gestión de Equipos
-                                </Button>
-                            </Link>
                             <Link href="/control/spools" className="w-full md:w-auto">
                                 <Button className="w-full h-12 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 font-bold">
                                     <Disc className="mr-2 h-5 w-5" />
