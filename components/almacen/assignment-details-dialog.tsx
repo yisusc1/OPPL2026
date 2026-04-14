@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Copy, Loader2, Check } from "lucide-react"
 import { toast } from "sonner"
 

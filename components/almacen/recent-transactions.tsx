@@ -43,17 +43,17 @@ export function RecentTransactions({ transactions }: RecentTransactionsProps) {
                                 <div className={`h-10 w-10 rounded-full flex items-center justify-center ${tx.type === 'IN' ? 'bg-green-100 dark:bg-emerald-900/40 text-green-700 dark:text-emerald-400' : tx.type === 'OUT' ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400' : 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400'}`}>
                                     {tx.type === 'IN' ? <ArrowDownRight size={18} /> : tx.type === 'OUT' ? <ArrowUpRight size={18} /> : <History size={18} />}
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="font-medium text-foreground">
+                                <div className="flex flex-col justify-center h-full pt-1">
+                                    <span className="font-bold text-sm tracking-tight text-foreground leading-none mb-[2px]">
                                         {tx.inventory_products?.name || "Producto desconocido"}
                                     </span>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-[11px] text-muted-foreground leading-tight">
                                         {new Date(tx.created_at).toLocaleDateString()} • {tx.reason || "Sin motivo"}
                                     </span>
                                     {tx.received_by && (
-                                        <div className="flex items-center gap-1 mt-1">
-                                            <span className="text-[10px] bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 px-1.5 py-0.5 rounded border border-orange-100 dark:border-orange-900/50 font-medium">
-                                                Recibido por: {tx.received_by}
+                                        <div className="flex items-center gap-1 mt-1.5">
+                                            <span className="text-[10px] bg-orange-50 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400 px-1.5 py-[2px] rounded border border-orange-100 dark:border-orange-900/50 font-medium leading-none">
+                                                Tercero: {tx.received_by}
                                             </span>
                                         </div>
                                     )}
