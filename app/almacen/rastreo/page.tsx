@@ -119,14 +119,14 @@ export default function SerialTrackingPage() {
     }
 
     const processTimeline = (historyData: any[]): TimelineEvent[] => {
-        return historyData.map((item: any) => {
+        const rawEvents = historyData.map((item: any) => {
             const det = item.details
-            const common = { date: item.created_at, id: item.id }
+            const common = { date: item.created_at, id: item.id, _source: item.source_type }
 
             if (item.source_type === 'TRANSACTION') {
                 return {
                     ...common,
-                    type: det.type,
+                    type: det.type as TimelineEvent['type'],
                     description: det.reason || (det.type === 'IN' ? 'Entrada / Compra' : 'Movimiento Stock'),
                     user: (det.user_first_name || det.user_last_name) ? `${det.user_first_name} ${det.user_last_name}` : 'Sistema',
                     details: `Stock: ${det.previous_stock} → ${det.new_stock}`,
@@ -138,7 +138,7 @@ export default function SerialTrackingPage() {
                     : 'Sin asignar'
                 return {
                     ...common,
-                    type: 'ASSIGNMENT',
+                    type: 'ASSIGNMENT' as TimelineEvent['type'],
                     description: `Asignación: ${det.code}`,
                     user: assignedName,
                     details: det.assigned_department || 'Instalación',
@@ -153,14 +153,76 @@ export default function SerialTrackingPage() {
                     : 'Sistema'
                 return {
                     ...common,
-                    type: 'RETURN',
+                    type: 'RETURN' as TimelineEvent['type'],
                     description: `Devuelto (${det.condition === 'GOOD' ? 'Buen Estado' : det.condition === 'CONSUMED' ? 'Consumido/Instalado' : det.condition === 'MISSING' ? 'Pérdida/Extravío' : 'Dañado'})`,
                     user: returnUser,
                     details: det.notes || 'Devolución',
                     data: det
                 }
             }
-        }) as TimelineEvent[]
+        })
+
+        // Deduplicate: merge TRANSACTION + ASSIGNMENT or TRANSACTION + RETURN that share the same timestamp (within 5s)
+        const deduplicated: typeof rawEvents = []
+        const consumed = new Set<number>()
+
+        for (let i = 0; i < rawEvents.length; i++) {
+            if (consumed.has(i)) continue
+            const ev = rawEvents[i]
+
+            // Look for a matching pair
+            let merged = false
+            for (let j = i + 1; j < rawEvents.length; j++) {
+                if (consumed.has(j)) continue
+                const other = rawEvents[j]
+
+                const timeDiff = Math.abs(new Date(ev.date).getTime() - new Date(other.date).getTime())
+                if (timeDiff > 5000) continue // More than 5 seconds apart, not related
+
+                // Case 1: TRANSACTION (OUT) + ASSIGNMENT → keep ASSIGNMENT, add stock info
+                if (ev._source === 'TRANSACTION' && other._source === 'ASSIGNMENT') {
+                    other.details = `${other.details} • ${ev.details}`
+                    deduplicated.push(other)
+                    consumed.add(i)
+                    consumed.add(j)
+                    merged = true
+                    break
+                }
+                if (ev._source === 'ASSIGNMENT' && other._source === 'TRANSACTION') {
+                    ev.details = `${ev.details} • ${other.details}`
+                    deduplicated.push(ev)
+                    consumed.add(i)
+                    consumed.add(j)
+                    merged = true
+                    break
+                }
+
+                // Case 2: TRANSACTION (IN) + RETURN → keep RETURN, add stock info
+                if (ev._source === 'TRANSACTION' && other._source === 'RETURN') {
+                    other.details = `${other.details} • ${ev.details}`
+                    deduplicated.push(other)
+                    consumed.add(i)
+                    consumed.add(j)
+                    merged = true
+                    break
+                }
+                if (ev._source === 'RETURN' && other._source === 'TRANSACTION') {
+                    ev.details = `${ev.details} • ${other.details}`
+                    deduplicated.push(ev)
+                    consumed.add(i)
+                    consumed.add(j)
+                    merged = true
+                    break
+                }
+            }
+
+            if (!merged) {
+                deduplicated.push(ev)
+                consumed.add(i)
+            }
+        }
+
+        return deduplicated as TimelineEvent[]
     }
 
     const getStatusConfig = (status: string, events: TimelineEvent[]) => {
