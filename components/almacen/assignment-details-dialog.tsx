@@ -41,7 +41,6 @@ export function AssignmentDetailsDialog({ code, open, onOpenChange }: Assignment
                 .from("inventory_assignments")
                 .select(`
                     *,
-                    assignee:profiles!inventory_assignments_assigned_to_fkey(first_name, last_name, department, job_title),
                     inventory_assignment_items (
                         id,
                         quantity,
@@ -67,6 +66,19 @@ export function AssignmentDetailsDialog({ code, open, onOpenChange }: Assignment
             if (error) throw error
 
             if (data) {
+                // Manually fetch the assignee profile to avoid PostgREST foreign key errors
+                if (data.assigned_to) {
+                    const { data: profData } = await supabase
+                        .from("profiles")
+                        .select("first_name, last_name, department, job_title")
+                        .eq("id", data.assigned_to)
+                        .maybeSingle()
+                    
+                    if (profData) {
+                        data.assignee = profData
+                    }
+                }
+
                 // Map items to match expected format
                 const mappedItems = data.inventory_assignment_items.map((i: any) => ({
                     ...i,
