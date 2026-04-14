@@ -10,7 +10,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Loader2 } from "lucide-react"
+import { Copy, Loader2, Check } from "lucide-react"
+import { toast } from "sonner"
 
 interface AssignmentDetailsDialogProps {
     code: string | null
@@ -21,6 +22,7 @@ interface AssignmentDetailsDialogProps {
 export function AssignmentDetailsDialog({ code, open, onOpenChange }: AssignmentDetailsDialogProps) {
     const [loading, setLoading] = useState(false)
     const [assignment, setAssignment] = useState<any>(null)
+    const [copied, setCopied] = useState(false)
     const supabase = createClient()
 
     useEffect(() => {
@@ -38,6 +40,7 @@ export function AssignmentDetailsDialog({ code, open, onOpenChange }: Assignment
                 .from("inventory_assignments")
                 .select(`
                     *,
+                    assignee:profiles!inventory_assignments_assigned_to_fkey(first_name, last_name, department, job_title),
                     inventory_assignment_items (
                         id,
                         quantity,
@@ -99,7 +102,24 @@ export function AssignmentDetailsDialog({ code, open, onOpenChange }: Assignment
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Detalle de Despacho: {code}</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                        Detalle de Despacho: {code}
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            onClick={() => {
+                                if (code) {
+                                    navigator.clipboard.writeText(code)
+                                    setCopied(true)
+                                    toast.success("Código copiado")
+                                    setTimeout(() => setCopied(false), 2000)
+                                }
+                            }}
+                        >
+                            {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
+                        </Button>
+                    </DialogTitle>
                     <DialogDescription>
                         Historial completo de asignación y retornos.
                     </DialogDescription>
@@ -139,6 +159,24 @@ export function AssignmentDetailsDialog({ code, open, onOpenChange }: Assignment
                                         ID: {assignment.receiver_id || "N/A"}
                                     </span>
                                 </div>
+                            </div>
+                        )}
+                        
+                        {/* Assignee Info (Internal Technician) */}
+                        {assignment.assignee && (
+                            <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg border border-blue-100 dark:border-blue-900/50">
+                                <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-1">Asignado a (Equipo / Técnico Interno)</p>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-blue-900 dark:text-blue-200 font-medium">{assignment.assignee.first_name} {assignment.assignee.last_name}</span>
+                                    {assignment.assignee.department && (
+                                        <span className="text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 rounded text-xs font-medium border border-blue-200 dark:border-blue-800/50">
+                                            {assignment.assignee.department}
+                                        </span>
+                                    )}
+                                </div>
+                                {assignment.assignee.job_title && (
+                                    <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mt-1">{assignment.assignee.job_title}</p>
+                                )}
                             </div>
                         )}
 

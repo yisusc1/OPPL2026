@@ -476,13 +476,13 @@ export function DispatchDialog({ open, onOpenChange, onSave, title = "Nueva Sali
 
                         {/* Third Party Details */}
                         {form.watch("is_third_party") && (
-                            <div className="grid grid-cols-2 gap-4 p-4 bg-orange-50 border border-orange-100 rounded-md">
+                            <div className="grid grid-cols-2 gap-4 p-4 bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/50 rounded-md">
                                 <FormField
                                     control={form.control}
                                     name="received_by"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-orange-900">Recibido Por (Nombre)</FormLabel>
+                                            <FormLabel className="text-orange-900 dark:text-orange-300">Recibido Por (Nombre)</FormLabel>
                                             <FormControl>
                                                 <Input {...field} placeholder="Nombre del receptor/conductor" />
                                             </FormControl>
@@ -495,7 +495,7 @@ export function DispatchDialog({ open, onOpenChange, onSave, title = "Nueva Sali
                                     name="receiver_id"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-orange-900">Documento / ID</FormLabel>
+                                            <FormLabel className="text-orange-900 dark:text-orange-300">Documento / ID</FormLabel>
                                             <FormControl>
                                                 <Input {...field} placeholder="Cédula o ID" />
                                             </FormControl>
@@ -688,7 +688,7 @@ export function DispatchDialog({ open, onOpenChange, onSave, title = "Nueva Sali
                         </div>
 
                         {/* Save Template Option */}
-                        <div className="flex items-center gap-4 p-4 bg-zinc-50 rounded-lg">
+                        <div className="flex items-center gap-4 p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-lg border dark:border-zinc-800">
                             <FormField
                                 control={form.control}
                                 name="save_as_template"

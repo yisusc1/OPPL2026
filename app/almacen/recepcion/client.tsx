@@ -6,7 +6,7 @@ import { PremiumCard } from "@/components/ui/premium-card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Check, Info, Box, AlertTriangle, ShieldCheck } from "lucide-react"
+import { Check, Info, Box, AlertTriangle, ShieldCheck, Copy } from "lucide-react"
 import { closeAssignmentWithMovement } from "../actions"
 
 export function RecepcionClient({ assignment }: { assignment: any }) {
@@ -60,7 +60,22 @@ export function RecepcionClient({ assignment }: { assignment: any }) {
                         <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded uppercase flex items-center gap-1">
                             <ShieldCheck size={12} /> Auditado
                         </span>
-                        <span className="text-xs text-muted-foreground font-mono">#{assignment.code || assignment.id.substring(0, 8)}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-mono">#{assignment.code || assignment.id.substring(0, 8)}</span>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4 text-muted-foreground hover:text-foreground"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigator.clipboard.writeText(assignment.code || assignment.id.substring(0, 8));
+                                    toast.success("Código copiado");
+                                }}
+                                title="Copiar código"
+                            >
+                                <Copy size={10} />
+                            </Button>
+                        </div>
                     </div>
                     <h3 className="text-lg font-bold">{title}</h3>
                 </div>

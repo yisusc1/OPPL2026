@@ -24,7 +24,8 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Search, Eye, Calendar, User, Plus, ArrowLeft } from "lucide-react"
+import { Search, Eye, Calendar, User, Plus, ArrowLeft, Copy } from "lucide-react"
+import { toast } from "sonner"
 import Link from "next/link"
 
 import { DispatchDialog } from "@/components/almacen/dispatch-dialog"
@@ -239,7 +240,24 @@ export default function AssignmentHistoryPage() {
                             ) : (
                                 filteredAssignments.map((assignment) => (
                                     <TableRow key={assignment.id} className="border-border hover:bg-muted/50 transition-colors">
-                                        <TableCell className="pl-6 font-medium font-mono text-foreground">{assignment.code}</TableCell>
+                                        <TableCell className="pl-6 font-medium font-mono text-foreground">
+                                            <div className="flex items-center gap-2">
+                                                {assignment.code}
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="icon" 
+                                                    className="h-5 w-5 text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        navigator.clipboard.writeText(assignment.code);
+                                                    }}
+                                                    title="Copiar código"
+                                                >
+                                                    <Copy size={12} />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className="text-sm text-foreground">{new Date(assignment.created_at).toLocaleDateString()}</span>
