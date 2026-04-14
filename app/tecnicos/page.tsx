@@ -142,6 +142,17 @@ export default async function TechnicianDashboard() {
     `)
     .in("assignment.assigned_to", teamMembersIDs)
 
+  // Fetch standalone material usage transactions
+  const { data: usageTransactions } = await supabase
+    .from("inventory_transactions")
+    .select("created_at, type")
+    .eq("assigned_to", user.id)
+    .in("type", ["CONSUMPTION", "USAGE", "WASTE"])
+    .order("created_at", { ascending: false })
+    .limit(10)
+
+  const todayUsage = usageTransactions?.filter(t => getVeDate(t.created_at) === todayVE) || []
+
   // Filter relevant closures
   const myClosures = closures?.filter(c => {
     // 1. Match Team Name (Legacy)
@@ -182,11 +193,16 @@ export default async function TechnicianDashboard() {
     : null
 
   const latestSupport = supports && supports.length > 0 ? supports[0] : null
+  const latestUsage = todayUsage && todayUsage.length > 0 ? todayUsage[0] : null
 
   let latestWorkTimestamp = 0
   if (latestClosure) latestWorkTimestamp = new Date(latestClosure.created_at).getTime()
   if (latestSupport) {
     const t = new Date(latestSupport.created_at).getTime()
+    if (t > latestWorkTimestamp) latestWorkTimestamp = t
+  }
+  if (latestUsage) {
+    const t = new Date(latestUsage.created_at).getTime()
     if (t > latestWorkTimestamp) latestWorkTimestamp = t
   }
 
@@ -205,7 +221,8 @@ export default async function TechnicianDashboard() {
   const hasOpenJobs = activeClients && activeClients.length > 0
 
   const hasWork = todaysInstallations.some((c: any) => c.tecnico_id === user.id || c.user_id === user.id) ||
-    (supports && supports.some((s: any) => s.tecnico_id === user.id))
+    (supports && supports.some((s: any) => s.tecnico_id === user.id)) ||
+    todayUsage.length > 0
 
   // Determine if day is finalized (Audit exists AND is later than last work)
   const isDayCompleted = !!lastAuditOfToday && (
