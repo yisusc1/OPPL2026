@@ -29,7 +29,7 @@ export function PremiumCard({ children, className, wrapperClassName, onClick }: 
                 borderWidth={3}
             />
             <div className={cn(
-                "relative flex h-full flex-col justify-between gap-4 overflow-hidden rounded-xl border-[0.75px] bg-background/80 backdrop-blur-md p-4 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)] hover:bg-background/90 transition-colors",
+                "relative flex h-full flex-col justify-between overflow-hidden rounded-xl border-[0.75px] bg-background/80 backdrop-blur-md p-4 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)] hover:bg-background/90 transition-colors",
                 className
             )}>
                 {children}
