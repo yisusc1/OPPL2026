@@ -18,10 +18,12 @@ export function SerialListClient({ serials }: { serials: any[] }) {
         }
     }
 
+    const cleanSearchTerm = searchTerm.trim().toLowerCase()
+    
     const filteredSerials = serials.filter(s => 
-        s.serial_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        s.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.product?.sku?.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.serial_number || '').toLowerCase().includes(cleanSearchTerm) || 
+        (s.product?.name || '').toLowerCase().includes(cleanSearchTerm) ||
+        (s.product?.sku || '').toLowerCase().includes(cleanSearchTerm)
     )
 
     return (
@@ -40,8 +42,8 @@ export function SerialListClient({ serials }: { serials: any[] }) {
             
             <div className="divide-y divide-border max-h-[600px] overflow-auto">
                 {filteredSerials.length > 0 ? (
-                    filteredSerials.map((serial: any) => (
-                        <div key={serial.serial_number} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                    filteredSerials.map((serial: any, index: number) => (
+                        <div key={serial.id || `${serial.serial_number}-${serial.product?.sku || index}-${index}`} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="h-10 w-10 rounded-lg bg-background border border-border text-muted-foreground flex items-center justify-center shrink-0">
                                     <QrCode size={20} />
