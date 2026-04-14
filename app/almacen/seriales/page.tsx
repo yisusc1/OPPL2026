@@ -13,8 +13,8 @@ export default async function SerializedStockPage() {
     const { data: serials, error } = await supabase
         .from("inventory_serials")
         .select(`
-            id,
             serial_number, 
+            product_id,
             status, 
             created_at,
             product:inventory_products(name, sku)

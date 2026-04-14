@@ -43,7 +43,7 @@ export function SerialListClient({ serials }: { serials: any[] }) {
             <div className="divide-y divide-border max-h-[600px] overflow-auto">
                 {filteredSerials.length > 0 ? (
                     filteredSerials.map((serial: any, index: number) => (
-                        <div key={serial.id || `${serial.serial_number}-${serial.product?.sku || index}-${index}`} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                        <div key={`${serial.serial_number}-${serial.product_id}`} className="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors">
                             <div className="flex items-center gap-4">
                                 <div className="h-10 w-10 rounded-lg bg-background border border-border text-muted-foreground flex items-center justify-center shrink-0">
                                     <QrCode size={20} />
