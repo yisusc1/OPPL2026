@@ -113,7 +113,6 @@ interface FilterState {
     sectors: string[];
     technicians: string[];
     oficinas: string[];
-    estados: string[];
 }
 
 interface SlicerPanelProps {
@@ -124,12 +123,11 @@ interface SlicerPanelProps {
     months?: string[];
     technicians?: string[];
     oficinas?: string[];
-    estados?: string[];
     currentFilters: FilterState;
     onFilterChange: (type: keyof FilterState, value: string) => void;
 }
 
-export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = [], technicians = [], oficinas = [], estados = [], currentFilters, onFilterChange }: SlicerPanelProps) {
+export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = [], technicians = [], oficinas = [], currentFilters, onFilterChange }: SlicerPanelProps) {
 
     const handleToggle = (type: keyof FilterState, item: string) => {
         onFilterChange(type, item);
@@ -191,13 +189,6 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
                 items={oficinas}
                 selectedItems={currentFilters.oficinas}
                 onChange={(item) => handleToggle('oficinas', item)}
-            />
-
-            <FilterDropdown
-                title="Estado"
-                items={estados}
-                selectedItems={currentFilters.estados}
-                onChange={(item) => handleToggle('estados', item)}
             />
 
             {/* Placeholder for "Clear All" or active filter chips if we wanted to expand */}
