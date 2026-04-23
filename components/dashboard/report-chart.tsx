@@ -41,7 +41,7 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                 {/* Content */}
                 <div className={cn(
                     "flex-1 p-2 min-h-0",
-                    type === "horizontal-bar" ? "overflow-y-auto overflow-x-hidden no-scrollbar" : ""
+                    type === "horizontal-bar" ? "overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-border/50" : ""
                 )}>
                     <div style={{ height: type === "horizontal-bar" ? Math.max(data.length * 30, 200) : '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
