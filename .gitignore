@@ -45,3 +45,6 @@ next-env.d.ts
 certificates
 .env*.local
 supabase.txt
+
+# Google Service Account credentials
+gen-lang-client-*.json

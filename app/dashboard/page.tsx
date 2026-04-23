@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Monitor, TrendingUp, User, Wifi, Users, Calendar, Headset, Map as MapIcon, MapPinned, CreditCard, Target, Activity, GripVertical } from "lucide-react";
+import { FileText, Monitor, TrendingUp, User, Wifi, Users, Calendar, Headset, Map as MapIcon, MapPinned, CreditCard, Target, Activity, GripVertical, Building2, Globe } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import {
     DndContext,
@@ -50,6 +50,8 @@ export default function DashboardPage() {
         'status',
         'service',
         'plan',
+        'oficina',
+        'estado',
         'daily',
         'monthly'
     ]);
@@ -122,7 +124,9 @@ export default function DashboardPage() {
         statuses: [] as string[],
         months: [] as string[],
         sectors: [] as string[],
-        technicians: [] as string[]
+        technicians: [] as string[],
+        oficinas: [] as string[],
+        estados: [] as string[]
     });
 
     useEffect(() => {
@@ -166,8 +170,10 @@ export default function DashboardPage() {
             const matchTechnician = filters.technicians.length === 0 ||
                 filters.technicians.includes(item.tecnico_1) ||
                 filters.technicians.includes(item.tecnico_2 || "");
+            const matchOficina = filters.oficinas.length === 0 || filters.oficinas.includes(item.oficina);
+            const matchEstado = filters.estados.length === 0 || filters.estados.includes(item.estado || "");
 
-            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician;
+            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician && matchOficina && matchEstado;
         });
     }, [rawData, filters]);
 
@@ -197,7 +203,9 @@ export default function DashboardPage() {
             sectors: unique('sector').sort(),
             statuses: unique('estatus').sort(),
             months: unique('mes'), // Ensure 'months' is available if used
-            technicians: Array.from(allTechs).sort()
+            technicians: Array.from(allTechs).sort(),
+            oficinas: unique('oficina').sort(),
+            estados: Array.from(new Set(rawData.map(i => String(i.estado || "")).filter(Boolean))).sort(),
         };
     }, [rawData]);
 
@@ -388,6 +396,40 @@ export default function DashboardPage() {
                         xAxisAngle={0}
                     />
                 );
+            case 'oficina':
+                return getView('oficina') === 'list' ? (
+                    <SummaryCard
+                        title="Oficina"
+                        icon={Building2}
+                        data={metrics?.charts?.byOficina || []}
+                        action={<Switch checked={getView('oficina') === 'chart'} onCheckedChange={() => toggleView('oficina')} />}
+                    />
+                ) : (
+                    <ReportChart
+                        title="Oficina"
+                        icon={Building2}
+                        data={metrics?.charts?.byOficina || []}
+                        type="horizontal-bar"
+                        action={<Switch checked={getView('oficina') === 'chart'} onCheckedChange={() => toggleView('oficina')} />}
+                    />
+                );
+            case 'estado':
+                return getView('estado') === 'list' ? (
+                    <SummaryCard
+                        title="Estado"
+                        icon={Globe}
+                        data={metrics?.charts?.byEstado || []}
+                        action={<Switch checked={getView('estado') === 'chart'} onCheckedChange={() => toggleView('estado')} />}
+                    />
+                ) : (
+                    <ReportChart
+                        title="Estado"
+                        icon={Globe}
+                        data={metrics?.charts?.byEstado || []}
+                        type="donut"
+                        action={<Switch checked={getView('estado') === 'chart'} onCheckedChange={() => toggleView('estado')} />}
+                    />
+                );
             default:
                 return null;
         }
@@ -403,6 +445,8 @@ export default function DashboardPage() {
         status: "col-span-1 h-[300px]",
         service: "col-span-1 h-[300px]",
         plan: "col-span-1 h-[300px]",
+        oficina: "col-span-1 h-[300px]",
+        estado: "col-span-1 h-[300px]",
         daily: "col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 h-[300px]",
         monthly: "col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 h-[300px]",
     };
@@ -465,6 +509,8 @@ export default function DashboardPage() {
                     statuses={options.statuses}
                     months={options.months || []}
                     technicians={options.technicians}
+                    oficinas={options.oficinas}
+                    estados={options.estados}
                     currentFilters={filters}
                     onFilterChange={handleFilterChange}
                 />

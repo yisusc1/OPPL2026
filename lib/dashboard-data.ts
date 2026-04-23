@@ -19,6 +19,8 @@ export interface Installation {
     plan: string;
     power_go: string; // "SI" | "NO"
     servicio: string;
+    oficina: string;  // Calculado: OFICINA_MAP[asesor] || "OTROS"
+    estado: string | null;  // Calculado: zona → MIRANDA/ARAGUA/D.C.
 }
 
 export interface MetricChart {
@@ -60,6 +62,8 @@ export interface DashboardMetrics {
         byAdvisor: MetricChart[];
         byTechnician: MetricChart[];
         bySector: MetricChart[];
+        byOficina: MetricChart[];
+        byEstado: MetricChart[];
     };
     raw: Installation[];
 }
@@ -265,7 +269,9 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
             byZone: countBy('zona'),
             byAdvisor: countBy('asesor'),
             byTechnician,
-            bySector: countBy('sector')
+            bySector: countBy('sector'),
+            byOficina: countBy('oficina'),
+            byEstado: countBy('estado'),
         },
         raw: data
     };
