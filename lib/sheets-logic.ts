@@ -154,25 +154,33 @@ function calculateEstado(zona: string): string | null {
 function parseSheetDate(rawDate: any): string {
   if (!rawDate) return "";
   
-  // Si ya es string en formato date
   const str = String(rawDate).trim();
   
-  // Si viene como "MM/DD/YYYY" o "DD/MM/YYYY" o "YYYY-MM-DD"
-  if (str.includes("-") && str.length === 10) {
-    return str; // Already YYYY-MM-DD
+  // Si ya es YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return str;
   }
   
-  // Intentar parsear como Date
-  try {
-    const d = new Date(str);
-    if (!isNaN(d.getTime())) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
+  // Formato con "/" → DD/MM/YYYY o DD/MM o DD/M (formato del Sheet)
+  if (str.includes("/")) {
+    const parts = str.split("/");
+    
+    if (parts.length === 2) {
+      // "13/1" o "5/12" → DD/M (sin año, asumir 2026)
+      const day = parts[0].padStart(2, "0");
+      const month = parts[1].padStart(2, "0");
+      return `2026-${month}-${day}`;
+    }
+    
+    if (parts.length === 3) {
+      // "13/1/2026" o "1/13/2026" 
+      const [p1, p2, p3] = parts;
+      // Asumimos DD/MM/YYYY (formato latino)
+      const day = p1.padStart(2, "0");
+      const month = p2.padStart(2, "0");
+      const year = p3.length === 2 ? `20${p3}` : p3;
       return `${year}-${month}-${day}`;
     }
-  } catch {
-    // fallthrough
   }
   
   // Si viene como serial number de Google Sheets (días desde 1899-12-30)
@@ -184,6 +192,19 @@ function parseSheetDate(rawDate: any): string {
     const month = String(epoch.getMonth() + 1).padStart(2, "0");
     const day = String(epoch.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  }
+  
+  // Fallback: intentar parsear como Date
+  try {
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+  } catch {
+    // fallthrough
   }
   
   return str;
