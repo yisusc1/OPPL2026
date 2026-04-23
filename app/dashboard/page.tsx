@@ -124,7 +124,9 @@ export default function DashboardPage() {
         months: [] as string[],
         sectors: [] as string[],
         technicians: [] as string[],
-        oficinas: [] as string[]
+        oficinas: [] as string[],
+        dateFrom: '',
+        dateTo: ''
     });
 
     useEffect(() => {
@@ -170,7 +172,11 @@ export default function DashboardPage() {
                 filters.technicians.includes(item.tecnico_2 || "");
             const matchOficina = filters.oficinas.length === 0 || filters.oficinas.includes(item.oficina);
 
-            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician && matchOficina;
+            // Date range filter
+            const matchDateFrom = !filters.dateFrom || item.fecha >= filters.dateFrom;
+            const matchDateTo = !filters.dateTo || item.fecha <= filters.dateTo;
+
+            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician && matchOficina && matchDateFrom && matchDateTo;
         });
     }, [rawData, filters]);
 
@@ -226,6 +232,10 @@ export default function DashboardPage() {
                     : [...current, value]
             };
         });
+    };
+
+    const handleDateChange = (type: 'dateFrom' | 'dateTo', value: string) => {
+        setFilters(prev => ({ ...prev, [type]: value }));
     };
 
     // Card Renderer
@@ -497,6 +507,7 @@ export default function DashboardPage() {
                     oficinas={options.oficinas}
                     currentFilters={filters}
                     onFilterChange={handleFilterChange}
+                    onDateChange={handleDateChange}
                 />
             </div>
 

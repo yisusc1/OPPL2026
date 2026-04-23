@@ -105,7 +105,7 @@ function FilterDropdown({ title, items, selectedItems, onChange }: FilterDropdow
     );
 }
 
-interface FilterState {
+export interface FilterState {
     advisors: string[];
     zones: string[];
     statuses: string[];
@@ -113,6 +113,8 @@ interface FilterState {
     sectors: string[];
     technicians: string[];
     oficinas: string[];
+    dateFrom: string;
+    dateTo: string;
 }
 
 interface SlicerPanelProps {
@@ -125,9 +127,10 @@ interface SlicerPanelProps {
     oficinas?: string[];
     currentFilters: FilterState;
     onFilterChange: (type: keyof FilterState, value: string) => void;
+    onDateChange: (type: 'dateFrom' | 'dateTo', value: string) => void;
 }
 
-export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = [], technicians = [], oficinas = [], currentFilters, onFilterChange }: SlicerPanelProps) {
+export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = [], technicians = [], oficinas = [], currentFilters, onFilterChange, onDateChange }: SlicerPanelProps) {
 
     const handleToggle = (type: keyof FilterState, item: string) => {
         onFilterChange(type, item);
@@ -138,10 +141,29 @@ export function SlicerPanel({ advisors, zones, sectors, statuses = [], months = 
         // This functionality needs parent support effectively, but UI-wise we can hide it or implement individual clears
     };
 
-    const hasActiveFilters = Object.values(currentFilters).some(arr => arr.length > 0);
+    const hasActiveFilters = Object.values(currentFilters).some(v => Array.isArray(v) ? v.length > 0 : !!v);
 
     return (
         <div className="w-full flex flex-wrap md:flex-nowrap items-center gap-2 md:overflow-x-auto no-scrollbar py-1.5 pb-2">
+            {/* Date Range Filter */}
+            <div className="flex items-center gap-1.5 shrink-0">
+                <input
+                    type="date"
+                    value={currentFilters.dateFrom}
+                    onChange={(e) => onDateChange('dateFrom', e.target.value)}
+                    className="h-8 px-2 text-xs rounded-lg border border-border bg-background/60 backdrop-blur-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#EAB308]/50 [color-scheme:dark]"
+                    placeholder="Desde"
+                />
+                <span className="text-xs text-muted-foreground">—</span>
+                <input
+                    type="date"
+                    value={currentFilters.dateTo}
+                    onChange={(e) => onDateChange('dateTo', e.target.value)}
+                    className="h-8 px-2 text-xs rounded-lg border border-border bg-background/60 backdrop-blur-md text-foreground focus:outline-none focus:ring-1 focus:ring-[#EAB308]/50 [color-scheme:dark]"
+                    placeholder="Hasta"
+                />
+            </div>
+
             <FilterDropdown
                 title="Mes"
                 items={months.length > 0 ? months : ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"]}
