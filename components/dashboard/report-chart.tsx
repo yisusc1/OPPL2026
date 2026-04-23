@@ -12,9 +12,10 @@ interface ReportChartProps {
     className?: string;
     action?: React.ReactNode;
     icon?: LucideIcon;
+    highlightTopN?: number;
 }
 
-export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, className, action, icon: Icon }: ReportChartProps) {
+export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, className, action, icon: Icon, highlightTopN = 1 }: ReportChartProps) {
     return (
         <div className={cn("relative h-full rounded-[1.25rem] border-[0.75px] border-border p-1", className)}>
             <GlowingEffect
@@ -38,9 +39,13 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 p-2 min-h-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                        {type === "pie" || type === "donut" ? (
+                <div className={cn(
+                    "flex-1 p-2 min-h-0",
+                    type === "horizontal-bar" ? "overflow-y-auto overflow-x-hidden no-scrollbar" : ""
+                )}>
+                    <div style={{ height: type === "horizontal-bar" ? Math.max(data.length * 30, 200) : '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            {type === "pie" || type === "donut" ? (
                             <PieChart>
                                 <Pie
                                     data={data}
@@ -93,7 +98,7 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                                 />
                                 <Bar dataKey="value" barSize={16} radius={[0, 4, 4, 0]}>
                                     {data.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === 0 ? "#EAB308" : "var(--muted-foreground)"} />
+                                        <Cell key={`cell-${index}`} fill={index < highlightTopN ? "#EAB308" : "var(--muted-foreground)"} />
                                     ))}
                                 </Bar>
                             </BarChart>
@@ -148,7 +153,8 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                                 </Bar>
                             </BarChart>
                         )}
-                    </ResponsiveContainer>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
             </div>
         </div>

@@ -272,14 +272,14 @@ export default function DashboardPage() {
                     <SummaryCard
                         title="Asesor"
                         icon={Headset}
-                        data={metrics?.charts?.byAdvisor.slice(0, 12) || []}
+                        data={metrics?.charts?.byAdvisor || []}
                         action={<Switch checked={getView('advisor') === 'chart'} onCheckedChange={() => toggleView('advisor')} />}
                     />
                 ) : (
                     <ReportChart
                         title="Asesor"
                         icon={Headset}
-                        data={metrics?.charts?.byAdvisor.slice(0, 12) || []}
+                        data={metrics?.charts?.byAdvisor || []}
                         type="horizontal-bar"
                         action={<Switch checked={getView('advisor') === 'chart'} onCheckedChange={() => toggleView('advisor')} />}
                     />
@@ -289,15 +289,16 @@ export default function DashboardPage() {
                     <SummaryCard
                         title="Top 6 Técnicos"
                         icon={Users}
-                        data={metrics?.charts?.byTechnician.slice(0, 6) || []}
+                        data={metrics?.charts?.byTechnician || []}
                         action={<Switch checked={getView('technician') === 'chart'} onCheckedChange={() => toggleView('technician')} />}
                     />
                 ) : (
                     <ReportChart
                         title="Top 6 Técnicos"
                         icon={Users}
-                        data={metrics?.charts?.byTechnician.slice(0, 6) || []}
+                        data={metrics?.charts?.byTechnician || []}
                         type="horizontal-bar"
+                        highlightTopN={6}
                         action={<Switch checked={getView('technician') === 'chart'} onCheckedChange={() => toggleView('technician')} />}
                     />
                 );
@@ -323,14 +324,14 @@ export default function DashboardPage() {
                     <SummaryCard
                         title="Sector"
                         icon={MapPinned}
-                        data={metrics?.charts?.bySector.slice(0, 10) || []}
+                        data={metrics?.charts?.bySector || []}
                         action={<Switch checked={getView('sector') === 'chart'} onCheckedChange={() => toggleView('sector')} />}
                     />
                 ) : (
                     <ReportChart
                         title="Sector"
                         icon={MapPinned}
-                        data={metrics?.charts?.bySector.slice(0, 10) || []}
+                        data={metrics?.charts?.bySector || []}
                         type="horizontal-bar"
                         action={<Switch checked={getView('sector') === 'chart'} onCheckedChange={() => toggleView('sector')} />}
                     />
