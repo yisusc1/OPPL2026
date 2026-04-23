@@ -124,7 +124,7 @@ export function calculateAdvancedMetrics(data: Installation[], trendData: Instal
 
     // 1. Counters
     const powerGoCount = data.filter(d => d.power_go === "SI").length;
-    const routerCount = data.filter(d => d.router).length; // Assuming router is not null/empty
+    const routerCount = data.filter(d => d.router && d.router !== "0").length;
     const validNewStatuses = ["CONVENIO", "EMPLEADO", "INSTALACION", "MIGRACION"];
     const nuevosServicios = data.filter(d => validNewStatuses.includes(d.estatus?.toUpperCase())).length;
 
