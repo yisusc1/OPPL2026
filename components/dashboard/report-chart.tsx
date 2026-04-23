@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area, LabelList } from "recharts";
 import { cn } from "@/lib/utils";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 
@@ -56,6 +56,7 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                                     paddingAngle={0}
                                     dataKey="value"
                                     stroke="none"
+                                    label={{ fill: "var(--foreground)", fontSize: 11, fontWeight: "bold" }}
                                 >
                                     {data.map((entry, index) => {
                                         // Palette: Yellow (Primary), Gray-300, Zinc-400, Zinc-600, Zinc-800
@@ -97,6 +98,7 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                                     formatter={(value: number) => [value, "Cantidad"]}
                                 />
                                 <Bar dataKey="value" barSize={16} radius={[0, 4, 4, 0]}>
+                                    <LabelList dataKey="value" position="right" fill="var(--foreground)" fontSize={10} fontWeight="bold" />
                                     {data.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={index < highlightTopN ? "#EAB308" : "var(--muted-foreground)"} />
                                     ))}
@@ -147,6 +149,7 @@ export function ReportChart({ title, data, type = "bar", xAxisAngle = -45, class
                                     formatter={(value: number) => [value, "Cantidad"]}
                                 />
                                 <Bar dataKey="value" barSize={30} radius={[4, 4, 0, 0]}>
+                                    <LabelList dataKey="value" position="top" fill="var(--foreground)" fontSize={11} fontWeight="bold" />
                                     {data.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={index === 0 ? "#EAB308" : "var(--muted-foreground)"} />
                                     ))}

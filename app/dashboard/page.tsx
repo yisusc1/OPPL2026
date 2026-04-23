@@ -349,7 +349,7 @@ export default function DashboardPage() {
                         title="Tipo de Solicitud"
                         icon={FileText}
                         data={metrics?.charts?.byStatus || []}
-                        type="bar"
+                        type="horizontal-bar"
                         action={<Switch checked={getView('status') === 'chart'} onCheckedChange={() => toggleView('status')} />}
                     />
                 );
@@ -383,7 +383,7 @@ export default function DashboardPage() {
                         title="Plan"
                         icon={CreditCard}
                         data={metrics?.charts?.byPlan || []}
-                        type="bar"
+                        type="horizontal-bar"
                         action={<Switch checked={getView('plan') === 'chart'} onCheckedChange={() => toggleView('plan')} />}
                     />
                 );
