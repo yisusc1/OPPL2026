@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Monitor, TrendingUp, User, Wifi, Users, Calendar, Headset, Map as MapIcon, MapPinned, CreditCard, Target, Activity, GripVertical, Building2, Globe } from "lucide-react";
+import { FileText, Monitor, TrendingUp, User, Wifi, Users, Calendar, Headset, Map as MapIcon, MapPinned, CreditCard, Target, Activity, GripVertical, Building2, Hash } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import {
     DndContext,
@@ -51,7 +51,6 @@ export default function DashboardPage() {
         'service',
         'plan',
         'oficina',
-        'estado',
         'daily',
         'monthly'
     ]);
@@ -125,8 +124,7 @@ export default function DashboardPage() {
         months: [] as string[],
         sectors: [] as string[],
         technicians: [] as string[],
-        oficinas: [] as string[],
-        estados: [] as string[]
+        oficinas: [] as string[]
     });
 
     useEffect(() => {
@@ -171,9 +169,8 @@ export default function DashboardPage() {
                 filters.technicians.includes(item.tecnico_1) ||
                 filters.technicians.includes(item.tecnico_2 || "");
             const matchOficina = filters.oficinas.length === 0 || filters.oficinas.includes(item.oficina);
-            const matchEstado = filters.estados.length === 0 || filters.estados.includes(item.estado || "");
 
-            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician && matchOficina && matchEstado;
+            return matchAdvisor && matchZone && matchStatus && matchSector && matchTechnician && matchOficina;
         });
     }, [rawData, filters]);
 
@@ -205,7 +202,6 @@ export default function DashboardPage() {
             months: unique('mes'), // Ensure 'months' is available if used
             technicians: Array.from(allTechs).sort(),
             oficinas: unique('oficina').sort(),
-            estados: Array.from(new Set(rawData.map(i => String(i.estado || "")).filter(Boolean))).sort(),
         };
     }, [rawData]);
 
@@ -342,7 +338,7 @@ export default function DashboardPage() {
                         title="Tipo de Solicitud"
                         icon={FileText}
                         data={metrics?.charts?.byStatus || []}
-                        type="donut"
+                        type="bar"
                         action={<Switch checked={getView('status') === 'chart'} onCheckedChange={() => toggleView('status')} />}
                     />
                 );
@@ -376,7 +372,7 @@ export default function DashboardPage() {
                         title="Plan"
                         icon={CreditCard}
                         data={metrics?.charts?.byPlan || []}
-                        type="donut"
+                        type="bar"
                         action={<Switch checked={getView('plan') === 'chart'} onCheckedChange={() => toggleView('plan')} />}
                     />
                 );
@@ -409,25 +405,8 @@ export default function DashboardPage() {
                         title="Oficina"
                         icon={Building2}
                         data={metrics?.charts?.byOficina || []}
-                        type="horizontal-bar"
-                        action={<Switch checked={getView('oficina') === 'chart'} onCheckedChange={() => toggleView('oficina')} />}
-                    />
-                );
-            case 'estado':
-                return getView('estado') === 'list' ? (
-                    <SummaryCard
-                        title="Estado"
-                        icon={Globe}
-                        data={metrics?.charts?.byEstado || []}
-                        action={<Switch checked={getView('estado') === 'chart'} onCheckedChange={() => toggleView('estado')} />}
-                    />
-                ) : (
-                    <ReportChart
-                        title="Estado"
-                        icon={Globe}
-                        data={metrics?.charts?.byEstado || []}
                         type="donut"
-                        action={<Switch checked={getView('estado') === 'chart'} onCheckedChange={() => toggleView('estado')} />}
+                        action={<Switch checked={getView('oficina') === 'chart'} onCheckedChange={() => toggleView('oficina')} />}
                     />
                 );
             default:
@@ -446,7 +425,6 @@ export default function DashboardPage() {
         service: "col-span-1 h-[300px]",
         plan: "col-span-1 h-[300px]",
         oficina: "col-span-1 h-[300px]",
-        estado: "col-span-1 h-[300px]",
         daily: "col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 h-[300px]",
         monthly: "col-span-1 md:col-span-2 lg:col-span-3 xl:col-span-4 h-[300px]",
     };
@@ -458,7 +436,7 @@ export default function DashboardPage() {
             </div>
 
             {/* TOP ROW: KPI CARDS */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3 relative z-10">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 md:gap-3 relative z-10">
                 <KPICard
                     label="Solicitudes"
                     value={metrics?.counters?.totalSolicitudes || 0}
@@ -478,6 +456,13 @@ export default function DashboardPage() {
                     label="Nuevos"
                     value={metrics?.counters?.nuevosServicios || 0}
                     icon={Users}
+                />
+                <KPICard
+                    label="Promedio"
+                    value={metrics?.counters?.diasLaborados
+                        ? Math.round((metrics?.counters?.totalSolicitudes || 0) / metrics.counters.diasLaborados)
+                        : 0}
+                    icon={Hash}
                 />
                 <KPICard
                     label="Max. Ventas"
@@ -510,7 +495,6 @@ export default function DashboardPage() {
                     months={options.months || []}
                     technicians={options.technicians}
                     oficinas={options.oficinas}
-                    estados={options.estados}
                     currentFilters={filters}
                     onFilterChange={handleFilterChange}
                 />
