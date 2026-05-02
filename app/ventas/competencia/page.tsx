@@ -49,14 +49,11 @@ export default function CompetenciaDashboard() {
   const parroquias = estado && municipio ? Object.keys(geoHierarchy[estado]?.[municipio] || {}).sort() : [];
 
   useEffect(() => {
-    if (estado && municipio && parroquia) {
-      loadOfertas(estado, municipio, parroquia);
-    } else {
-      setOfertas([]);
-    }
+    // Load offers initially and whenever filters change
+    loadOfertas(estado, municipio, parroquia);
   }, [estado, municipio, parroquia]);
 
-  async function loadOfertas(e: string, m: string, p: string) {
+  async function loadOfertas(e?: string, m?: string, p?: string) {
     setLoadingOfertas(true);
     try {
       const data = await getOfertasRecientes(e, m, p);
@@ -70,6 +67,10 @@ export default function CompetenciaDashboard() {
   }
 
   async function openOperadorDetails(oferta: any) {
+    if (oferta.isEmpty) {
+      window.location.href = "/ventas/competencia/nuevo";
+      return;
+    }
     setSelectedOperador(oferta);
     setDrawerOpen(true);
     setLoadingHistorial(true);
@@ -117,30 +118,22 @@ export default function CompetenciaDashboard() {
         </Link>
       </div>
 
-      {!parroquia ? (
-        <div className="bg-zinc-50/50 dark:bg-zinc-900/50 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-12 text-center">
-          <MapPin className="w-10 h-10 mx-auto text-zinc-300 dark:text-zinc-700 mb-3" />
-          <h3 className="text-zinc-900 dark:text-zinc-100 font-medium mb-1">Selecciona una ubicación</h3>
-          <p className="text-sm text-zinc-500">
-            Filtra por estado, municipio y parroquia para ver los planes de la competencia en la zona.
-          </p>
-        </div>
-      ) : loadingOfertas ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary" />
-        </div>
-      ) : ofertas.length === 0 ? (
+      {!loadingOfertas && ofertas.length === 0 ? (
         <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border-2 border-dashed border-emerald-200 dark:border-emerald-900/40 p-12 text-center">
           <Radar className="w-10 h-10 mx-auto text-emerald-400 dark:text-emerald-600 mb-3" />
-          <h3 className="text-emerald-900 dark:text-emerald-100 font-medium mb-1">No hay datos en esta zona</h3>
+          <h3 className="text-emerald-900 dark:text-emerald-100 font-medium mb-1">No hay datos</h3>
           <p className="text-sm text-emerald-600 dark:text-emerald-400/70 mb-4">
-            Aún no se han reportado ofertas de la competencia en {parroquia}.
+            Aún no se han reportado ofertas de la competencia aquí.
           </p>
           <Link href="/ventas/competencia/nuevo">
             <Button variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
               Ser el primero en reportar
             </Button>
           </Link>
+        </div>
+      ) : loadingOfertas ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 dark:border-zinc-700 border-t-primary" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -163,29 +156,37 @@ export default function CompetenciaDashboard() {
                   </div>
                   
                   <div className="flex items-end gap-2 mb-4">
-                    <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100">${oferta.precio_mensual}</span>
-                    <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
-                  </div>
-
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      <Zap size={16} className="text-amber-500" />
-                      <span className="font-medium text-zinc-900 dark:text-zinc-100">{oferta.velocidad_mb} Mbps</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                      <ExternalLink size={16} className="text-blue-500" />
-                      <span>Instalación: ${oferta.costo_instalacion || "0"}</span>
-                    </div>
-                    {oferta.incluye_tv && (
-                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        <Tv size={16} className="text-violet-500" />
-                        <span>Incluye TV</span>
-                      </div>
+                    {oferta.isEmpty ? (
+                      <span className="text-xl font-semibold text-zinc-400 dark:text-zinc-500 py-1">Sin planes reportados</span>
+                    ) : (
+                      <>
+                        <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100">${oferta.precio_mensual}</span>
+                        <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
+                      </>
                     )}
                   </div>
+
+                  {!oferta.isEmpty && (
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <Zap size={16} className="text-amber-500" />
+                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{oferta.velocidad_mb} Mbps</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <ExternalLink size={16} className="text-blue-500" />
+                        <span>Instalación: ${oferta.costo_instalacion || "0"}</span>
+                      </div>
+                      {oferta.incluye_tv && (
+                        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          <Tv size={16} className="text-violet-500" />
+                          <span>Incluye TV</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="w-full flex justify-center py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs font-semibold text-zinc-400 group-hover:text-primary transition-colors">
-                    Ver todo el historial de planes
+                    {oferta.isEmpty ? "Registrar nueva oferta" : "Ver todo el historial de planes"}
                   </div>
                 </div>
               </div>

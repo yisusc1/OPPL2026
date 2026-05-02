@@ -67,13 +67,15 @@ export async function saveOfertasBatch(ofertas: any[]) {
 /**
  * Obtiene la ÚLTIMA oferta registrada de cada operador para una zona específica.
  */
-export async function getOfertasRecientes(estado: string, municipio: string, parroquia: string) {
+export async function getOfertasRecientes(estado?: string, municipio?: string, parroquia?: string) {
   const supabase = await createClient();
   
-  // Como PostgREST no soporta DISTINCT ON directamente de forma sencilla sin RPC,
-  // consultamos las últimas ofertas de la zona ordenadas por fecha descendente
-  // y agrupamos en memoria (asumiendo que los filtros limitan la cantidad de datos).
-  const { data, error } = await supabase
+  // 1. Obtener todos los operadores para rellenar si no hay filtros
+  const { data: ops } = await supabase.from("operadores_competencia").select("*");
+  const operadores = ops || [];
+
+  // 2. Construir query dinámica
+  let query = supabase
     .from("ofertas_competencia")
     .select(`
       *,
@@ -82,24 +84,44 @@ export async function getOfertasRecientes(estado: string, municipio: string, par
         color_hex
       )
     `)
-    .eq("estado", estado)
-    .eq("municipio", municipio)
-    .eq("parroquia", parroquia)
     .order("created_at", { ascending: false })
-    .limit(300); // Límite seguro para no saturar memoria
+    .limit(500);
+
+  if (estado) query = query.eq("estado", estado);
+  if (municipio) query = query.eq("municipio", municipio);
+  if (parroquia) query = query.eq("parroquia", parroquia);
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching ofertas recientes:", error);
     return [];
   }
 
-  // Agrupar por operador_id y quedarnos con la primera (que es la más reciente por el order by)
+  // Agrupar por operador_id y quedarnos con la primera (la más reciente)
   const ultimasOfertasMap = new Map<number, any>();
   
   if (data) {
     for (const oferta of data) {
       if (!ultimasOfertasMap.has(oferta.operador_id)) {
         ultimasOfertasMap.set(oferta.operador_id, oferta);
+      }
+    }
+  }
+
+  // Si no hay filtros de zona aplicados, mostramos todos los operadores,
+  // incluso los que no tienen NINGUNA oferta en el sistema
+  const isFilterActive = estado || municipio || parroquia;
+  
+  if (!isFilterActive) {
+    for (const op of operadores) {
+      if (!ultimasOfertasMap.has(op.id)) {
+        ultimasOfertasMap.set(op.id, {
+          id: `empty-${op.id}`,
+          operador_id: op.id,
+          operadores_competencia: { nombre: op.nombre, color_hex: op.color_hex },
+          isEmpty: true // Marcador para la UI
+        });
       }
     }
   }
