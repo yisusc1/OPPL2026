@@ -211,8 +211,7 @@ export default function MapPage() {
 
     // Manual Search State
     const [searchMode, setSearchMode] = useState<"gps" | "manual">("gps");
-    const [manualLat, setManualLat] = useState("");
-    const [manualLng, setManualLng] = useState("");
+    const [manualInput, setManualInput] = useState("");
 
     // UI State
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -262,8 +261,7 @@ export default function MapPage() {
         navigator.geolocation.getCurrentPosition(
             (pos) => {
                 performFeasibilityCheck(pos.coords.latitude, pos.coords.longitude);
-                setManualLat(pos.coords.latitude.toFixed(6));
-                setManualLng(pos.coords.longitude.toFixed(6));
+                setManualInput(`${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
             },
             (err) => {
                 console.error("Error GPS", err);
@@ -275,8 +273,16 @@ export default function MapPage() {
     };
 
     const handleManualSearch = () => {
-        const lat = parseFloat(manualLat);
-        const lng = parseFloat(manualLng);
+        // Parse "lat, lng" or "lat lng"
+        const parts = manualInput.split(/[,\s]+/).map(p => p.trim()).filter(Boolean);
+        if (parts.length < 2) {
+            alert("Por favor ingrese latitud y longitud (ej: 10.46, -66.90)");
+            return;
+        }
+
+        const lat = parseFloat(parts[0]);
+        const lng = parseFloat(parts[1]);
+
         if (isNaN(lat) || isNaN(lng)) {
             alert("Coordenadas inválidas");
             return;
@@ -350,31 +356,19 @@ export default function MapPage() {
                                 </TabsContent>
 
                                 <TabsContent value="manual" className="mt-3 space-y-3">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div className="space-y-1">
-                                            <Label htmlFor="lat" className="text-[10px] uppercase text-muted-foreground font-bold">Latitud</Label>
-                                            <Input
-                                                id="lat"
-                                                placeholder="10.4..."
-                                                className="h-9 text-xs font-mono"
-                                                value={manualLat}
-                                                onChange={(e) => setManualLat(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor="lng" className="text-[10px] uppercase text-muted-foreground font-bold">Longitud</Label>
-                                            <Input
-                                                id="lng"
-                                                placeholder="-66.9..."
-                                                className="h-9 text-xs font-mono"
-                                                value={manualLng}
-                                                onChange={(e) => setManualLng(e.target.value)}
-                                            />
-                                        </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor="coords" className="text-[10px] uppercase text-muted-foreground font-bold">Coordenadas (Lat, Lng)</Label>
+                                        <Input
+                                            id="coords"
+                                            placeholder="10.467, -66.905"
+                                            className="h-9 text-xs font-mono"
+                                            value={manualInput}
+                                            onChange={(e) => setManualInput(e.target.value)}
+                                        />
                                     </div>
                                     <Button
                                         onClick={handleManualSearch}
-                                        disabled={checkingCoverage || loading || !manualLat || !manualLng}
+                                        disabled={checkingCoverage || loading || !manualInput}
                                         className={cn("w-full h-10 gap-2 font-semibold shadow-sm transition-all",
                                             searchMode === 'manual' && distance !== null && distance <= 400 ? "bg-green-600 hover:bg-green-700 text-white" :
                                                 searchMode === 'manual' && distance !== null ? "bg-red-600 hover:bg-red-700 text-white" : ""
