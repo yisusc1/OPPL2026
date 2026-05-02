@@ -153,3 +153,28 @@ export async function getHistorialOperador(operador_id: number, estado: string, 
 
   return data || [];
 }
+
+/**
+ * Obtiene el último "Snapshot" completo de un operador en una zona.
+ */
+export async function getSnapshotOperador(operador_id: number, estado: string, municipio: string, parroquia: string) {
+  const historial = await getHistorialOperador(operador_id, estado, municipio, parroquia);
+  if (!historial || historial.length === 0) return null;
+
+  // Filtrar todos los registros que coincidan con la fecha_reporte más reciente
+  const latestDate = historial[0].fecha_reporte;
+  const snapshotPlans = historial.filter(h => h.fecha_reporte === latestDate);
+
+  // Devolvemos el snapshot completo basado en el último reporte
+  return {
+    planes: snapshotPlans.map(p => ({
+      velocidad: String(p.velocidad_mb),
+      precio: String(p.precio_mensual)
+    })),
+    costo_instalacion: snapshotPlans[0].costo_instalacion ? String(snapshotPlans[0].costo_instalacion) : "",
+    modalidad_instalacion: snapshotPlans[0].modalidad_instalacion || "",
+    incluye_tv: snapshotPlans[0].incluye_tv || false,
+    detalle_tv: snapshotPlans[0].detalle_tv || "",
+    notas_anteriores: snapshotPlans[0].notas || ""
+  };
+}

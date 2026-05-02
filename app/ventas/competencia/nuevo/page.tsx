@@ -14,8 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOperadores, saveOfertasBatch, saveOperador } from "@/app/actions/competencia";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador } from "@/app/actions/competencia";
+import { Loader2, Plus, Trash2, Info } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Nuevo Plan",
@@ -41,6 +41,7 @@ export default function NuevaOfertaCompetencia() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [loadingSnapshot, setLoadingSnapshot] = useState(false);
   const [geoHierarchy, setGeoHierarchy] = useState<Record<string, Record<string, Record<string, string[]>>>>({});
   const [operadores, setOperadores] = useState<any[]>([]);
 
@@ -80,6 +81,41 @@ export default function NuevaOfertaCompetencia() {
   const estados = Object.keys(geoHierarchy).sort();
   const municipios = estado ? Object.keys(geoHierarchy[estado] || {}).sort() : [];
   const parroquias = estado && municipio ? Object.keys(geoHierarchy[estado]?.[municipio] || {}).sort() : [];
+
+  // Snapshot Loading Effect
+  useEffect(() => {
+    async function fetchSnapshot() {
+      if (!estado || !municipio || !parroquia || !operadorId) return;
+      
+      setLoadingSnapshot(true);
+      try {
+        const snap = await getSnapshotOperador(parseInt(operadorId), estado, municipio, parroquia);
+        if (snap) {
+          if (snap.planes.length > 0) setPlanes(snap.planes);
+          setCostoInstalacion(snap.costo_instalacion);
+          setModalidad(snap.modalidad_instalacion);
+          setIncluyeTv(snap.incluye_tv);
+          setDetalleTv(snap.detalle_tv);
+        } else {
+          // Limpiar si no hay datos previos
+          setPlanes([{ velocidad: "", precio: "" }]);
+          setCostoInstalacion("");
+          setModalidad("");
+          setIncluyeTv(false);
+          setDetalleTv("");
+        }
+      } catch (error) {
+        console.error("Error fetching snapshot:", error);
+      } finally {
+        setLoadingSnapshot(false);
+      }
+    }
+    
+    // Solo recargamos el snapshot si NO es Expansión, ya que Expansión implica llenado desde cero
+    if (tipoNovedad !== "Expansión (Llegó a esta zona)") {
+      fetchSnapshot();
+    }
+  }, [estado, municipio, parroquia, operadorId, tipoNovedad]);
 
   const updatePlan = (index: number, field: string, value: string) => {
     const newPlanes = [...planes];
@@ -249,87 +285,138 @@ export default function NuevaOfertaCompetencia() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {loadingSnapshot && (
+              <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-xl text-sm animate-pulse mt-4">
+                <Loader2 className="w-4 h-4 animate-spin" /> Cargando datos actuales del operador...
+              </div>
+            )}
 
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
-              <div className="flex justify-between items-center mb-3">
-                <Label className="text-zinc-500">Planes Ofertados</Label>
-              </div>
-              
-              <div className="space-y-3">
-                {planes.map((plan, index) => (
-                  <div key={index} className="flex gap-2 items-end bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Velocidad (Mbps)</Label>
-                      <Input type="number" min="0" placeholder="Ej: 400" value={plan.velocidad} onChange={(e) => updatePlan(index, "velocidad", e.target.value)} className="h-10 rounded-lg" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Precio ($/mes)</Label>
-                      <Input type="number" min="0" step="0.01" placeholder="Ej: 25.50" value={plan.precio} onChange={(e) => updatePlan(index, "precio", e.target.value)} className="h-10 rounded-lg" />
-                    </div>
-                    {planes.length > 1 && (
-                      <Button variant="ghost" size="icon" onClick={() => removePlan(index)} className="h-10 w-10 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg">
-                        <Trash2 size={16} />
+            {(() => {
+              const showPlanes = !["Promo Instalación", "Corte de Servicio General", "Otro"].includes(tipoNovedad);
+              const showInstalacion = !["Ajuste de Precio", "Corte de Servicio General", "Otro"].includes(tipoNovedad);
+
+              return (
+                <>
+                  {showPlanes && (
+                    <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800 mt-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <Label className="text-zinc-500">Planes Ofertados</Label>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {planes.map((plan, index) => (
+                          <div key={index} className="flex gap-2 items-end bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                            <div className="flex-1 space-y-1">
+                              <Label className="text-xs">Velocidad (Mbps)</Label>
+                              <Input type="number" min="0" placeholder="Ej: 400" value={plan.velocidad} onChange={(e) => updatePlan(index, "velocidad", e.target.value)} className="h-10 rounded-lg" />
+                            </div>
+                            <div className="flex-1 space-y-1">
+                              <Label className="text-xs">Precio ($/mes)</Label>
+                              <Input type="number" min="0" step="0.01" placeholder="Ej: 25.50" value={plan.precio} onChange={(e) => updatePlan(index, "precio", e.target.value)} className="h-10 rounded-lg" />
+                            </div>
+                            {planes.length > 1 && (
+                              <Button variant="ghost" size="icon" onClick={() => removePlan(index)} className="h-10 w-10 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg">
+                                <Trash2 size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <Button variant="outline" onClick={addPlan} className="w-full mt-3 h-10 rounded-xl gap-2 border-dashed text-primary">
+                        <Plus size={16} /> Añadir otro plan
                       </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              <Button variant="outline" onClick={addPlan} className="w-full mt-3 h-10 rounded-xl gap-2 border-dashed text-primary">
-                <Plus size={16} /> Añadir otro plan
-              </Button>
-            </div>
+                    </div>
+                  )}
+                  </>
+                );
+              })()}
           </CardContent>
         </Card>
 
         {/* Sección: Instalación y Extras */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Instalación y Extras</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label>Costo Instalación ($)</Label>
-                <Input type="number" min="0" step="0.01" placeholder="Ej: 40" value={costoInstalacion} onChange={(e) => setCostoInstalacion(e.target.value)} className="h-12 rounded-xl text-base" />
-              </div>
-              <div className="space-y-1">
-                <Label>Modalidad</Label>
-                <Select value={modalidad} onValueChange={setModalidad}>
-                  <SelectTrigger className="w-full h-12 rounded-xl text-base"><SelectValue placeholder="Venta..." /></SelectTrigger>
-                  <SelectContent>
-                    {MODALIDADES_INSTALACION.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+        {(() => {
+          const showInstalacion = !["Ajuste de Precio", "Corte de Servicio General", "Otro"].includes(tipoNovedad);
+          const isSoloNotas = ["Corte de Servicio General", "Otro"].includes(tipoNovedad);
 
-            <div className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 mt-2">
-              <div>
-                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">¿Incluye TV?</p>
-                <p className="text-xs text-zinc-500">Activa si el plan cuenta con servicio de TV</p>
-              </div>
-              <Switch checked={incluyeTv} onCheckedChange={setIncluyeTv} />
-            </div>
+          if (isSoloNotas) {
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Detalles de la Novedad</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    <Label>Notas u Observaciones</Label>
+                    <Textarea 
+                      placeholder="Describe la novedad detalladamente..." 
+                      value={notas} 
+                      onChange={(e) => setNotas(e.target.value)} 
+                      className="rounded-xl resize-none text-base min-h-[100px]" 
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          }
 
-            {incluyeTv && (
-              <div className="space-y-1 mt-2">
-                <Label>Detalle de TV (Opcional)</Label>
-                <Input placeholder="Ej: Básico, 60 Canales, App Android..." value={detalleTv} onChange={(e) => setDetalleTv(e.target.value)} className="h-12 rounded-xl text-base" />
-              </div>
-            )}
-            
-            <div className="space-y-1 pt-2">
-              <Label>Notas u Observaciones</Label>
-              <Textarea 
-                placeholder="Ej: Requieren pagar 2 meses por adelantado..." 
-                value={notas} 
-                onChange={(e) => setNotas(e.target.value)} 
-                className="rounded-xl resize-none text-base min-h-[100px]" 
-              />
-            </div>
-          </CardContent>
-        </Card>
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm uppercase tracking-wider text-zinc-500">
+                  {showInstalacion ? "Instalación y Extras" : "Extras y Notas"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {showInstalacion && (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label>Costo Instalación ($)</Label>
+                        <Input type="number" min="0" step="0.01" placeholder="Ej: 40" value={costoInstalacion} onChange={(e) => setCostoInstalacion(e.target.value)} className="h-12 rounded-xl text-base" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label>Modalidad</Label>
+                        <Select value={modalidad} onValueChange={setModalidad}>
+                          <SelectTrigger className="w-full h-12 rounded-xl text-base"><SelectValue placeholder="Venta..." /></SelectTrigger>
+                          <SelectContent>
+                            {MODALIDADES_INSTALACION.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-4 mt-2">
+                      <div>
+                        <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">¿Incluye TV?</p>
+                        <p className="text-xs text-zinc-500">Activa si el plan cuenta con servicio de TV</p>
+                      </div>
+                      <Switch checked={incluyeTv} onCheckedChange={setIncluyeTv} />
+                    </div>
+
+                    {incluyeTv && (
+                      <div className="space-y-1 mt-2">
+                        <Label>Detalle de TV (Opcional)</Label>
+                        <Input placeholder="Ej: Básico, 60 Canales, App Android..." value={detalleTv} onChange={(e) => setDetalleTv(e.target.value)} className="h-12 rounded-xl text-base" />
+                      </div>
+                    )}
+                  </>
+                )}
+                
+                <div className="space-y-1 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <Label>Notas u Observaciones</Label>
+                  <Textarea 
+                    placeholder="Ej: Requieren pagar 2 meses por adelantado..." 
+                    value={notas} 
+                    onChange={(e) => setNotas(e.target.value)} 
+                    className="rounded-xl resize-none text-base min-h-[100px]" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         <div className="sticky bottom-6 z-10 pt-4">
           <Button onClick={handleSubmit} disabled={saving} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 gap-2">
