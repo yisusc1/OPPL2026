@@ -35,27 +35,28 @@ export async function saveOperador(nombre: string, color_hex: string, logo_url?:
 
 // ── Ofertas ────────────────────────────────────────────────────────
 
-export async function saveOferta(oferta: {
-  operador_id: number;
-  estado: string;
-  municipio: string;
-  parroquia: string;
-  tipo_novedad: string;
-  velocidad_mb: number;
-  precio_mensual: number;
-  costo_instalacion?: number;
-  modalidad_instalacion?: string;
-  incluye_tv?: boolean;
-  detalle_tv?: string;
-  notas?: string;
-  asesor_nombre: string;
-}) {
+export async function saveOferta(oferta: any) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ofertas_competencia")
     .insert([oferta])
     .select()
     .single();
+
+  if (error) throw new Error(error.message);
+  
+  revalidatePath("/ventas/competencia");
+  return data;
+}
+
+export async function saveOfertasBatch(ofertas: any[]) {
+  if (!ofertas || ofertas.length === 0) return [];
+  
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ofertas_competencia")
+    .insert(ofertas)
+    .select();
 
   if (error) throw new Error(error.message);
   

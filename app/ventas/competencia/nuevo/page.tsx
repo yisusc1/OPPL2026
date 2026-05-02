@@ -14,8 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOperadores, saveOferta, saveOperador } from "@/app/actions/competencia";
-import { Loader2, Plus } from "lucide-react";
+import { getOperadores, saveOfertasBatch, saveOperador } from "@/app/actions/competencia";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Nuevo Plan",
@@ -50,8 +50,7 @@ export default function NuevaOfertaCompetencia() {
   const [parroquia, setParroquia] = useState("");
   const [operadorId, setOperadorId] = useState("");
   const [tipoNovedad, setTipoNovedad] = useState("");
-  const [velocidad, setVelocidad] = useState("");
-  const [precio, setPrecio] = useState("");
+  const [planes, setPlanes] = useState([{ velocidad: "", precio: "" }]);
   const [costoInstalacion, setCostoInstalacion] = useState("");
   const [modalidad, setModalidad] = useState("");
   const [incluyeTv, setIncluyeTv] = useState(false);
@@ -82,31 +81,50 @@ export default function NuevaOfertaCompetencia() {
   const municipios = estado ? Object.keys(geoHierarchy[estado] || {}).sort() : [];
   const parroquias = estado && municipio ? Object.keys(geoHierarchy[estado]?.[municipio] || {}).sort() : [];
 
+  const updatePlan = (index: number, field: string, value: string) => {
+    const newPlanes = [...planes];
+    newPlanes[index] = { ...newPlanes[index], [field]: value };
+    setPlanes(newPlanes);
+  };
+
+  const removePlan = (index: number) => {
+    if (planes.length > 1) {
+      setPlanes(planes.filter((_, i) => i !== index));
+    }
+  };
+
+  const addPlan = () => {
+    setPlanes([...planes, { velocidad: "", precio: "" }]);
+  };
+
   async function handleSubmit() {
-    if (!estado || !municipio || !parroquia || !operadorId || !tipoNovedad || !velocidad || !precio) {
-      toast({ title: "Faltan datos", description: "Por favor llena los campos requeridos.", variant: "destructive" });
+    const validPlanes = planes.filter((p) => p.velocidad && p.precio);
+    if (!estado || !municipio || !parroquia || !operadorId || !tipoNovedad || validPlanes.length === 0) {
+      toast({ title: "Faltan datos", description: "Llena los campos requeridos y al menos un plan completo.", variant: "destructive" });
       return;
     }
 
     setSaving(true);
     try {
-      await saveOferta({
+      const ofertasToInsert = validPlanes.map((p) => ({
         operador_id: parseInt(operadorId),
         estado,
         municipio,
         parroquia,
         tipo_novedad: tipoNovedad,
-        velocidad_mb: parseInt(velocidad),
-        precio_mensual: parseFloat(precio),
+        velocidad_mb: parseInt(p.velocidad),
+        precio_mensual: parseFloat(p.precio),
         costo_instalacion: costoInstalacion ? parseFloat(costoInstalacion) : 0,
         modalidad_instalacion: modalidad || "Venta de Equipo",
         incluye_tv: incluyeTv,
         detalle_tv: incluyeTv ? detalleTv : undefined,
         notas,
         asesor_nombre: asesor || "Asesor Desconocido",
-      });
+      }));
 
-      toast({ title: "Novedad guardada exitosamente" });
+      await saveOfertasBatch(ofertasToInsert);
+
+      toast({ title: "Novedades guardadas exitosamente" });
       router.push("/ventas/competencia");
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -228,15 +246,34 @@ export default function NuevaOfertaCompetencia() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label>Velocidad (Mbps)</Label>
-                <Input type="number" min="0" placeholder="Ej: 400" value={velocidad} onChange={(e) => setVelocidad(e.target.value)} className="h-12 rounded-xl text-base" />
+            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex justify-between items-center mb-3">
+                <Label className="text-zinc-500">Planes Ofertados</Label>
               </div>
-              <div className="space-y-1">
-                <Label>Precio ($/mes)</Label>
-                <Input type="number" min="0" step="0.01" placeholder="Ej: 25.50" value={precio} onChange={(e) => setPrecio(e.target.value)} className="h-12 rounded-xl text-base" />
+              
+              <div className="space-y-3">
+                {planes.map((plan, index) => (
+                  <div key={index} className="flex gap-2 items-end bg-zinc-50 dark:bg-zinc-900/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">Velocidad (Mbps)</Label>
+                      <Input type="number" min="0" placeholder="Ej: 400" value={plan.velocidad} onChange={(e) => updatePlan(index, "velocidad", e.target.value)} className="h-10 rounded-lg" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">Precio ($/mes)</Label>
+                      <Input type="number" min="0" step="0.01" placeholder="Ej: 25.50" value={plan.precio} onChange={(e) => updatePlan(index, "precio", e.target.value)} className="h-10 rounded-lg" />
+                    </div>
+                    {planes.length > 1 && (
+                      <Button variant="ghost" size="icon" onClick={() => removePlan(index)} className="h-10 w-10 shrink-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg">
+                        <Trash2 size={16} />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
+              
+              <Button variant="outline" onClick={addPlan} className="w-full mt-3 h-10 rounded-xl gap-2 border-dashed text-primary">
+                <Plus size={16} /> Añadir otro plan
+              </Button>
             </div>
           </CardContent>
         </Card>
