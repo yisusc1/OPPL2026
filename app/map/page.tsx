@@ -196,6 +196,9 @@ function CoverageLayer({ userLocation, targetNode, distance }: { userLocation: {
         }
     }, [isLoaded, map, userLocation, targetNode, distance, isFeasible]);
 
+    return null;
+}
+
 function MapFlyTo({ location, trigger }: { location: { lat: number, lng: number } | null, trigger: number }) {
     const { map, isLoaded } = useMap();
 
