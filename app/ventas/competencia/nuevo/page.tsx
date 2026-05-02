@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,8 @@ interface OpcionInstalacion {
 
 export default function NuevaOfertaCompetencia() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlOperador = searchParams.get("operador");
   const { toast } = useToast();
   const { profile } = useUser();
   const asesor = profile ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
@@ -74,7 +76,7 @@ export default function NuevaOfertaCompetencia() {
   const [estado, setEstado] = useState("");
   const [municipio, setMunicipio] = useState("");
   const [parroquia, setParroquia] = useState("");
-  const [operadorId, setOperadorId] = useState("");
+  const [operadorId, setOperadorId] = useState(urlOperador || "");
   const [tipoNovedad, setTipoNovedad] = useState("Actualización General");
 
   // Bloque A: Planes y Promos
@@ -218,8 +220,17 @@ export default function NuevaOfertaCompetencia() {
   const removeInstOpcion = (idx: number) => setOpcionesInstalacion(opcionesInstalacion.filter((_, i) => i !== idx));
 
   async function handleSubmit() {
-    if (!estado || !municipio || !parroquia || !operadorId || !tipoNovedad) {
-      toast({ title: "Faltan datos", description: "Llena los campos requeridos.", variant: "destructive" });
+    const missing = [];
+    if (!estado) missing.push("Estado");
+    if (!municipio) missing.push("Municipio");
+    if (!parroquia) missing.push("Parroquia");
+    if (!operadorId) missing.push("Operador");
+    if (!tipoNovedad) missing.push("Tipo de Novedad");
+
+    if (missing.length > 0) {
+      const msg = `Faltan campos: ${missing.join(", ")}`;
+      console.warn("[competencia] Validación fallida:", msg);
+      toast({ title: "Faltan datos", description: msg, variant: "destructive" });
       return;
     }
 

@@ -84,7 +84,7 @@ export default function CompetenciaDashboard() {
 
   async function openOperadorDetails(oferta: any) {
     if (oferta.isEmpty) {
-      window.location.href = "/ventas/competencia/nuevo";
+      window.location.href = `/ventas/competencia/nuevo?operador=${oferta.operador_id}`;
       return;
     }
     setSelectedOperador(oferta);
