@@ -62,6 +62,9 @@ export default function NuevaOfertaCompetencia() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const urlOperador = searchParams.get("operador");
+  const urlEstado = searchParams.get("estado");
+  const urlMunicipio = searchParams.get("municipio");
+  const urlParroquia = searchParams.get("parroquia");
   const { toast } = useToast();
   const { profile } = useUser();
   const asesor = profile ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
@@ -73,9 +76,9 @@ export default function NuevaOfertaCompetencia() {
   const [operadores, setOperadores] = useState<any[]>([]);
 
   // Form State
-  const [estado, setEstado] = useState("");
-  const [municipio, setMunicipio] = useState("");
-  const [parroquia, setParroquia] = useState("");
+  const [estado, setEstado] = useState(urlEstado || "");
+  const [municipio, setMunicipio] = useState(urlMunicipio || "");
+  const [parroquia, setParroquia] = useState(urlParroquia || "");
   const [operadorId, setOperadorId] = useState(urlOperador || "");
   const [tipoNovedad, setTipoNovedad] = useState("Actualización General");
 

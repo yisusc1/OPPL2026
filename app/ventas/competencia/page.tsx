@@ -84,7 +84,12 @@ export default function CompetenciaDashboard() {
 
   async function openOperadorDetails(oferta: any) {
     if (oferta.isEmpty) {
-      window.location.href = `/ventas/competencia/nuevo?operador=${oferta.operador_id}`;
+      const params = new URLSearchParams();
+      params.set("operador", String(oferta.operador_id));
+      if (estado) params.set("estado", estado);
+      if (municipio) params.set("municipio", municipio);
+      if (parroquia) params.set("parroquia", parroquia);
+      window.location.href = `/ventas/competencia/nuevo?${params.toString()}`;
       return;
     }
     setSelectedOperador(oferta);
