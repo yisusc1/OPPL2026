@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from "@/components/ui/drawer";
 import { useToast } from "@/components/ui/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVentasConfig } from "@/app/actions/ventas";
 import { getOfertasRecientes, getHistorialOperador } from "@/app/actions/competencia";
 import { format } from "date-fns";
@@ -220,57 +221,129 @@ export default function CompetenciaDashboard() {
                 {selectedOperador?.operadores_competencia?.nombre} en {parroquia || "el país"}
               </DrawerTitle>
               <DrawerDescription>
-                Historial de planes y novedades reportadas en la zona.
+                Consulta la información de este operador en la zona.
               </DrawerDescription>
             </DrawerHeader>
 
-            {loadingHistorial ? (
-              <div className="flex items-center justify-center py-10">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-primary" />
-              </div>
-            ) : (
-              <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2 pb-4 scrollbar-thin">
-                {historial.map((hist, index) => (
-                  <div key={hist.id} className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                    <div className="flex justify-between items-center mb-3">
-                      <Badge className={index === 0 ? "bg-emerald-500 hover:bg-emerald-600" : "bg-zinc-500"}>
-                        {hist.tipo_novedad}
-                      </Badge>
-                      <span className="text-xs text-zinc-500 font-medium">
-                        {format(new Date(hist.created_at), "dd/MM/yyyy • hh:mm a")}
+            <Tabs defaultValue="oferta" className="w-full mt-2">
+              <TabsList className="grid w-full grid-cols-2 mb-4 bg-zinc-100 dark:bg-zinc-800/50">
+                <TabsTrigger value="oferta">Oferta Actual</TabsTrigger>
+                <TabsTrigger value="historial">Historial ({historial.length})</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="oferta" className="space-y-4 mt-0 outline-none">
+                {selectedOperador?.isEmpty ? (
+                  <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 text-center">
+                    <Radar className="w-8 h-8 mx-auto text-zinc-400 mb-2" />
+                    <h3 className="text-zinc-900 dark:text-zinc-100 font-medium mb-1">Sin datos de oferta</h3>
+                    <p className="text-sm text-zinc-500 mb-4">No se han registrado planes para esta operadora aquí.</p>
+                    <Link href="/ventas/competencia/nuevo">
+                      <Button variant="outline" className="w-full text-zinc-700 dark:text-zinc-300">Registrar primera oferta</Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
+                    <div className="flex justify-between items-center mb-6">
+                      <Badge className="bg-emerald-500">{selectedOperador?.tipo_novedad}</Badge>
+                      <span className="text-xs font-semibold text-zinc-500">
+                        {selectedOperador?.created_at ? format(new Date(selectedOperador.created_at), "dd MMM yyyy", { locale: es }) : ""}
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
-                      <div>
-                        <p className="text-zinc-500 text-xs">Plan</p>
-                        <p className="font-bold text-zinc-900 dark:text-zinc-100">{hist.velocidad_mb} Mbps por ${hist.precio_mensual}</p>
-                      </div>
-                      <div>
-                        <p className="text-zinc-500 text-xs">Instalación</p>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          ${hist.costo_instalacion || 0} ({hist.modalidad_instalacion || "Venta"})
-                        </p>
-                      </div>
-                      {hist.incluye_tv && (
-                        <div className="col-span-2 bg-violet-50 dark:bg-violet-900/20 p-2 rounded-lg flex items-center gap-2 border border-violet-100 dark:border-violet-900/40">
-                          <Tv size={14} className="text-violet-600 dark:text-violet-400" />
-                          <span className="text-violet-800 dark:text-violet-300 font-medium text-xs">TV: {hist.detalle_tv || "Incluida"}</span>
-                        </div>
-                      )}
-                      {hist.notas && (
-                        <div className="col-span-2 mt-2 pt-2 border-t border-zinc-200 dark:border-zinc-800">
-                          <p className="text-zinc-500 text-xs italic">"{hist.notas}"</p>
-                        </div>
-                      )}
-                      <div className="col-span-2 text-[10px] text-zinc-400 text-right mt-1">
-                        Reportado por: {hist.asesor_nombre}
-                      </div>
+                    <div className="flex items-end gap-2 mb-6">
+                      <span className="text-4xl font-black text-zinc-900 dark:text-zinc-100">${selectedOperador?.precio_mensual}</span>
+                      <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
                     </div>
+
+                    <div className="space-y-4 mb-2">
+                      <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300">
+                        <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                          <Zap size={20} className="text-amber-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Velocidad</p>
+                          <p className="font-bold text-lg">{selectedOperador?.velocidad_mb} Mbps</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+                          <ExternalLink size={20} className="text-blue-500" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Instalación</p>
+                          <p className="font-bold">${selectedOperador?.costo_instalacion || "0"} <span className="text-sm font-medium text-zinc-500">({selectedOperador?.modalidad_instalacion || "Venta"})</span></p>
+                        </div>
+                      </div>
+
+                      {selectedOperador?.incluye_tv && (
+                        <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300">
+                          <div className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center shrink-0">
+                            <Tv size={20} className="text-violet-500" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Televisión</p>
+                            <p className="font-bold">{selectedOperador?.detalle_tv || "Incluida en el plan"}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {selectedOperador?.notas && (
+                      <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                        <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-1">Notas del Asesor</p>
+                        <p className="text-sm text-zinc-700 dark:text-zinc-300 italic">"{selectedOperador.notas}"</p>
+                      </div>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
+                )}
+              </TabsContent>
+
+              <TabsContent value="historial" className="mt-0 outline-none">
+                {loadingHistorial ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-zinc-200 border-t-primary" />
+                  </div>
+                ) : historial.length === 0 ? (
+                  <div className="py-8 text-center text-zinc-500 text-sm">
+                    No hay historial previo registrado para este operador.
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 pb-4 scrollbar-thin">
+                    {historial.map((hist, index) => (
+                      <div key={hist.id} className="p-4 bg-zinc-50 dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                        <div className="flex justify-between items-center mb-3">
+                          <Badge className={index === 0 ? "bg-emerald-500" : "bg-zinc-500"}>
+                            {hist.tipo_novedad}
+                          </Badge>
+                          <span className="text-xs text-zinc-500 font-medium">
+                            {format(new Date(hist.created_at), "dd/MM/yyyy")}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
+                          <div>
+                            <p className="text-zinc-500 text-xs">Plan</p>
+                            <p className="font-bold text-zinc-900 dark:text-zinc-100">{hist.velocidad_mb} Mbps por ${hist.precio_mensual}</p>
+                          </div>
+                          <div>
+                            <p className="text-zinc-500 text-xs">Instalación</p>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              ${hist.costo_instalacion || 0}
+                            </p>
+                          </div>
+                          {hist.notas && (
+                            <div className="col-span-2 mt-1 pt-2 border-t border-zinc-200 dark:border-zinc-800">
+                              <p className="text-zinc-500 text-xs italic line-clamp-2">"{hist.notas}"</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
             
             <DrawerFooter className="px-0 pt-4">
               <DrawerClose asChild>
