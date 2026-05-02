@@ -456,7 +456,69 @@ export default function NuevaOfertaCompetencia() {
         </div>
       </div>
       
-      {/* ... Dialog Operador ... */}
+      {/* Dialog: Nueva Operadora */}
+      <Dialog open={isOperadorModalOpen} onOpenChange={setIsOperadorModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Nueva Operadora</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label>Nombre de la Operadora *</Label>
+              <Input
+                placeholder="Ej. Fibex, Inter, Netuno..."
+                value={newOpName}
+                onChange={(e) => setNewOpName(e.target.value)}
+                className="h-11 rounded-xl text-base"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Color de marca</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={newOpColor}
+                  onChange={(e) => setNewOpColor(e.target.value)}
+                  className="h-11 w-16 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer bg-transparent p-1"
+                />
+                <Input
+                  placeholder="#3b82f6"
+                  value={newOpColor}
+                  onChange={(e) => setNewOpColor(e.target.value)}
+                  className="h-11 rounded-xl font-mono text-sm flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>URL del Logo <span className="text-zinc-400 font-normal">(opcional)</span></Label>
+              <Input
+                placeholder="https://ejemplo.com/logo.png"
+                value={newOpLogo}
+                onChange={(e) => setNewOpLogo(e.target.value)}
+                className="h-11 rounded-xl text-sm"
+              />
+            </div>
+            {newOpName && (
+              <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                {newOpLogo ? (
+                  <img src={newOpLogo} alt="preview" className="w-8 h-8 object-contain rounded-md" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: newOpColor }} />
+                )}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">{newOpName}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsOperadorModalOpen(false)} className="rounded-xl">Cancelar</Button>
+            <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
+              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
+              Crear Operadora
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PremiumPageLayout>
   );
 }

@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Zap, ExternalLink, Radar, Loader2 } from "lucide-react";
+import { Plus, Zap, ExternalLink, Radar, Loader2, Settings2 } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,9 +12,12 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador } from "@/app/actions/competencia";
+import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador, getOperadores, saveOperador } from "@/app/actions/competencia";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function CompetenciaDashboard() {
   const { toast } = useToast();
@@ -36,15 +39,26 @@ export default function CompetenciaDashboard() {
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Gestión de Operadoras
+  const [operadores, setOperadores] = useState<any[]>([]);
+  const [isOpModalOpen, setIsOpModalOpen] = useState(false);
+  const [newOpName, setNewOpName] = useState("");
+  const [newOpColor, setNewOpColor] = useState("#3b82f6");
+  const [newOpLogo, setNewOpLogo] = useState("");
+  const [savingOp, setSavingOp] = useState(false);
+
   useEffect(() => {
-    getVentasConfig().then((config) => {
-      setGeoHierarchy(config.geoHierarchy);
-      setLoadingConfig(false);
-    }).catch(e => {
-      console.error(e);
-      setLoadingConfig(false);
-      toast({ title: "Error cargando ubicaciones", variant: "destructive" });
-    });
+    Promise.all([getVentasConfig(), getOperadores()])
+      .then(([config, ops]) => {
+        setGeoHierarchy(config.geoHierarchy);
+        setOperadores(ops);
+        setLoadingConfig(false);
+      })
+      .catch(e => {
+        console.error(e);
+        setLoadingConfig(false);
+        toast({ title: "Error cargando configuración", variant: "destructive" });
+      });
   }, []);
 
   const estados = Object.keys(geoHierarchy).sort();
@@ -88,6 +102,22 @@ export default function CompetenciaDashboard() {
       toast({ title: "Error al cargar historial", variant: "destructive" });
     } finally {
       setLoadingHistorial(false);
+    }
+  }
+
+  async function handleSaveOperador() {
+    if (!newOpName) return toast({ title: "Nombre requerido", variant: "destructive" });
+    setSavingOp(true);
+    try {
+      const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
+      toast({ title: `Operadora "${data.nombre}" creada` });
+      setOperadores(prev => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      setIsOpModalOpen(false);
+      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo("");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingOp(false);
     }
   }
 
@@ -139,6 +169,13 @@ export default function CompetenciaDashboard() {
             <Plus size={18} /> Reportar Novedad
           </Button>
         </Link>
+        <Button
+          variant="outline"
+          className="h-14 md:h-full gap-2 rounded-xl text-base px-4 border-zinc-200 dark:border-zinc-700"
+          onClick={() => setIsOpModalOpen(true)}
+        >
+          <Settings2 size={18} /> Operadoras
+        </Button>
       </div>
 
       {!loadingOfertas && ofertas.length === 0 ? (
@@ -491,6 +528,70 @@ export default function CompetenciaDashboard() {
           </div>
         </DrawerContent>
       </Drawer>
+
+      {/* Dialog: Nueva Operadora */}
+      <Dialog open={isOpModalOpen} onOpenChange={setIsOpModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">Registrar Nueva Operadora</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label>Nombre *</Label>
+              <Input
+                placeholder="Ej. Fibex, Inter, Netuno..."
+                value={newOpName}
+                onChange={(e) => setNewOpName(e.target.value)}
+                className="h-11 rounded-xl text-base"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Color de marca</Label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="color"
+                  value={newOpColor}
+                  onChange={(e) => setNewOpColor(e.target.value)}
+                  className="h-11 w-16 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer bg-transparent p-1"
+                />
+                <Input
+                  placeholder="#3b82f6"
+                  value={newOpColor}
+                  onChange={(e) => setNewOpColor(e.target.value)}
+                  className="h-11 rounded-xl font-mono text-sm flex-1"
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>URL del Logo <span className="text-zinc-400 font-normal">(opcional)</span></Label>
+              <Input
+                placeholder="https://ejemplo.com/logo.png"
+                value={newOpLogo}
+                onChange={(e) => setNewOpLogo(e.target.value)}
+                className="h-11 rounded-xl text-sm"
+              />
+            </div>
+            {newOpName && (
+              <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                {newOpLogo ? (
+                  <img src={newOpLogo} alt="preview" className="w-8 h-8 object-contain rounded-md" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: newOpColor }} />
+                )}
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">{newOpName}</span>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setIsOpModalOpen(false)} className="rounded-xl">Cancelar</Button>
+            <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
+              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
+              Crear Operadora
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PremiumPageLayout>
   );
 }
