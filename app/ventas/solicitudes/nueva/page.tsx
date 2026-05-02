@@ -400,29 +400,21 @@ export default function NuevaSolicitudPage() {
               <div className="w-full">
                 <Label className="mb-2 block text-[13px]">Tipo de Servicio</Label>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); }}>
+                  <Button type="button" variant={tipoServicio === "Domiciliario" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Domiciliario"); setPlan(""); setIncluyeTv(false); }}>
                     Domiciliario
                   </Button>
-                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); }}>
+                  <Button type="button" variant={tipoServicio === "Empresarial" ? "default" : "outline"} className="flex-1 h-12 rounded-xl" onClick={() => { setTipoServicio("Empresarial"); setPlan(""); setIncluyeTv(false); }}>
                     Empresarial
                   </Button>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 border border-border/60 rounded-xl bg-zinc-50/50 dark:bg-zinc-900/40">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-semibold">{tvLabel}</Label>
-                  <p className="text-xs text-muted-foreground">Incluir servicio de {tvLabel}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">{incluyeTv ? "SÍ" : "NO"}</span>
-                  <Switch checked={incluyeTv} onCheckedChange={setIncluyeTv} />
                 </div>
               </div>
             </div>
             <div>
               <Label className="mb-2 block text-[13px]">Plan a Contratar</Label>
-              <Select value={plan} onValueChange={setPlan}>
+              <Select value={plan} onValueChange={(v) => {
+                setPlan(v);
+                setIncluyeTv(v.toLowerCase().includes(tvLabel.toLowerCase()));
+              }}>
                 <SelectTrigger className="w-full h-11 rounded-lg"><SelectValue placeholder="Seleccione plan..." /></SelectTrigger>
                 <SelectContent>
                   {activePlanes.length > 0 ? (
