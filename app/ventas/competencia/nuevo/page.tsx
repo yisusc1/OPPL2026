@@ -313,25 +313,54 @@ export default function NuevaOfertaCompetencia() {
 
   const isSoloNotas = ["Corte de Servicio General", "Otro"].includes(tipoNovedad);
 
+  const iosSelect = "border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600";
+  const iosInput = "border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus-visible:ring-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-600";
+  const iosLabel = "text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1";
+  const iosCard = "bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden";
+  const iosDivider = "border-t border-zinc-100 dark:border-zinc-800 ml-4";
+  const iosVDivider = "w-px bg-zinc-100 dark:bg-zinc-800 my-3";
+  const iosSection = "text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-1 mb-2";
+
   return (
     <PremiumPageLayout title="Inteligencia de Mercado" description="Actualiza o registra un nuevo Snapshot de la competencia.">
-      <div className="max-w-3xl mx-auto space-y-6 pb-20">
-        
-        <Card>
-          <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Datos Base</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1"><Label>Estado</Label><Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); }}><SelectTrigger className="h-12 rounded-xl text-base"><SelectValue placeholder="Seleccione..." /></SelectTrigger><SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-1"><Label>Municipio</Label><Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); }} disabled={!estado}><SelectTrigger className="h-12 rounded-xl text-base"><SelectValue placeholder="Seleccione..." /></SelectTrigger><SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></div>
-              <div className="space-y-1"><Label>Parroquia</Label><Select value={parroquia} onValueChange={setParroquia} disabled={!municipio}><SelectTrigger className="h-12 rounded-xl text-base"><SelectValue placeholder="Seleccione..." /></SelectTrigger><SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent></Select></div>
-            </div>
+      <div className="max-w-2xl mx-auto space-y-8 pb-24">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-              <div className="space-y-1">
-                <Label>Operador</Label>
-                <div className="flex gap-2">
+        {/* ─── DATOS BASE ─── */}
+        <section>
+          <p className={iosSection}>Datos Base</p>
+          <div className={iosCard}>
+            <div className="px-4 py-3.5">
+              <p className={iosLabel}>Estado</p>
+              <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); }}>
+                <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className={iosDivider} />
+            <div className="flex">
+              <div className="flex-1 px-4 py-3.5">
+                <p className={iosLabel}>Municipio</p>
+                <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); }} disabled={!estado}>
+                  <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className={iosVDivider} />
+              <div className="flex-1 px-4 py-3.5">
+                <p className={iosLabel}>Parroquia</p>
+                <Select value={parroquia} onValueChange={setParroquia} disabled={!municipio}>
+                  <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                  <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className={iosDivider} />
+            <div className="flex">
+              <div className="flex-1 px-4 py-3.5">
+                <p className={iosLabel}>Operador</p>
+                <div className="flex items-center gap-2">
                   <Select value={operadorId} onValueChange={setOperadorId}>
-                    <SelectTrigger className="flex-1 h-12 rounded-xl text-base"><SelectValue placeholder="Operador..." /></SelectTrigger>
+                    <SelectTrigger className={`${iosSelect} flex-1`}><SelectValue placeholder="Operador..." /></SelectTrigger>
                     <SelectContent>
                       {operadores.map((op) => (
                         <SelectItem key={op.id} value={String(op.id)}>
@@ -343,111 +372,179 @@ export default function NuevaOfertaCompetencia() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" size="icon" className="h-12 w-12 rounded-xl shrink-0" onClick={() => setIsOperadorModalOpen(true)}><Plus className="text-zinc-500" /></Button>
+                  <button onClick={() => setIsOperadorModalOpen(true)} className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Plus size={14} className="text-zinc-500" /></button>
                 </div>
               </div>
-              <div className="space-y-1">
-                <Label>Tipo de Novedad</Label>
+              <div className={iosVDivider} />
+              <div className="flex-1 px-4 py-3.5">
+                <p className={iosLabel}>Tipo de Novedad</p>
                 <Select value={tipoNovedad} onValueChange={setTipoNovedad}>
-                  <SelectTrigger className="w-full h-12 rounded-xl text-base"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                  <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                   <SelectContent>{TIPOS_NOVEDAD.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
-
-            {loadingSnapshot && <div className="flex items-center gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 rounded-xl text-sm animate-pulse border border-zinc-100 dark:border-zinc-800"><Loader2 className="w-4 h-4 animate-spin" /> Cargando datos previos...</div>}
-          </CardContent>
-        </Card>
+            {loadingSnapshot && (<><div className={iosDivider} /><div className="flex items-center gap-2 px-4 py-3.5 text-zinc-400 text-sm animate-pulse"><Loader2 className="w-4 h-4 animate-spin" /> Cargando datos previos...</div></>)}
+          </div>
+        </section>
 
         {!isSoloNotas && (
           <>
-            <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm uppercase tracking-wider text-zinc-500 flex items-center gap-2">📋 Promociones Activas</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+            <section>
+              <p className={iosSection}>Promociones Activas</p>
+              <div className="space-y-3">
                 {promos.map((promo, idx) => (
-                  <div key={idx} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border relative group">
-                    <Button variant="ghost" size="icon" onClick={() => removePromo(idx)} className="absolute top-2 right-2 h-8 w-8 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></Button>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-                      <div className="space-y-1 col-span-2 md:col-span-1"><Label className="text-[10px] uppercase">Velocidad (Mbps)</Label><Input type="number" value={promo.velocidad} onChange={(e) => updatePromo(idx, "velocidad", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Precio Promo $</Label><Input type="number" step="0.01" value={promo.precio_promo} onChange={(e) => updatePromo(idx, "precio_promo", e.target.value)} className="h-10 bg-white dark:bg-zinc-900 font-bold" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase">Precio Regular $</Label><Input type="number" step="0.01" value={promo.precio_regular} onChange={(e) => updatePromo(idx, "precio_regular", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase">Duración (Meses)</Label><Input type="number" value={promo.duracion_meses} onChange={(e) => updatePromo(idx, "duracion_meses", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase">Válida Hasta</Label><Input type="date" value={promo.fecha_fin} onChange={(e) => updatePromo(idx, "fecha_fin", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
+                  <div key={idx} className={`${iosCard} relative group`}>
+                    <button onClick={() => removePromo(idx)} className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} className="text-rose-500" /></button>
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad (Mbps)</p>
+                        <Input type="number" value={promo.velocidad} onChange={(e) => updatePromo(idx, "velocidad", e.target.value)} className={iosInput} placeholder="Ej. 100" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400 mb-1">Precio Promo $</p>
+                        <Input type="number" step="0.01" value={promo.precio_promo} onChange={(e) => updatePromo(idx, "precio_promo", e.target.value)} className={`${iosInput} font-black`} placeholder="0.00" />
+                      </div>
                     </div>
-                    <div className="space-y-2 mt-4 pt-4 border-t">
-                      <Label className="text-xs font-semibold text-zinc-500">Servicios Incluidos en Promo</Label>
-                      {promo.servicios.map((srv, sIdx) => (
-                        <div key={sIdx} className="flex flex-col md:flex-row gap-2 items-center bg-white dark:bg-zinc-900 p-2 rounded-xl border">
-                          <Input placeholder="Ej. Salud Integral" value={srv.nombre} onChange={(e) => updatePromoServicio(idx, sIdx, "nombre", e.target.value)} className="h-9 text-sm" />
-                          <Input placeholder="Costo (ej. 0 o 7)" value={srv.costo} onChange={(e) => updatePromoServicio(idx, sIdx, "costo", e.target.value)} className="h-9 text-sm w-full md:w-32" />
-                          <Input placeholder="Detalle (ej. Gratis)" value={srv.condicion} onChange={(e) => updatePromoServicio(idx, sIdx, "condicion", e.target.value)} className="h-9 text-sm w-full md:w-32" />
-                          <Button variant="ghost" size="icon" onClick={() => removePromoServicio(idx, sIdx)} className="h-9 w-9 text-rose-400 shrink-0"><Trash2 size={14}/></Button>
-                        </div>
-                      ))}
-                      <Button variant="ghost" size="sm" onClick={() => addPromoServicio(idx)} className="h-8 text-xs gap-1"><PlusCircle size={14}/> Añadir Servicio</Button>
+                    <div className={iosDivider} />
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Precio Regular $</p>
+                        <Input type="number" step="0.01" value={promo.precio_regular} onChange={(e) => updatePromo(idx, "precio_regular", e.target.value)} className={iosInput} placeholder="0.00" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Duración (Meses)</p>
+                        <Input type="number" value={promo.duracion_meses} onChange={(e) => updatePromo(idx, "duracion_meses", e.target.value)} className={iosInput} placeholder="3" />
+                      </div>
                     </div>
+                    <div className={iosDivider} />
+                    <div className="px-4 py-3.5">
+                      <p className={iosLabel}>Válida Hasta</p>
+                      <Input type="date" value={promo.fecha_fin} onChange={(e) => updatePromo(idx, "fecha_fin", e.target.value)} className={iosInput} />
+                    </div>
+                    {/* Servicios */}
+                    {promo.servicios.length > 0 && <div className="border-t border-zinc-100 dark:border-zinc-800" />}
+                    {promo.servicios.length > 0 && (
+                      <div className="bg-zinc-50/50 dark:bg-zinc-800/30">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-4 pt-3 pb-1">Servicios Incluidos</p>
+                        {promo.servicios.map((srv, sIdx) => (
+                          <div key={sIdx}>
+                            {sIdx > 0 && <div className={iosDivider} />}
+                            <div className="flex items-center px-4 py-2.5 gap-3">
+                              <Input placeholder="Ej. Salud Integral" value={srv.nombre} onChange={(e) => updatePromoServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
+                              <Input placeholder="$0" value={srv.costo} onChange={(e) => updatePromoServicio(idx, sIdx, "costo", e.target.value)} className={`${iosInput} text-sm w-14 text-right`} />
+                              <Input placeholder="Detalle" value={srv.condicion} onChange={(e) => updatePromoServicio(idx, sIdx, "condicion", e.target.value)} className={`${iosInput} text-sm w-20 text-zinc-500`} />
+                              <button onClick={() => removePromoServicio(idx, sIdx)} className="shrink-0 text-rose-400 hover:text-rose-600"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="border-t border-zinc-100 dark:border-zinc-800" />
+                    <button onClick={() => addPromoServicio(idx)} className="w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-1.5"><PlusCircle size={14} /> Añadir Servicio</button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addPromo} className="w-full border-dashed"><Plus size={16} className="mr-2" /> Añadir Promoción</Button>
-              </CardContent>
-            </Card>
+                <button onClick={addPromo} className="w-full py-3.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-500 transition-colors flex items-center justify-center gap-2"><Plus size={16} /> Añadir Promoción</button>
+              </div>
+            </section>
 
-            <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm uppercase tracking-wider text-zinc-500 flex items-center gap-2">📋 Planes Estándar</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
+            <section>
+              <p className={iosSection}>Planes Estándar</p>
+              <div className="space-y-3">
                 {planes.map((plan, idx) => (
-                  <div key={idx} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border relative group">
-                    <Button variant="ghost" size="icon" onClick={() => removePlan(idx)} className="absolute top-2 right-2 h-8 w-8 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></Button>
-                    <div className="grid grid-cols-2 gap-4 mb-4 md:pr-10">
-                      <div className="space-y-1"><Label className="text-[10px] uppercase">Velocidad (Mbps)</Label><Input type="number" value={plan.velocidad} onChange={(e) => updatePlan(idx, "velocidad", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase">Precio Mensual $</Label><Input type="number" step="0.01" value={plan.precio} onChange={(e) => updatePlan(idx, "precio", e.target.value)} className="h-10 bg-white dark:bg-zinc-900 font-bold" /></div>
+                  <div key={idx} className={`${iosCard} relative group`}>
+                    <button onClick={() => removePlan(idx)} className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} className="text-rose-500" /></button>
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad (Mbps)</p>
+                        <Input type="number" value={plan.velocidad} onChange={(e) => updatePlan(idx, "velocidad", e.target.value)} className={iosInput} placeholder="Ej. 100" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Precio Mensual $</p>
+                        <Input type="number" step="0.01" value={plan.precio} onChange={(e) => updatePlan(idx, "precio", e.target.value)} className={`${iosInput} font-black`} placeholder="0.00" />
+                      </div>
                     </div>
-                    <div className="space-y-2 mt-4 pt-4 border-t">
-                      <Label className="text-xs font-semibold text-zinc-500">Servicios Incluidos</Label>
-                      {plan.servicios.map((srv, sIdx) => (
-                        <div key={sIdx} className="flex flex-col md:flex-row gap-2 items-center bg-white dark:bg-zinc-900 p-2 rounded-xl border">
-                          <Input placeholder="Ej. NetUno Go" value={srv.nombre} onChange={(e) => updatePlanServicio(idx, sIdx, "nombre", e.target.value)} className="h-9 text-sm" />
-                          <Input placeholder="Costo (ej. 7)" value={srv.costo} onChange={(e) => updatePlanServicio(idx, sIdx, "costo", e.target.value)} className="h-9 text-sm w-full md:w-32" />
-                          <Input placeholder="Detalle" value={srv.condicion} onChange={(e) => updatePlanServicio(idx, sIdx, "condicion", e.target.value)} className="h-9 text-sm w-full md:w-32" />
-                          <Button variant="ghost" size="icon" onClick={() => removePlanServicio(idx, sIdx)} className="h-9 w-9 text-rose-400 shrink-0"><Trash2 size={14}/></Button>
-                        </div>
-                      ))}
-                      <Button variant="ghost" size="sm" onClick={() => addPlanServicio(idx)} className="h-8 text-xs gap-1"><PlusCircle size={14}/> Añadir Servicio</Button>
-                    </div>
+                    {plan.servicios.length > 0 && <div className="border-t border-zinc-100 dark:border-zinc-800" />}
+                    {plan.servicios.length > 0 && (
+                      <div className="bg-zinc-50/50 dark:bg-zinc-800/30">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-4 pt-3 pb-1">Servicios Incluidos</p>
+                        {plan.servicios.map((srv, sIdx) => (
+                          <div key={sIdx}>
+                            {sIdx > 0 && <div className={iosDivider} />}
+                            <div className="flex items-center px-4 py-2.5 gap-3">
+                              <Input placeholder="Ej. NetUno Go" value={srv.nombre} onChange={(e) => updatePlanServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
+                              <Input placeholder="$0" value={srv.costo} onChange={(e) => updatePlanServicio(idx, sIdx, "costo", e.target.value)} className={`${iosInput} text-sm w-14 text-right`} />
+                              <Input placeholder="Detalle" value={srv.condicion} onChange={(e) => updatePlanServicio(idx, sIdx, "condicion", e.target.value)} className={`${iosInput} text-sm w-20 text-zinc-500`} />
+                              <button onClick={() => removePlanServicio(idx, sIdx)} className="shrink-0 text-rose-400 hover:text-rose-600"><Trash2 size={14} /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="border-t border-zinc-100 dark:border-zinc-800" />
+                    <button onClick={() => addPlanServicio(idx)} className="w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-1.5"><PlusCircle size={14} /> Añadir Servicio</button>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addPlan} className="w-full border-dashed"><Plus size={16} className="mr-2" /> Añadir Plan Estándar</Button>
-              </CardContent>
-            </Card>
+                <button onClick={addPlan} className="w-full py-3.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-500 transition-colors flex items-center justify-center gap-2"><Plus size={16} /> Añadir Plan Estándar</button>
+              </div>
+            </section>
 
-            <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm uppercase tracking-wider text-zinc-500 flex items-center gap-2">🛠️ Instalación y Equipos</CardTitle></CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="space-y-1"><Label className="text-xs">Costo Base ($)</Label><Input type="number" step="0.01" value={costoBaseInstalacion} onChange={(e) => setCostoBaseInstalacion(e.target.value)} className="h-10" /></div>
-                  <div className="space-y-1"><Label className="text-xs">Modalidad</Label><Select value={modalidad} onValueChange={setModalidad}><SelectTrigger className="h-10"><SelectValue placeholder="Seleccione..." /></SelectTrigger><SelectContent>{MODALIDADES_INSTALACION.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="space-y-1"><Label className="text-xs">Metraje Incluido (mts)</Label><Input type="number" value={metraje} onChange={(e) => setMetraje(e.target.value)} className="h-10" /></div>
+            <section>
+              <p className={iosSection}>Instalación y Equipos</p>
+              <div className={iosCard}>
+                <div className="flex">
+                  <div className="flex-1 px-4 py-3.5">
+                    <p className={iosLabel}>Costo Base ($)</p>
+                    <Input type="number" step="0.01" value={costoBaseInstalacion} onChange={(e) => setCostoBaseInstalacion(e.target.value)} className={iosInput} placeholder="0.00" />
+                  </div>
+                  <div className={iosVDivider} />
+                  <div className="flex-1 px-4 py-3.5">
+                    <p className={iosLabel}>Modalidad</p>
+                    <Select value={modalidad} onValueChange={setModalidad}>
+                      <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                      <SelectContent>{MODALIDADES_INSTALACION.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-3 pt-4 border-t">
-                  <Label className="text-xs font-semibold">Opciones Dinámicas de Equipo</Label>
-                  {opcionesInstalacion.map((opcion, idx) => (
-                    <div key={idx} className="flex gap-2 items-center bg-zinc-50 p-2 rounded-xl border">
-                      <Input placeholder="Ej. Módem WiFi" value={opcion.equipo} onChange={(e) => updateInstOpcion(idx, "equipo", e.target.value)} className="h-10 bg-white" />
-                      <Input type="number" placeholder="Precio $" value={opcion.precio} onChange={(e) => updateInstOpcion(idx, "precio", e.target.value)} className="h-10 w-32 bg-white" />
-                      <Button variant="ghost" size="icon" onClick={() => removeInstOpcion(idx)} className="h-10 w-10 text-rose-500 shrink-0"><Trash2 size={16}/></Button>
-                    </div>
-                  ))}
-                  <Button variant="outline" size="sm" onClick={addInstOpcion} className="border-dashed gap-2"><PlusCircle size={14}/> Añadir Opción</Button>
+                <div className={iosDivider} />
+                <div className="px-4 py-3.5">
+                  <p className={iosLabel}>Metraje Incluido (mts)</p>
+                  <Input type="number" value={metraje} onChange={(e) => setMetraje(e.target.value)} className={iosInput} placeholder="Ej. 30" />
                 </div>
-              </CardContent>
-            </Card>
+                {opcionesInstalacion.length > 0 && <div className="border-t border-zinc-100 dark:border-zinc-800" />}
+                {opcionesInstalacion.length > 0 && (
+                  <div className="bg-zinc-50/50 dark:bg-zinc-800/30">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-4 pt-3 pb-1">Opciones de Equipo</p>
+                    {opcionesInstalacion.map((opcion, idx) => (
+                      <div key={idx}>
+                        {idx > 0 && <div className={iosDivider} />}
+                        <div className="flex items-center px-4 py-2.5 gap-3">
+                          <Input placeholder="Ej. Módem WiFi" value={opcion.equipo} onChange={(e) => updateInstOpcion(idx, "equipo", e.target.value)} className={`${iosInput} text-sm flex-1`} />
+                          <Input type="number" placeholder="$0" value={opcion.precio} onChange={(e) => updateInstOpcion(idx, "precio", e.target.value)} className={`${iosInput} text-sm w-20 text-right`} />
+                          <button onClick={() => removeInstOpcion(idx)} className="shrink-0 text-rose-400 hover:text-rose-600"><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="border-t border-zinc-100 dark:border-zinc-800" />
+                <button onClick={addInstOpcion} className="w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-1.5"><PlusCircle size={14} /> Añadir Opción</button>
+              </div>
+            </section>
           </>
         )}
 
-        <Card>
-          <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-zinc-500">Notas</CardTitle></CardHeader>
-          <CardContent><Textarea placeholder="Observaciones generales..." value={notas} onChange={(e) => setNotas(e.target.value)} className="rounded-xl resize-none text-base min-h-[100px]" /></CardContent>
-        </Card>
+        <section>
+          <p className={iosSection}>Observaciones</p>
+          <div className={iosCard}>
+            <div className="px-4 py-3.5">
+              <Textarea placeholder="Notas u observaciones generales..." value={notas} onChange={(e) => setNotas(e.target.value)} className="border-0 bg-transparent shadow-none resize-none text-base text-zinc-900 dark:text-zinc-100 focus-visible:ring-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-600 min-h-[80px] p-0" />
+            </div>
+          </div>
+        </section>
 
         <div className="sticky bottom-6 z-10 pt-4">
           <Button onClick={handleSubmit} disabled={saving} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 gap-2">
@@ -458,63 +555,41 @@ export default function NuevaOfertaCompetencia() {
       
       {/* Dialog: Nueva Operadora */}
       <Dialog open={isOperadorModalOpen} onOpenChange={setIsOperadorModalOpen}>
-        <DialogContent className="sm:max-w-md rounded-2xl">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-0">
             <DialogTitle className="text-lg font-bold">Nueva Operadora</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1">
-              <Label>Nombre de la Operadora *</Label>
-              <Input
-                placeholder="Ej. Fibex, Inter, Netuno..."
-                value={newOpName}
-                onChange={(e) => setNewOpName(e.target.value)}
-                className="h-11 rounded-xl text-base"
-                autoFocus
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Color de marca</Label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={newOpColor}
-                  onChange={(e) => setNewOpColor(e.target.value)}
-                  className="h-11 w-16 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer bg-transparent p-1"
-                />
-                <Input
-                  placeholder="#3b82f6"
-                  value={newOpColor}
-                  onChange={(e) => setNewOpColor(e.target.value)}
-                  className="h-11 rounded-xl font-mono text-sm flex-1"
-                />
+          <div className="px-5 py-4 space-y-4">
+            <div className={iosCard}>
+              <div className="px-4 py-3.5">
+                <p className={iosLabel}>Nombre *</p>
+                <Input placeholder="Ej. Fibex, Inter, Netuno..." value={newOpName} onChange={(e) => setNewOpName(e.target.value)} className={iosInput} autoFocus />
+              </div>
+              <div className={iosDivider} />
+              <div className="px-4 py-3.5">
+                <p className={iosLabel}>Color de Marca</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <input type="color" value={newOpColor} onChange={(e) => setNewOpColor(e.target.value)} className="h-8 w-10 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer bg-transparent p-0.5" />
+                  <span className="font-mono text-sm text-zinc-500">{newOpColor}</span>
+                </div>
+              </div>
+              <div className={iosDivider} />
+              <div className="px-4 py-3.5">
+                <p className={iosLabel}>URL del Logo <span className="font-normal normal-case tracking-normal text-zinc-300 dark:text-zinc-600">(opcional)</span></p>
+                <Input placeholder="https://ejemplo.com/logo.png" value={newOpLogo} onChange={(e) => setNewOpLogo(e.target.value)} className={`${iosInput} text-sm`} />
               </div>
             </div>
-            <div className="space-y-1">
-              <Label>URL del Logo <span className="text-zinc-400 font-normal">(opcional)</span></Label>
-              <Input
-                placeholder="https://ejemplo.com/logo.png"
-                value={newOpLogo}
-                onChange={(e) => setNewOpLogo(e.target.value)}
-                className="h-11 rounded-xl text-sm"
-              />
-            </div>
             {newOpName && (
-              <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                {newOpLogo ? (
-                  <img src={newOpLogo} alt="preview" className="w-8 h-8 object-contain rounded-md" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: newOpColor }} />
-                )}
+              <div className="flex items-center gap-3 p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                {newOpLogo ? <img src={newOpLogo} alt="preview" className="w-8 h-8 object-contain rounded-md" /> : <div className="w-8 h-8 rounded-full shrink-0" style={{ backgroundColor: newOpColor }} />}
                 <span className="font-semibold text-zinc-800 dark:text-zinc-200">{newOpName}</span>
               </div>
             )}
           </div>
-          <DialogFooter className="gap-2">
+          <DialogFooter className="px-5 pb-5 gap-2">
             <Button variant="outline" onClick={() => setIsOperadorModalOpen(false)} className="rounded-xl">Cancelar</Button>
             <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
-              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
-              Crear Operadora
+              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />} Crear Operadora
             </Button>
           </DialogFooter>
         </DialogContent>
