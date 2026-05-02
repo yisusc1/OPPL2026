@@ -86,7 +86,22 @@ export default function CompetenciaDashboard() {
     }
   }
 
-  const currentPlans = historial.filter(h => h.fecha_reporte === historial[0]?.fecha_reporte);
+  const latestPlansMap = new Map();
+  historial.forEach(h => {
+    if (!latestPlansMap.has(h.velocidad_mb)) {
+      latestPlansMap.set(h.velocidad_mb, {
+        ...h,
+        previous_price: null
+      });
+    } else {
+      const current = latestPlansMap.get(h.velocidad_mb);
+      if (current.previous_price === null && current.precio_mensual !== h.precio_mensual) {
+        current.previous_price = h.precio_mensual;
+      }
+    }
+  });
+  
+  const currentPlans = Array.from(latestPlansMap.values()).sort((a, b) => a.velocidad_mb - b.velocidad_mb);
 
   return (
     <PremiumPageLayout 
@@ -262,11 +277,30 @@ export default function CompetenciaDashboard() {
                     <div className="space-y-3 mb-6">
                       {currentPlans.map(plan => (
                         <div key={plan.id} className="flex justify-between items-center bg-white dark:bg-zinc-800 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
-                          <div className="flex items-center gap-2">
-                            <Zap size={18} className="text-amber-500" />
-                            <span className="font-bold text-zinc-900 dark:text-zinc-100">{plan.velocidad_mb} Mbps</span>
+                          <div className="flex flex-col gap-0.5">
+                            <div className="flex items-center gap-2">
+                              <Zap size={18} className="text-amber-500" />
+                              <span className="font-bold text-zinc-900 dark:text-zinc-100">{plan.velocidad_mb} Mbps</span>
+                            </div>
+                            {plan.previous_price !== null && (
+                              <span className="text-[10px] font-medium text-zinc-400 line-through ml-7">
+                                Antes ${plan.previous_price}
+                              </span>
+                            )}
                           </div>
-                          <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">${plan.precio_mensual}</div>
+                          <div className="flex items-center gap-2">
+                            {plan.previous_price !== null && plan.precio_mensual < plan.previous_price && (
+                              <span className="text-[10px] uppercase font-black text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                                ¡Bajó!
+                              </span>
+                            )}
+                            {plan.previous_price !== null && plan.precio_mensual > plan.previous_price && (
+                              <span className="text-[10px] uppercase font-black text-rose-600 bg-rose-100 dark:bg-rose-900/30 dark:text-rose-400 px-2 py-0.5 rounded-full">
+                                Subió
+                              </span>
+                            )}
+                            <span className="text-xl font-black text-zinc-900 dark:text-zinc-100">${plan.precio_mensual}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
