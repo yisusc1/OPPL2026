@@ -232,9 +232,7 @@ export default function NuevaOfertaCompetencia() {
 
     if (missing.length > 0) {
       const msg = `Faltan campos: ${missing.join(", ")}`;
-      console.warn("[competencia] Validación fallida:", msg);
       window.scrollTo({ top: 0, behavior: "smooth" });
-      alert("⚠️ " + msg);
       toast({ title: "Faltan datos", description: msg, variant: "destructive" });
       return;
     }
@@ -302,24 +300,17 @@ export default function NuevaOfertaCompetencia() {
         });
       }
 
-      console.log("[competencia] Enviando ofertas:", JSON.stringify(ofertasToInsert));
       const result = await saveOfertasBatch(ofertasToInsert);
-      console.log("[competencia] Resultado:", JSON.stringify(result));
       
       if (!result.success) {
         const errMsg = result.error || "Error desconocido de Supabase";
-        console.error("[competencia] Error:", errMsg);
-        alert("❌ Error al guardar:\n" + errMsg);
         toast({ title: "Error al guardar", description: errMsg, variant: "destructive" });
         return;
       }
       
-      alert("✅ Datos guardados exitosamente");
       toast({ title: "Datos registrados exitosamente" });
       router.push("/ventas/competencia");
     } catch (error: any) {
-      console.error("[competencia] Excepción:", error);
-      alert("❌ Excepción:\n" + (error.message || String(error)));
       toast({ title: "Error inesperado", description: error.message || "Error desconocido", variant: "destructive" });
     } finally {
       setSaving(false);
