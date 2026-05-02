@@ -233,6 +233,8 @@ export default function NuevaOfertaCompetencia() {
     if (missing.length > 0) {
       const msg = `Faltan campos: ${missing.join(", ")}`;
       console.warn("[competencia] Validación fallida:", msg);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      alert("⚠️ " + msg);
       toast({ title: "Faltan datos", description: msg, variant: "destructive" });
       return;
     }
