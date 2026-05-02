@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Tv, Zap, ExternalLink, Radar, Flame, ArrowRight } from "lucide-react";
+import { Plus, MapPin, Tv, Zap, ExternalLink, Radar, Flame, ArrowRight, Loader2 } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -169,11 +169,14 @@ export default function CompetenciaDashboard() {
             
             let alertBadge = null;
             if (best.fecha_fin && !oferta.isEmpty) {
-              const diff = differenceInDays(new Date(best.fecha_fin), new Date());
-              if (diff < 0) {
-                alertBadge = <div className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-rose-200 dark:border-rose-800">⚠️ Promo Expirada</div>;
-              } else if (diff <= 7) {
-                alertBadge = <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-amber-200 dark:border-amber-800">⚠️ Caduca en {diff} {diff === 1 ? 'día' : 'días'}</div>;
+              const bestDate = new Date(best.fecha_fin);
+              if (!isNaN(bestDate.getTime())) {
+                const diff = differenceInDays(bestDate, new Date());
+                if (diff < 0) {
+                  alertBadge = <div className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-rose-200 dark:border-rose-800">⚠️ Promo Expirada</div>;
+                } else if (diff <= 7) {
+                  alertBadge = <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-amber-200 dark:border-amber-800">⚠️ Caduca en {diff} {diff === 1 ? 'día' : 'días'}</div>;
+                }
               }
             }
 
