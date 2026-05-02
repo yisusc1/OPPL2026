@@ -86,6 +86,8 @@ export default function CompetenciaDashboard() {
     }
   }
 
+  const currentPlans = historial.filter(h => h.fecha_reporte === historial[0]?.fecha_reporte);
+
   return (
     <PremiumPageLayout 
       title="Inteligencia de Mercado" 
@@ -256,22 +258,20 @@ export default function CompetenciaDashboard() {
                       </span>
                     </div>
                     
-                    <div className="flex items-end gap-2 mb-6">
-                      <span className="text-4xl font-black text-zinc-900 dark:text-zinc-100">${selectedOperador?.precio_mensual}</span>
-                      <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
+                    <h4 className="text-xs font-bold text-zinc-500 mb-3 uppercase tracking-wider">Planes Disponibles</h4>
+                    <div className="space-y-3 mb-6">
+                      {currentPlans.map(plan => (
+                        <div key={plan.id} className="flex justify-between items-center bg-white dark:bg-zinc-800 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <Zap size={18} className="text-amber-500" />
+                            <span className="font-bold text-zinc-900 dark:text-zinc-100">{plan.velocidad_mb} Mbps</span>
+                          </div>
+                          <div className="text-xl font-black text-zinc-900 dark:text-zinc-100">${plan.precio_mensual}</div>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="space-y-4 mb-2">
-                      <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300">
-                        <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
-                          <Zap size={20} className="text-amber-500" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Velocidad</p>
-                          <p className="font-bold text-lg">{selectedOperador?.velocidad_mb} Mbps</p>
-                        </div>
-                      </div>
-
                       <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300">
                         <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
                           <ExternalLink size={20} className="text-blue-500" />
