@@ -69,6 +69,10 @@ ON CONFLICT (nombre) DO NOTHING;
 -- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS instalacion_opciones JSONB DEFAULT '[]'::jsonb;
 -- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS instalacion_metraje INTEGER;
 
+-- Fix: Si velocidad_mb fue creada como NOT NULL, corregir:
+-- ALTER TABLE ofertas_competencia ALTER COLUMN velocidad_mb DROP NOT NULL;
+-- ALTER TABLE ofertas_competencia ALTER COLUMN precio_mensual DROP NOT NULL;
+
 -- Políticas de RLS (Opcional, según la configuración de tu DB, puedes habilitarlas)
 -- ALTER TABLE operadores_competencia ENABLE ROW LEVEL SECURITY;
 -- ALTER TABLE ofertas_competencia ENABLE ROW LEVEL SECURITY;
