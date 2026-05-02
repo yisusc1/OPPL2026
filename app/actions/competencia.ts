@@ -165,18 +165,30 @@ export async function getSnapshotOperador(operador_id: number, estado: string, m
   const latestDate = historial[0].fecha_reporte;
   const snapshotPlans = historial.filter(h => h.fecha_reporte === latestDate);
 
+  const planesEstandar = snapshotPlans.filter(p => !p.es_promocion);
+  const promociones = snapshotPlans.filter(p => p.es_promocion);
+
   // Devolvemos el snapshot completo basado en el último reporte
   return {
-    planes: snapshotPlans.map(p => ({
+    planes_estandar: planesEstandar.map(p => ({
       velocidad: String(p.velocidad_mb),
-      precio: String(p.precio_mensual)
+      precio: String(p.precio_mensual),
+      servicios: p.servicios_adicionales || []
     })),
-    costo_instalacion: snapshotPlans[0].costo_instalacion ? String(snapshotPlans[0].costo_instalacion) : "",
-    modalidad_instalacion: snapshotPlans[0].modalidad_instalacion || "",
-    incluye_tv: snapshotPlans[0].incluye_tv || false,
-    detalle_tv: snapshotPlans[0].detalle_tv || "",
-    duracion_promo_meses: snapshotPlans[0].duracion_promo_meses || "",
-    fecha_fin_promo: snapshotPlans[0].fecha_fin_promo || "",
+    promociones: promociones.map(p => ({
+      velocidad: String(p.velocidad_mb),
+      precio_promo: String(p.precio_mensual),
+      precio_regular: p.precio_regular ? String(p.precio_regular) : "",
+      duracion_meses: p.duracion_promo_meses ? String(p.duracion_promo_meses) : "",
+      fecha_fin: p.fecha_fin_promo || "",
+      servicios: p.servicios_adicionales || []
+    })),
+    instalacion: {
+      costo_base: snapshotPlans[0].costo_instalacion ? String(snapshotPlans[0].costo_instalacion) : "",
+      modalidad: snapshotPlans[0].modalidad_instalacion || "",
+      metraje: snapshotPlans[0].instalacion_metraje ? String(snapshotPlans[0].instalacion_metraje) : "",
+      opciones: snapshotPlans[0].instalacion_opciones || []
+    },
     notas_anteriores: snapshotPlans[0].notas || ""
   };
 }

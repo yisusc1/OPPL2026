@@ -21,12 +21,23 @@ CREATE TABLE IF NOT EXISTS ofertas_competencia (
     parroquia TEXT NOT NULL,
     
     tipo_novedad TEXT NOT NULL,
-    velocidad_mb INTEGER NOT NULL,
-    precio_mensual DECIMAL(10, 2) NOT NULL,
+    velocidad_mb INTEGER,
+    precio_mensual DECIMAL(10, 2),
+    
+    -- Nuevos campos para Promos y Servicios Dinámicos
+    es_promocion BOOLEAN DEFAULT FALSE,
+    precio_regular DECIMAL(10, 2),
+    servicios_adicionales JSONB DEFAULT '[]'::jsonb,
+    
+    -- Campos antiguos de instalación (mantenidos por compatibilidad temporal)
     costo_instalacion DECIMAL(10, 2) DEFAULT 0,
     modalidad_instalacion TEXT,
     incluye_tv BOOLEAN DEFAULT FALSE,
     detalle_tv TEXT,
+    
+    -- Nuevos campos de Instalación Avanzada
+    instalacion_opciones JSONB DEFAULT '[]'::jsonb,
+    instalacion_metraje INTEGER,
     
     duracion_promo_meses INTEGER,
     fecha_fin_promo DATE,
@@ -52,8 +63,11 @@ INSERT INTO operadores_competencia (nombre, color_hex) VALUES
 ON CONFLICT (nombre) DO NOTHING;
 
 -- Si ya habías creado las tablas antes de esta actualización, ejecuta estas líneas en Supabase SQL Editor:
--- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS duracion_promo_meses INTEGER;
--- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS fecha_fin_promo DATE;
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS es_promocion BOOLEAN DEFAULT FALSE;
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS precio_regular DECIMAL(10, 2);
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS servicios_adicionales JSONB DEFAULT '[]'::jsonb;
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS instalacion_opciones JSONB DEFAULT '[]'::jsonb;
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS instalacion_metraje INTEGER;
 
 -- Políticas de RLS (Opcional, según la configuración de tu DB, puedes habilitarlas)
 -- ALTER TABLE operadores_competencia ENABLE ROW LEVEL SECURITY;
