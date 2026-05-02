@@ -148,39 +148,48 @@ export default function CompetenciaDashboard() {
       title="Inteligencia de Mercado" 
       description="Consulta y actualiza las ofertas de la competencia en campo."
     >
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1">
-          <div className="bg-white dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+          <div className="px-4 py-3.5">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Estado</p>
             <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); }}>
-              <SelectTrigger className="border-0 focus:ring-0 h-12 text-base shadow-none"><SelectValue placeholder="Estado..." /></SelectTrigger>
+              <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
               <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="bg-white dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); }} disabled={!estado}>
-              <SelectTrigger className="border-0 focus:ring-0 h-12 text-base shadow-none"><SelectValue placeholder="Municipio..." /></SelectTrigger>
-              <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-            <Select value={parroquia} onValueChange={setParroquia} disabled={!municipio}>
-              <SelectTrigger className="border-0 focus:ring-0 h-12 text-base shadow-none"><SelectValue placeholder="Parroquia..." /></SelectTrigger>
-              <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-            </Select>
+          <div className="border-t border-zinc-100 dark:border-zinc-800 ml-4" />
+          <div className="flex">
+            <div className="flex-1 px-4 py-3.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Municipio</p>
+              <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); }} disabled={!estado}>
+                <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="w-px bg-zinc-100 dark:bg-zinc-800 my-3" />
+            <div className="flex-1 px-4 py-3.5">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Parroquia</p>
+              <Select value={parroquia} onValueChange={setParroquia} disabled={!municipio}>
+                <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
+                <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
-        <Link href="/ventas/competencia/nuevo" className="md:w-auto">
-          <Button className="w-full md:w-auto h-14 md:h-full gap-2 rounded-xl text-base px-6">
-            <Plus size={18} /> Reportar Novedad
+        <div className="flex gap-3">
+          <Link href="/ventas/competencia/nuevo" className="flex-1">
+            <Button className="w-full h-14 gap-2 rounded-2xl text-base px-6">
+              <Plus size={18} /> Reportar Novedad
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700"
+            onClick={() => setIsOpModalOpen(true)}
+          >
+            <Settings2 size={18} /> Operadoras
           </Button>
-        </Link>
-        <Button
-          variant="outline"
-          className="h-14 md:h-full gap-2 rounded-xl text-base px-4 border-zinc-200 dark:border-zinc-700"
-          onClick={() => setIsOpModalOpen(true)}
-        >
-          <Settings2 size={18} /> Operadoras
-        </Button>
+        </div>
       </div>
 
       {!loadingOfertas && ofertas.length === 0 ? (
