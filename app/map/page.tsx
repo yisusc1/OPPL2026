@@ -337,6 +337,12 @@ export default function MapPage() {
         return "bg-neutral-400";
     };
 
+    const visibleNodes = useMemo(() => {
+        if (!isRestrictedView) return nodes;
+        if (!userLocation) return [];
+        return nodes.filter(node => calculateDistance(userLocation.lat, userLocation.lng, node.latitud, node.longitud) <= 1000);
+    }, [isRestrictedView, nodes, userLocation]);
+
     return (
         <div className="relative w-screen h-screen overflow-hidden bg-background">
             {/* Header / Controls */}
@@ -454,7 +460,7 @@ export default function MapPage() {
             >
                 {!isRestrictedView && <MapAutoFitter nodes={nodes} />}
                 <MapFlyTo location={userLocation} trigger={searchTrigger} />
-                {!isRestrictedView && <NetworkNodesLayer nodes={nodes} onNodeClick={setSelectedNode} />}
+                <NetworkNodesLayer nodes={visibleNodes} onNodeClick={setSelectedNode} />
                 <CoverageLayer userLocation={userLocation} targetNode={coverageNode} distance={distance} />
 
                 {selectedNode && (
