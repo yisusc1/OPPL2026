@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS ofertas_competencia (
     incluye_tv BOOLEAN DEFAULT FALSE,
     detalle_tv TEXT,
     
+    duracion_promo_meses INTEGER,
+    fecha_fin_promo DATE,
+    
     notas TEXT,
     fecha_reporte DATE DEFAULT CURRENT_DATE,
     asesor_nombre TEXT NOT NULL,
@@ -47,6 +50,10 @@ INSERT INTO operadores_competencia (nombre, color_hex) VALUES
 ('NetLife', '#FFD700'),
 ('Thundernet', '#800080')
 ON CONFLICT (nombre) DO NOTHING;
+
+-- Si ya habías creado las tablas antes de esta actualización, ejecuta estas líneas en Supabase SQL Editor:
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS duracion_promo_meses INTEGER;
+-- ALTER TABLE ofertas_competencia ADD COLUMN IF NOT EXISTS fecha_fin_promo DATE;
 
 -- Políticas de RLS (Opcional, según la configuración de tu DB, puedes habilitarlas)
 -- ALTER TABLE operadores_competencia ENABLE ROW LEVEL SECURITY;

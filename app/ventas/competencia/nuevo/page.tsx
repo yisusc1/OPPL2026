@@ -56,8 +56,9 @@ export default function NuevaOfertaCompetencia() {
   const [modalidad, setModalidad] = useState("");
   const [incluyeTv, setIncluyeTv] = useState(false);
   const [detalleTv, setDetalleTv] = useState("");
+  const [duracionPromo, setDuracionPromo] = useState("");
+  const [fechaFinPromo, setFechaFinPromo] = useState("");
   const [notas, setNotas] = useState("");
-
   // New Operator State
   const [isOperadorModalOpen, setIsOperadorModalOpen] = useState(false);
   const [newOpName, setNewOpName] = useState("");
@@ -96,6 +97,8 @@ export default function NuevaOfertaCompetencia() {
           setModalidad(snap.modalidad_instalacion);
           setIncluyeTv(snap.incluye_tv);
           setDetalleTv(snap.detalle_tv);
+          setDuracionPromo(snap.duracion_promo_meses ? String(snap.duracion_promo_meses) : "");
+          setFechaFinPromo(snap.fecha_fin_promo || "");
         } else {
           // Limpiar si no hay datos previos
           setPlanes([{ velocidad: "", precio: "" }]);
@@ -103,6 +106,8 @@ export default function NuevaOfertaCompetencia() {
           setModalidad("");
           setIncluyeTv(false);
           setDetalleTv("");
+          setDuracionPromo("");
+          setFechaFinPromo("");
         }
       } catch (error) {
         console.error("Error fetching snapshot:", error);
@@ -154,6 +159,8 @@ export default function NuevaOfertaCompetencia() {
         modalidad_instalacion: modalidad || "Venta de Equipo",
         incluye_tv: incluyeTv,
         detalle_tv: incluyeTv ? detalleTv : undefined,
+        duracion_promo_meses: duracionPromo ? parseInt(duracionPromo) : null,
+        fecha_fin_promo: fechaFinPromo || null,
         notas,
         asesor_nombre: asesor || "Asesor Desconocido",
       }));
@@ -369,6 +376,19 @@ export default function NuevaOfertaCompetencia() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Duración Promo (Meses)</Label>
+                    <Input type="number" min="1" placeholder="Ej: 3" value={duracionPromo} onChange={(e) => setDuracionPromo(e.target.value)} className="h-12 rounded-xl text-base" />
+                    <p className="text-[10px] text-zinc-500">Tiempo del beneficio para el cliente.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Válida hasta</Label>
+                    <Input type="date" value={fechaFinPromo} onChange={(e) => setFechaFinPromo(e.target.value)} className="h-12 rounded-xl text-base" />
+                    <p className="text-[10px] text-zinc-500">Cuándo la operadora deja de ofrecerla.</p>
+                  </div>
+                </div>
+
                 {showInstalacion && (
                   <>
                     <div className="grid grid-cols-2 gap-4">

@@ -175,6 +175,8 @@ export async function getSnapshotOperador(operador_id: number, estado: string, m
     modalidad_instalacion: snapshotPlans[0].modalidad_instalacion || "",
     incluye_tv: snapshotPlans[0].incluye_tv || false,
     detalle_tv: snapshotPlans[0].detalle_tv || "",
+    duracion_promo_meses: snapshotPlans[0].duracion_promo_meses || "",
+    fecha_fin_promo: snapshotPlans[0].fecha_fin_promo || "",
     notas_anteriores: snapshotPlans[0].notas || ""
   };
 }

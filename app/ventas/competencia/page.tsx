@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVentasConfig } from "@/app/actions/ventas";
 import { getOfertasRecientes, getHistorialOperador } from "@/app/actions/competencia";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 
 export default function CompetenciaDashboard() {
@@ -159,6 +159,17 @@ export default function CompetenciaDashboard() {
             const opName = oferta.operadores_competencia?.nombre || "Desconocido";
             const opColor = oferta.operadores_competencia?.color_hex || "#6b7280";
             const opLogo = oferta.operadores_competencia?.logo_url || "";
+            
+            let alertBadge = null;
+            if (oferta.fecha_fin_promo && !oferta.isEmpty) {
+              const diff = differenceInDays(new Date(oferta.fecha_fin_promo), new Date());
+              if (diff < 0) {
+                alertBadge = <div className="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-rose-200 dark:border-rose-800">⚠️ Promo Expirada</div>;
+              } else if (diff <= 7) {
+                alertBadge = <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold px-2 py-1.5 uppercase text-center w-full border-b border-amber-200 dark:border-amber-800">⚠️ Caduca en {diff} {diff === 1 ? 'día' : 'días'}</div>;
+              }
+            }
+
             return (
               <div 
                 key={oferta.id} 
@@ -166,6 +177,7 @@ export default function CompetenciaDashboard() {
                 onClick={() => openOperadorDetails(oferta)}
               >
                 <div className="h-2 w-full" style={{ backgroundColor: opColor }} />
+                {alertBadge}
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-2">
@@ -324,6 +336,25 @@ export default function CompetenciaDashboard() {
                           <div>
                             <p className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Televisión</p>
                             <p className="font-bold">{selectedOperador?.detalle_tv || "Incluida en el plan"}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {(selectedOperador?.duracion_promo_meses || selectedOperador?.fecha_fin_promo) && (
+                        <div className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300 mt-4 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center shrink-0">
+                            <Radar size={20} className="text-amber-600" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-amber-600 dark:text-amber-500 font-medium uppercase tracking-wider">Condiciones Especiales</p>
+                            {selectedOperador?.duracion_promo_meses && (
+                              <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Beneficio válido por {selectedOperador.duracion_promo_meses} meses.</p>
+                            )}
+                            {selectedOperador?.fecha_fin_promo && (
+                              <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                                Oferta disponible hasta: {format(new Date(selectedOperador.fecha_fin_promo), "dd MMM yyyy", { locale: es })}
+                              </p>
+                            )}
                           </div>
                         </div>
                       )}
