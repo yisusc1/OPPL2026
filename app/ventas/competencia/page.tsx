@@ -140,6 +140,7 @@ export default function CompetenciaDashboard() {
           {ofertas.map((oferta) => {
             const opName = oferta.operadores_competencia?.nombre || "Desconocido";
             const opColor = oferta.operadores_competencia?.color_hex || "#6b7280";
+            const opLogo = oferta.operadores_competencia?.logo_url || "";
             return (
               <div 
                 key={oferta.id} 
@@ -149,9 +150,16 @@ export default function CompetenciaDashboard() {
                 <div className="h-2 w-full" style={{ backgroundColor: opColor }} />
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{opName}</h3>
+                    <div className="flex items-center gap-2">
+                      {opLogo ? (
+                        <img src={opLogo} alt={opName} className="w-6 h-6 object-contain rounded-md" />
+                      ) : (
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: opColor }} />
+                      )}
+                      <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{opName}</h3>
+                    </div>
                     <Badge variant="outline" className="text-[10px] uppercase text-zinc-500">
-                      {format(new Date(oferta.created_at), "dd MMM yyyy", { locale: es })}
+                      {oferta.created_at ? format(new Date(oferta.created_at), "dd MMM", { locale: es }) : "N/A"}
                     </Badge>
                   </div>
                   
@@ -201,11 +209,15 @@ export default function CompetenciaDashboard() {
           <div className="mx-auto w-full max-w-sm sm:max-w-md lg:max-w-2xl px-4 pb-8">
             <DrawerHeader className="px-0 pt-6">
               <DrawerTitle className="text-2xl font-black flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded-full" 
-                  style={{ backgroundColor: selectedOperador?.operadores_competencia?.color_hex || '#ccc' }}
-                />
-                {selectedOperador?.operadores_competencia?.nombre} en {parroquia}
+                {selectedOperador?.operadores_competencia?.logo_url ? (
+                  <img src={selectedOperador.operadores_competencia.logo_url} alt="Logo" className="w-8 h-8 object-contain rounded-md" />
+                ) : (
+                  <div 
+                    className="w-4 h-4 rounded-full" 
+                    style={{ backgroundColor: selectedOperador?.operadores_competencia?.color_hex || '#ccc' }}
+                  />
+                )}
+                {selectedOperador?.operadores_competencia?.nombre} en {parroquia || "el país"}
               </DrawerTitle>
               <DrawerDescription>
                 Historial de planes y novedades reportadas en la zona.

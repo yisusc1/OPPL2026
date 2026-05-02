@@ -218,7 +218,11 @@ export default function NuevaOfertaCompetencia() {
                     {operadores.map((op) => (
                       <SelectItem key={op.id} value={String(op.id)}>
                         <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: op.color_hex }} />
+                          {op.logo_url ? (
+                            <img src={op.logo_url} alt={op.nombre} className="w-4 h-4 object-contain rounded-sm" />
+                          ) : (
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: op.color_hex }} />
+                          )}
                           {op.nombre}
                         </div>
                       </SelectItem>

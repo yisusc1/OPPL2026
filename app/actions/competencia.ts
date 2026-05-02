@@ -81,7 +81,8 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
       *,
       operadores_competencia (
         nombre,
-        color_hex
+        color_hex,
+        logo_url
       )
     `)
     .order("created_at", { ascending: false })
@@ -119,7 +120,7 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
         ultimasOfertasMap.set(op.id, {
           id: `empty-${op.id}`,
           operador_id: op.id,
-          operadores_competencia: { nombre: op.nombre, color_hex: op.color_hex },
+          operadores_competencia: { nombre: op.nombre, color_hex: op.color_hex, logo_url: op.logo_url },
           isEmpty: true // Marcador para la UI
         });
       }
