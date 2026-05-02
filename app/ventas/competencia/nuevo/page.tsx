@@ -10,17 +10,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOperadores, saveOferta } from "@/app/actions/competencia";
-import { Loader2 } from "lucide-react";
+import { getOperadores, saveOferta, saveOperador } from "@/app/actions/competencia";
+import { Loader2, Plus } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Nuevo Plan",
   "Promo Instalación",
   "Ajuste de Precio",
-  "Nuevo Operador en la Zona",
+  "Expansión (Llegó a esta zona)",
   "Corte de Servicio General",
   "Otro"
 ];
@@ -56,6 +57,13 @@ export default function NuevaOfertaCompetencia() {
   const [incluyeTv, setIncluyeTv] = useState(false);
   const [detalleTv, setDetalleTv] = useState("");
   const [notas, setNotas] = useState("");
+
+  // New Operator State
+  const [isOperadorModalOpen, setIsOperadorModalOpen] = useState(false);
+  const [newOpName, setNewOpName] = useState("");
+  const [newOpColor, setNewOpColor] = useState("#3b82f6"); // Default blue
+  const [newOpLogo, setNewOpLogo] = useState("");
+  const [savingOp, setSavingOp] = useState(false);
 
   useEffect(() => {
     Promise.all([getVentasConfig(), getOperadores()])
@@ -104,6 +112,32 @@ export default function NuevaOfertaCompetencia() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleSaveOperador() {
+    if (!newOpName) {
+      toast({ title: "Nombre requerido", variant: "destructive" });
+      return;
+    }
+    setSavingOp(true);
+    try {
+      const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
+      toast({ title: "Operador registrado exitosamente" });
+      
+      // Update local state without reloading everything
+      const updatedOps = [...operadores, data].sort((a, b) => a.nombre.localeCompare(b.nombre));
+      setOperadores(updatedOps);
+      setOperadorId(String(data.id));
+      
+      setIsOperadorModalOpen(false);
+      setNewOpName("");
+      setNewOpColor("#3b82f6");
+      setNewOpLogo("");
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingOp(false);
     }
   }
 
@@ -159,19 +193,29 @@ export default function NuevaOfertaCompetencia() {
           <CardContent className="space-y-4">
             <div className="space-y-1">
               <Label>Operador de la Competencia</Label>
-              <Select value={operadorId} onValueChange={setOperadorId}>
-                <SelectTrigger className="w-full h-12 rounded-xl text-base"><SelectValue placeholder="Seleccionar operador..." /></SelectTrigger>
-                <SelectContent>
-                  {operadores.map((op) => (
-                    <SelectItem key={op.id} value={String(op.id)}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: op.color_hex }} />
-                        {op.nombre}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select value={operadorId} onValueChange={setOperadorId}>
+                  <SelectTrigger className="flex-1 h-12 rounded-xl text-base"><SelectValue placeholder="Seleccionar operador..." /></SelectTrigger>
+                  <SelectContent>
+                    {operadores.map((op) => (
+                      <SelectItem key={op.id} value={String(op.id)}>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: op.color_hex }} />
+                          {op.nombre}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-12 w-12 rounded-xl shrink-0 border-dashed border-2" 
+                  onClick={() => setIsOperadorModalOpen(true)}
+                >
+                  <Plus className="text-zinc-500" />
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -253,6 +297,65 @@ export default function NuevaOfertaCompetencia() {
           </Button>
         </div>
       </div>
+
+      {/* Modal para Crear Operador */}
+      <Dialog open={isOperadorModalOpen} onOpenChange={setIsOperadorModalOpen}>
+        <DialogContent className="sm:max-w-md mx-4 rounded-2xl w-[calc(100%-2rem)]">
+          <DialogHeader>
+            <DialogTitle>Registrar Nueva Empresa</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nombre de la Empresa</Label>
+              <Input 
+                placeholder="Ej. Intercable..." 
+                value={newOpName} 
+                onChange={(e) => setNewOpName(e.target.value)} 
+                className="h-12 rounded-xl text-base"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Color de la Marca</Label>
+              <div className="flex gap-3">
+                <Input 
+                  type="color" 
+                  value={newOpColor} 
+                  onChange={(e) => setNewOpColor(e.target.value)} 
+                  className="h-12 w-16 p-1 cursor-pointer rounded-xl"
+                />
+                <Input 
+                  type="text" 
+                  value={newOpColor} 
+                  onChange={(e) => setNewOpColor(e.target.value)} 
+                  className="h-12 flex-1 rounded-xl uppercase font-mono"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>URL del Logo (Opcional)</Label>
+              <Input 
+                type="url" 
+                placeholder="https://ejemplo.com/logo.png" 
+                value={newOpLogo} 
+                onChange={(e) => setNewOpLogo(e.target.value)} 
+                className="h-12 rounded-xl text-base"
+              />
+              <p className="text-[10px] text-zinc-500">
+                Puedes dejarlo en blanco y se usará la inicial con el color elegido.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsOperadorModalOpen(false)} className="w-full h-12 rounded-xl">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveOperador} disabled={savingOp} className="w-full h-12 rounded-xl gap-2">
+              {savingOp && <Loader2 className="h-4 w-4 animate-spin" />}
+              Registrar y Seleccionar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PremiumPageLayout>
   );
 }

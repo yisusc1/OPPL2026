@@ -14,9 +14,23 @@ export async function getOperadores() {
 
   if (error) {
     console.error("Error fetching operadores:", error);
-    return [];
   }
   return data || [];
+}
+
+export async function saveOperador(nombre: string, color_hex: string, logo_url?: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("operadores_competencia")
+    .insert([{ nombre, color_hex, logo_url }])
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  
+  // Revalidate to ensure the form gets the new operator instantly
+  revalidatePath("/ventas/competencia/nuevo");
+  return data;
 }
 
 // ── Ofertas ────────────────────────────────────────────────────────

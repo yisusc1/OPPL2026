@@ -5,8 +5,12 @@ CREATE TABLE IF NOT EXISTS operadores_competencia (
     id SERIAL PRIMARY KEY,
     nombre TEXT NOT NULL UNIQUE,
     color_hex TEXT DEFAULT '#6b7280',
+    logo_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Si la tabla ya fue creada previamente, ejecuta esto:
+-- ALTER TABLE operadores_competencia ADD COLUMN IF NOT EXISTS logo_url TEXT;
 
 -- 2. Tabla de Ofertas de la Competencia
 CREATE TABLE IF NOT EXISTS ofertas_competencia (
