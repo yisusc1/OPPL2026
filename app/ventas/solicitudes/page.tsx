@@ -11,7 +11,7 @@ import { useUser } from "@/components/providers/user-provider";
 import { getSolicitudes } from "@/app/actions/ventas";
 import { getTvLabel } from "@/app/admin/settings-actions";
 
-function buildWaMessage(sol: any, tvLabel: string) {
+function buildWaMessage(sol: any) {
   const todayStr = new Date(sol.fecha_solicitud).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
   const formatDate = (d: string) => {
     if (!d) return "";
@@ -19,21 +19,26 @@ function buildWaMessage(sol: any, tvLabel: string) {
     return `${dd}/${m}/${y}`;
   };
 
-  let msg = `Fecha de solicitud: ${todayStr}\n`;
+  let msg = `*Nueva Solicitud de Servicio*\n\n`;
+  msg += `Fecha de solicitud: ${todayStr}\n`;
   msg += `Fecha de Disponibilidad: ${sol.fecha_disponibilidad ? formatDate(sol.fecha_disponibilidad) : ""}\n\n`;
-  msg += `Nombres: ${sol.nombres} Apellidos: ${sol.apellidos}\n`;
+  msg += `Nombres y Apellido: ${sol.nombres} ${sol.apellidos}\n`;
   msg += `Cédula/RIF: ${sol.cedula}\n`;
-  msg += `Estado: ${sol.estado}, Municipio: ${sol.municipio}, Parroquia: ${sol.parroquia}`;
-  if (sol.sector) msg += `, Sector: ${sol.sector}`;
-  msg += `, Calle / Casa / Apto: ${sol.direccion || ""}\n`;
-  msg += `Tipo de Servicio: ${sol.tipo_servicio}\n`;
-  msg += `Plan: ${sol.plan}\n`;
-  msg += `Promotor/a: ${sol.promotor}\n`;
   msg += `Teléfono principal: ${sol.telefono_principal}\n`;
   msg += `Teléfono secundario: ${sol.telefono_secundario || sol.telefono_principal}\n`;
+  msg += `Ubicación: ${sol.estado}, ${sol.municipio}, ${sol.parroquia}`;
+  if (sol.sector) msg += `, ${sol.sector}`;
+  msg += `, ${sol.direccion || ""}\n`;
+  msg += `Tipo de Servicio: ${sol.plan} ${sol.tipo_servicio}\n`;
+  msg += `Promotor/a: ${sol.promotor}\n`;
   msg += `Correo Electrónico: ${sol.correo || ""}\n`;
-  msg += `${tvLabel}: ${sol.power_go ? "SI" : "NO"}\n`;
   msg += `Fuente: ${sol.fuente || ""}`;
+  
+  const activityName = sol.actividades?.tipo;
+  if (activityName) {
+    msg += `\nActividad: ${activityName}`;
+  }
+  
   return msg;
 }
 
@@ -77,7 +82,7 @@ export default function SolicitudesPage() {
   }, [search]);
 
   function handleSendWa(sol: any) {
-    const msg = buildWaMessage(sol, tvLabel);
+    const msg = buildWaMessage(sol);
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   }
 

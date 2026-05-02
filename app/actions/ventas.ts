@@ -309,7 +309,7 @@ export async function getSolicitudes(filters?: {
   const supabase = await createClient();
   let query = supabase
     .from("solicitudes")
-    .select("*")
+    .select("*, actividades(tipo)")
     .order("fecha_solicitud", { ascending: false });
 
   if (filters?.promotor) query = query.eq("promotor", filters.promotor);
