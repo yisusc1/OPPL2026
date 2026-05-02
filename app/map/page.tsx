@@ -196,6 +196,21 @@ function CoverageLayer({ userLocation, targetNode, distance }: { userLocation: {
         }
     }, [isLoaded, map, userLocation, targetNode, distance, isFeasible]);
 
+function MapFlyTo({ location, trigger }: { location: { lat: number, lng: number } | null, trigger: number }) {
+    const { map, isLoaded } = useMap();
+
+    useEffect(() => {
+        if (!isLoaded || !map || !location) return;
+
+        // Try using flyTo with more explicit options
+        map.flyTo({
+            center: [location.lng, location.lat],
+            zoom: 17,
+            duration: 2000, // slightly longer for smoother transition
+            essential: true
+        });
+    }, [isLoaded, map, location?.lat, location?.lng, trigger]);
+
     return null;
 }
 
@@ -208,6 +223,7 @@ export default function MapPage() {
     const [coverageNode, setCoverageNode] = useState<NetworkNode | null>(null);
     const [distance, setDistance] = useState<number | null>(null);
     const [checkingCoverage, setCheckingCoverage] = useState(false);
+    const [searchTrigger, setSearchTrigger] = useState(0);
 
     // Manual Search State
     const [searchMode, setSearchMode] = useState<"gps" | "manual">("gps");
@@ -248,6 +264,7 @@ export default function MapPage() {
         setDistance(minDist);
         setCoverageNode(nearest);
         setCheckingCoverage(false);
+        setSearchTrigger(prev => prev + 1);
         if (nearest) setSelectedNode(nearest);
         // Optional: auto-collapse on mobile if needed, but not forcing it yet
     };
@@ -414,6 +431,7 @@ export default function MapPage() {
                 doubleClickZoom={true}
             >
                 <MapAutoFitter nodes={nodes} />
+                <MapFlyTo location={userLocation} trigger={searchTrigger} />
                 <NetworkNodesLayer nodes={nodes} onNodeClick={setSelectedNode} />
                 <CoverageLayer userLocation={userLocation} targetNode={coverageNode} distance={distance} />
 
