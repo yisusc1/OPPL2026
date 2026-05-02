@@ -10,6 +10,7 @@ import { Map, MapPopup, useMap } from "@/components/ui/map";
 import { useEffect, useState, useRef, useMemo } from "react";
 import { fetchNetworkNodes, type NetworkNode } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/components/providers/user-provider";
 
 const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
@@ -235,6 +236,24 @@ export default function MapPage() {
     // UI State
     const [isCollapsed, setIsCollapsed] = useState(false);
 
+    const { profile, isAdmin } = useUser();
+
+    const isRestrictedView = useMemo(() => {
+        if (isAdmin) return false;
+        if (!profile) return false;
+        
+        const dept = (profile.department || "").toLowerCase();
+        const title = (profile.job_title || "").toLowerCase();
+        
+        const isComercializacion = dept.includes("comercializaci");
+        const isAsesorOrPromotor = title.includes("asesor") || title.includes("promotor");
+        
+        if (isComercializacion && isAsesorOrPromotor) {
+            return true;
+        }
+        return false;
+    }, [profile, isAdmin]);
+
     useEffect(() => {
         async function load() {
             setLoading(true);
@@ -334,7 +353,7 @@ export default function MapPage() {
                             <span className="text-sm font-bold uppercase tracking-wider">Mapa de Red</span>
                         </div>
                         {loading && <Loader2 className="w-3 h-3 animate-spin ml-2 text-muted-foreground" />}
-                        {!loading && <span className="text-xs text-muted-foreground ml-2">({nodes.length})</span>}
+                        {!loading && !isRestrictedView && <span className="text-xs text-muted-foreground ml-2">({nodes.length})</span>}
                     </div>
                 </div>
 
@@ -433,9 +452,9 @@ export default function MapPage() {
                 scrollZoom={true}
                 doubleClickZoom={true}
             >
-                <MapAutoFitter nodes={nodes} />
+                {!isRestrictedView && <MapAutoFitter nodes={nodes} />}
                 <MapFlyTo location={userLocation} trigger={searchTrigger} />
-                <NetworkNodesLayer nodes={nodes} onNodeClick={setSelectedNode} />
+                {!isRestrictedView && <NetworkNodesLayer nodes={nodes} onNodeClick={setSelectedNode} />}
                 <CoverageLayer userLocation={userLocation} targetNode={coverageNode} distance={distance} />
 
                 {selectedNode && (
