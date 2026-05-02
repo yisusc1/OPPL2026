@@ -109,8 +109,9 @@ export default function NuevaOfertaCompetencia() {
         setLoading(false);
       })
       .catch((e) => {
-        console.error(e);
-        toast({ title: "Error cargando datos", variant: "destructive" });
+        console.error("Error crítico cargando datos iniciales:", e);
+        setLoading(false);
+        toast({ title: "Error cargando datos", description: e.message || "Verifica la conexión con la base de datos.", variant: "destructive" });
       });
   }, []);
 
@@ -239,49 +240,58 @@ export default function NuevaOfertaCompetencia() {
 
     setSaving(true);
     try {
-      const ofertasToInsert = [];
+      const ofertasToInsert: any[] = [];
 
-      const validPlanes = planes.filter(p => p.velocidad && p.precio);
-      for (const p of validPlanes) {
-        ofertasToInsert.push({
-          operador_id: parseInt(operadorId),
-          estado, municipio, parroquia,
-          tipo_novedad: tipoNovedad,
-          velocidad_mb: parseInt(p.velocidad),
-          precio_mensual: parseFloat(p.precio),
-          es_promocion: false,
-          servicios_adicionales: p.servicios.filter(s => s.nombre), 
-          costo_instalacion: costoBaseInstalacion ? parseFloat(costoBaseInstalacion) : 0,
-          modalidad_instalacion: modalidad || "Venta de Equipo",
-          instalacion_metraje: metraje ? parseInt(metraje) : null,
-          instalacion_opciones: opcionesInstalacion.filter(o => o.equipo && o.precio), 
-          notas,
-          asesor_nombre: asesor || "Asesor Desconocido",
-        });
+      // Procesar Planes Estándar
+      for (const p of planes) {
+        const vel = p.velocidad?.toString().trim();
+        const pre = p.precio?.toString().trim();
+        if (vel && pre) {
+          ofertasToInsert.push({
+            operador_id: parseInt(operadorId),
+            estado, municipio, parroquia,
+            tipo_novedad: tipoNovedad,
+            velocidad_mb: parseInt(vel) || 0,
+            precio_mensual: parseFloat(pre) || 0,
+            es_promocion: false,
+            servicios_adicionales: p.servicios.filter(s => s.nombre?.trim()),
+            costo_instalacion: parseFloat(costoBaseInstalacion) || 0,
+            modalidad_instalacion: modalidad || "Venta de Equipo",
+            instalacion_metraje: metraje ? parseInt(metraje) : null,
+            instalacion_opciones: opcionesInstalacion.filter(o => o.equipo?.trim() && o.precio?.trim()),
+            notas,
+            asesor_nombre: asesor || "Asesor Desconocido",
+          });
+        }
       }
 
-      const validPromos = promos.filter(p => p.velocidad && p.precio_promo);
-      for (const p of validPromos) {
-        ofertasToInsert.push({
-          operador_id: parseInt(operadorId),
-          estado, municipio, parroquia,
-          tipo_novedad: tipoNovedad,
-          velocidad_mb: parseInt(p.velocidad),
-          precio_mensual: parseFloat(p.precio_promo),
-          precio_regular: p.precio_regular ? parseFloat(p.precio_regular) : null,
-          duracion_promo_meses: p.duracion_meses ? parseInt(p.duracion_meses) : null,
-          fecha_fin_promo: p.fecha_fin || null,
-          es_promocion: true,
-          servicios_adicionales: p.servicios.filter(s => s.nombre), 
-          costo_instalacion: costoBaseInstalacion ? parseFloat(costoBaseInstalacion) : 0,
-          modalidad_instalacion: modalidad || "Venta de Equipo",
-          instalacion_metraje: metraje ? parseInt(metraje) : null,
-          instalacion_opciones: opcionesInstalacion.filter(o => o.equipo && o.precio), 
-          notas,
-          asesor_nombre: asesor || "Asesor Desconocido",
-        });
+      // Procesar Promociones
+      for (const p of promos) {
+        const vel = p.velocidad?.toString().trim();
+        const pre = p.precio_promo?.toString().trim();
+        if (vel && pre) {
+          ofertasToInsert.push({
+            operador_id: parseInt(operadorId),
+            estado, municipio, parroquia,
+            tipo_novedad: tipoNovedad,
+            velocidad_mb: parseInt(vel) || 0,
+            precio_mensual: parseFloat(pre) || 0,
+            precio_regular: p.precio_regular ? parseFloat(p.precio_regular) : null,
+            duracion_promo_meses: p.duracion_meses ? parseInt(p.duracion_meses) : null,
+            fecha_fin_promo: p.fecha_fin || null,
+            es_promocion: true,
+            servicios_adicionales: p.servicios.filter(s => s.nombre?.trim()),
+            costo_instalacion: parseFloat(costoBaseInstalacion) || 0,
+            modalidad_instalacion: modalidad || "Venta de Equipo",
+            instalacion_metraje: metraje ? parseInt(metraje) : null,
+            instalacion_opciones: opcionesInstalacion.filter(o => o.equipo?.trim() && o.precio?.trim()),
+            notas,
+            asesor_nombre: asesor || "Asesor Desconocido",
+          });
+        }
       }
 
+      // Fallback: si no hay planes/promos válidos, guardar un registro base con notas e instalación
       if (ofertasToInsert.length === 0) {
         ofertasToInsert.push({
           operador_id: parseInt(operadorId),
@@ -291,27 +301,33 @@ export default function NuevaOfertaCompetencia() {
           precio_mensual: 0,
           es_promocion: false,
           servicios_adicionales: [],
-          costo_instalacion: costoBaseInstalacion ? parseFloat(costoBaseInstalacion) : 0,
+          costo_instalacion: parseFloat(costoBaseInstalacion) || 0,
           modalidad_instalacion: modalidad || "Venta de Equipo",
           instalacion_metraje: metraje ? parseInt(metraje) : null,
-          instalacion_opciones: opcionesInstalacion.filter(o => o.equipo && o.precio),
+          instalacion_opciones: opcionesInstalacion.filter(o => o.equipo?.trim() && o.precio?.trim()),
           notas,
           asesor_nombre: asesor || "Asesor Desconocido",
         });
       }
 
+      console.log(`[competencia-form] Enviando ${ofertasToInsert.length} registro(s)...`);
       const result = await saveOfertasBatch(ofertasToInsert);
       
       if (!result.success) {
-        const errMsg = result.error || "Error desconocido de Supabase";
+        const errMsg = result.error || "Error desconocido al guardar";
+        console.error("[competencia-form] Error del servidor:", errMsg);
+        alert(`Error al guardar: ${errMsg}`);
         toast({ title: "Error al guardar", description: errMsg, variant: "destructive" });
         return;
       }
       
-      toast({ title: "Datos registrados exitosamente" });
+      console.log("[competencia-form] Guardado exitoso:", result.data);
+      toast({ title: "Éxito", description: `${ofertasToInsert.length} registro(s) guardados correctamente.` });
       router.push("/ventas/competencia");
     } catch (error: any) {
-      toast({ title: "Error inesperado", description: error.message || "Error desconocido", variant: "destructive" });
+      console.error("[competencia-form] Error inesperado:", error);
+      alert(`Error inesperado: ${error.message}`);
+      toast({ title: "Error al guardar", description: error.message || "Error desconocido", variant: "destructive" });
     } finally {
       setSaving(false);
     }

@@ -14,6 +14,7 @@ export async function getOperadores() {
 
   if (error) {
     console.error("Error fetching operadores:", error);
+    throw new Error(`No se pudieron cargar las operadoras: ${error.message}`);
   }
   return data || [];
 }
@@ -50,24 +51,61 @@ export async function saveOferta(oferta: any) {
 }
 
 export async function saveOfertasBatch(ofertas: any[]) {
-  if (!ofertas || ofertas.length === 0) return { success: false, error: "No hay datos para guardar" };
+  if (!ofertas || ofertas.length === 0) {
+    console.warn("[competencia] Intento de guardado con array vacío");
+    return { success: false, error: "No hay datos válidos para guardar" };
+  }
   
   const supabase = await createClient();
   
-  // Log para debug
-  console.log("[competencia] Insertando ofertas:", JSON.stringify(ofertas, null, 2));
+  // Fecha de reporte en zona Venezuela (UTC-4)
+  const fechaReporte = new Date().toLocaleDateString("en-CA", { timeZone: "America/Caracas" });
+
+  // Limpieza de seguridad: asegurar que no haya valores NaN o undefined que rompan Supabase
+  const cleanOfertas = ofertas.map(o => {
+    const clean = { ...o };
+    // Inyectar fecha_reporte explícitamente
+    if (!clean.fecha_reporte) clean.fecha_reporte = fechaReporte;
+    // Asegurar que los números sean números o null, nunca NaN
+    if (typeof clean.velocidad_mb !== 'number' || isNaN(clean.velocidad_mb)) clean.velocidad_mb = 0;
+    if (typeof clean.precio_mensual !== 'number' || isNaN(clean.precio_mensual)) clean.precio_mensual = 0;
+    
+    if (clean.precio_regular !== undefined && clean.precio_regular !== null && isNaN(clean.precio_regular)) {
+      clean.precio_regular = null;
+    }
+    if (clean.duracion_promo_meses !== undefined && clean.duracion_promo_meses !== null && isNaN(clean.duracion_promo_meses)) {
+      clean.duracion_promo_meses = null;
+    }
+    if (clean.costo_instalacion !== undefined && clean.costo_instalacion !== null && isNaN(clean.costo_instalacion)) {
+      clean.costo_instalacion = 0;
+    }
+    return clean;
+  });
+
+  console.log(`[competencia] Intentando insertar ${cleanOfertas.length} registros...`);
   
   const { data, error } = await supabase
     .from("ofertas_competencia")
-    .insert(ofertas)
+    .insert(cleanOfertas)
     .select();
 
   if (error) {
-    console.error("[competencia] Error Supabase:", error.message, error.details, error.hint, error.code);
-    return { success: false, error: `${error.message}${error.details ? ` — ${error.details}` : ""}${error.hint ? ` (${error.hint})` : ""}` };
+    console.error("[competencia] Error Crítico Supabase:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code
+    });
+    return { 
+      success: false, 
+      error: `Error de base de datos: ${error.message}${error.details ? ` — ${error.details}` : ""}` 
+    };
   }
   
+  console.log("[competencia] Guardado exitoso. Revalidando rutas...");
   revalidatePath("/ventas/competencia");
+  revalidatePath("/ventas/competencia/nuevo");
+  
   return { success: true, data };
 }
 
