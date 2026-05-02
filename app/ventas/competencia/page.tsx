@@ -152,11 +152,7 @@ export default function CompetenciaDashboard() {
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-2">
-                      {opLogo ? (
-                        <img src={opLogo} alt={opName} className="w-6 h-6 object-contain rounded-md" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: opColor }} />
-                      )}
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: opColor }} />
                       <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{opName}</h3>
                     </div>
                     <Badge variant="outline" className="text-[10px] uppercase text-zinc-500">
@@ -164,35 +160,45 @@ export default function CompetenciaDashboard() {
                     </Badge>
                   </div>
                   
-                  <div className="flex items-end gap-2 mb-4">
-                    {oferta.isEmpty ? (
-                      <span className="text-xl font-semibold text-zinc-400 dark:text-zinc-500 py-1">Sin planes reportados</span>
-                    ) : (
-                      <>
-                        <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100">${oferta.precio_mensual}</span>
-                        <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
-                      </>
-                    )}
-                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-end gap-2 mb-4">
+                        {oferta.isEmpty ? (
+                          <span className="text-xl font-semibold text-zinc-400 dark:text-zinc-500 py-1">Sin planes reportados</span>
+                        ) : (
+                          <>
+                            <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100">${oferta.precio_mensual}</span>
+                            <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
+                          </>
+                        )}
+                      </div>
 
-                  {!oferta.isEmpty && (
-                    <div className="space-y-2 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        <Zap size={16} className="text-amber-500" />
-                        <span className="font-medium text-zinc-900 dark:text-zinc-100">{oferta.velocidad_mb} Mbps</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        <ExternalLink size={16} className="text-blue-500" />
-                        <span>Instalación: ${oferta.costo_instalacion || "0"}</span>
-                      </div>
-                      {oferta.incluye_tv && (
-                        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                          <Tv size={16} className="text-violet-500" />
-                          <span>Incluye TV</span>
+                      {!oferta.isEmpty && (
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <Zap size={16} className="text-amber-500" />
+                            <span className="font-medium text-zinc-900 dark:text-zinc-100">{oferta.velocidad_mb} Mbps</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                            <ExternalLink size={16} className="text-blue-500" />
+                            <span>Instalación: ${oferta.costo_instalacion || "0"}</span>
+                          </div>
+                          {oferta.incluye_tv && (
+                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                              <Tv size={16} className="text-violet-500" />
+                              <span>Incluye TV</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
+                    
+                    {opLogo && (
+                      <div className="shrink-0 flex items-center justify-center p-2">
+                        <img src={opLogo} alt={opName} className="w-20 h-20 object-contain drop-shadow-sm" />
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="w-full flex justify-center py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs font-semibold text-zinc-400 group-hover:text-primary transition-colors">
                     {oferta.isEmpty ? "Registrar nueva oferta" : "Ver todo el historial de planes"}
