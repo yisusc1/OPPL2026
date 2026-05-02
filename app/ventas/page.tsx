@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ClipboardList, FileText, ArrowRight, ShieldX } from "lucide-react";
+import { ClipboardList, FileText, ArrowRight, ShieldX, Radar } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { useUser } from "@/components/providers/user-provider";
 
@@ -35,6 +35,13 @@ export default function VentasPage() {
       href: "/ventas/solicitudes",
       accent: "violet",
     },
+    {
+      title: "Inteligencia de Mercado",
+      description: "Consulta y reporte de ofertas y planes de la competencia en campo.",
+      icon: Radar,
+      href: "/ventas/competencia",
+      accent: "emerald",
+    },
   ];
 
   const accentStyles: Record<string, { iconBg: string; iconColor: string }> = {
@@ -45,6 +52,10 @@ export default function VentasPage() {
     violet: {
       iconBg: "bg-violet-50 dark:bg-violet-900/20",
       iconColor: "text-violet-600 dark:text-violet-400",
+    },
+    emerald: {
+      iconBg: "bg-emerald-50 dark:bg-emerald-900/20",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
     },
   };
 

@@ -226,24 +226,34 @@ export async function sincronizarConSheets(
     const sheets = google.sheets({ version: "v4", auth });
 
     // Filas de actividades con datos FINALES
-    const rows = actividades.map((act: any) => [
-      formatFechaSheets(act.fecha || ""),
-      formatHoraSheets(act.hora || ""),
-      act.asesor || "",
-      act.estado || "",
-      act.municipio || "",
-      act.parroquia || "",
-      act.sector || "",
-      act.tipo || "",
-      solicitudesPorActividad[act.id] || 0,
-      act.clientes_captados || 0,
-      act.volantes || 0,
-      act.llamadas_info || 0,
-      llamadasPorActividad[act.id] || 0,
-      act.condominio || "",
-      act.notas || "",
-      act.id || "",
-    ]);
+    const rows = actividades.map((act: any) => {
+      let actHora = act.hora || "";
+      if (!actHora && act.created_at) {
+        const d = new Date(act.created_at);
+        d.setHours(d.getHours() - 4);
+        const hh = d.getUTCHours().toString().padStart(2, "0");
+        const mm = d.getUTCMinutes().toString().padStart(2, "0");
+        actHora = `${hh}:${mm}`;
+      }
+      return [
+        formatFechaSheets(act.fecha || ""),
+        formatHoraSheets(actHora),
+        act.asesor || "",
+        act.estado || "",
+        act.municipio || "",
+        act.parroquia || "",
+        act.sector || "",
+        act.tipo || "",
+        solicitudesPorActividad[act.id] || 0,
+        act.clientes_captados || 0,
+        act.volantes || 0,
+        act.llamadas_info || 0,
+        llamadasPorActividad[act.id] || 0,
+        act.condominio || "",
+        act.notas || "",
+        act.id || "",
+      ];
+    });
 
     // Filas de solicitudes huérfanas (sin actividad vinculada)
     if (solicitudesHuerfanas && solicitudesHuerfanas.length > 0) {
@@ -260,7 +270,7 @@ export async function sincronizarConSheets(
         }
         rows.push([
           formatFechaSheets(fechaSol),
-          horaSol,
+          formatHoraSheets(horaSol),
           sol.promotor || "",
           sol.estado || "",
           sol.municipio || "",
