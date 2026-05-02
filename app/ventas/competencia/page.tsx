@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Tv, Zap, ExternalLink, Radar, Flame, ArrowRight, Loader2 } from "lucide-react";
+import { Plus, Zap, ExternalLink, Radar, Loader2 } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -219,9 +219,9 @@ export default function CompetenciaDashboard() {
                             <span className="font-medium text-zinc-900 dark:text-zinc-100">{best.velocidad} Mbps</span>
                           </div>
                           {best.es_promocion && (
-                            <div className="flex items-center gap-2 text-sm text-amber-600">
-                              <Flame size={16} />
-                              <span className="font-bold">¡En Promoción!</span>
+                            <div className="flex items-center gap-2 text-sm text-zinc-500">
+                              <Radar size={16} />
+                              <span className="font-bold uppercase tracking-wider text-[10px]">En Promoción</span>
                             </div>
                           )}
                         </div>
@@ -303,50 +303,49 @@ export default function CompetenciaDashboard() {
                     {/* Promociones Activas */}
                     {snapshot.promociones && snapshot.promociones.length > 0 && (
                       <div className="space-y-3">
-                        <h4 className="text-sm font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-2">
-                          <Flame size={16} /> Promociones Activas
+                        <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                          <Radar size={16} /> Promociones Activas
                         </h4>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {snapshot.promociones.map((promo: any, idx: number) => (
-                            <div key={idx} className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-900/10 p-4 rounded-2xl border border-amber-200 dark:border-amber-900/30 shadow-sm relative overflow-hidden">
-                              <div className="absolute -right-4 -top-4 opacity-5">
-                                <Flame size={100} />
-                              </div>
+                            <div key={idx} className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm relative overflow-hidden">
                               <div className="flex justify-between items-start relative z-10 mb-2">
-                                <div className="flex items-center gap-2">
-                                  <Zap size={20} className="text-amber-500" />
+                                <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                                    <Zap className="text-zinc-400" size={20} />
+                                  </div>
                                   <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{promo.velocidad} <span className="text-sm">Mbps</span></span>
                                 </div>
                                 <div className="text-right">
                                   {promo.precio_regular && (
                                     <p className="text-xs text-zinc-400 line-through">Antes ${promo.precio_regular}</p>
                                   )}
-                                  <p className="text-2xl font-black text-amber-600">${promo.precio_promo}</p>
+                                  <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">${promo.precio_promo}</p>
                                 </div>
                               </div>
                               
-                              <div className="flex flex-wrap gap-2 mb-4">
+                              <div className="flex flex-wrap gap-2 mb-4 mt-2">
                                 {promo.duracion_meses && (
-                                  <Badge variant="outline" className="bg-white/50 dark:bg-black/20 text-amber-700 border-amber-300 font-bold">
+                                  <Badge variant="outline" className="bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 font-bold">
                                     Por {promo.duracion_meses} meses
                                   </Badge>
                                 )}
                                 {promo.fecha_fin && (
-                                  <Badge variant="outline" className="bg-white/50 dark:bg-black/20 text-amber-700 border-amber-300">
+                                  <Badge variant="outline" className="bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
                                     Hasta {format(new Date(promo.fecha_fin), "dd/MMM/yy", { locale: es })}
                                   </Badge>
                                 )}
                               </div>
 
                               {promo.servicios && promo.servicios.length > 0 && (
-                                <div className="mt-3 pt-3 border-t border-amber-200/50 dark:border-amber-900/50 space-y-1">
-                                  <p className="text-[10px] font-bold text-amber-700/70 uppercase">Servicios Incluidos:</p>
+                                <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
+                                  <p className="text-[10px] font-bold text-zinc-400 uppercase">Servicios Incluidos:</p>
                                   {promo.servicios.map((srv: any, sIdx: number) => (
                                     <div key={sIdx} className="flex justify-between items-center text-sm">
-                                      <span className="font-medium text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-400" /> {srv.nombre}
+                                      <span className="font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" /> {srv.nombre}
                                       </span>
-                                      <span className="text-amber-700 dark:text-amber-400 font-semibold text-xs">
+                                      <span className="text-zinc-900 dark:text-zinc-100 font-semibold text-xs">
                                         {srv.condicion || (srv.costo === "0" ? "Gratis" : `$${srv.costo}`)}
                                       </span>
                                     </div>

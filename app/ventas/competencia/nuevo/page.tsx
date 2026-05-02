@@ -355,27 +355,26 @@ export default function NuevaOfertaCompetencia() {
               </div>
             </div>
 
-            {loadingSnapshot && <div className="flex items-center gap-2 p-3 bg-amber-50 text-amber-700 rounded-xl text-sm animate-pulse"><Loader2 className="w-4 h-4 animate-spin" /> Cargando Snapshot...</div>}
+            {loadingSnapshot && <div className="flex items-center gap-2 p-3 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-500 rounded-xl text-sm animate-pulse border border-zinc-100 dark:border-zinc-800"><Loader2 className="w-4 h-4 animate-spin" /> Cargando datos previos...</div>}
           </CardContent>
         </Card>
 
         {!isSoloNotas && (
           <>
-            <Card className="border-amber-200 dark:border-amber-900/40 shadow-sm overflow-hidden">
-              <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-500 w-full" />
-              <CardHeader className="pb-3"><CardTitle className="text-sm uppercase tracking-wider text-amber-600 flex items-center gap-2">🎁 Promociones Activas</CardTitle></CardHeader>
+            <Card>
+              <CardHeader className="pb-3"><CardTitle className="text-sm uppercase tracking-wider text-zinc-500 flex items-center gap-2">📋 Promociones Activas</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 {promos.map((promo, idx) => (
-                  <div key={idx} className="bg-amber-50/50 dark:bg-amber-900/10 p-4 rounded-2xl border border-amber-100 dark:border-amber-900/30 relative group">
+                  <div key={idx} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border relative group">
                     <Button variant="ghost" size="icon" onClick={() => removePromo(idx)} className="absolute top-2 right-2 h-8 w-8 text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></Button>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-                      <div className="space-y-1 col-span-2 md:col-span-1"><Label className="text-[10px] uppercase">Velocidad (Mbps)</Label><Input type="number" value={promo.velocidad} onChange={(e) => updatePromo(idx, "velocidad", e.target.value)} className="h-10 bg-white dark:bg-zinc-900 border-amber-200" /></div>
-                      <div className="space-y-1"><Label className="text-[10px] uppercase text-amber-600 font-bold">Precio Promo $</Label><Input type="number" step="0.01" value={promo.precio_promo} onChange={(e) => updatePromo(idx, "precio_promo", e.target.value)} className="h-10 bg-white dark:bg-zinc-900 border-amber-300 font-bold text-amber-700" /></div>
+                      <div className="space-y-1 col-span-2 md:col-span-1"><Label className="text-[10px] uppercase">Velocidad (Mbps)</Label><Input type="number" value={promo.velocidad} onChange={(e) => updatePromo(idx, "velocidad", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
+                      <div className="space-y-1"><Label className="text-[10px] uppercase font-bold">Precio Promo $</Label><Input type="number" step="0.01" value={promo.precio_promo} onChange={(e) => updatePromo(idx, "precio_promo", e.target.value)} className="h-10 bg-white dark:bg-zinc-900 font-bold" /></div>
                       <div className="space-y-1"><Label className="text-[10px] uppercase">Precio Regular $</Label><Input type="number" step="0.01" value={promo.precio_regular} onChange={(e) => updatePromo(idx, "precio_regular", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
                       <div className="space-y-1"><Label className="text-[10px] uppercase">Duración (Meses)</Label><Input type="number" value={promo.duracion_meses} onChange={(e) => updatePromo(idx, "duracion_meses", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
                       <div className="space-y-1"><Label className="text-[10px] uppercase">Válida Hasta</Label><Input type="date" value={promo.fecha_fin} onChange={(e) => updatePromo(idx, "fecha_fin", e.target.value)} className="h-10 bg-white dark:bg-zinc-900" /></div>
                     </div>
-                    <div className="space-y-2 mt-4 pt-4 border-t border-amber-200/50">
+                    <div className="space-y-2 mt-4 pt-4 border-t">
                       <Label className="text-xs font-semibold text-zinc-500">Servicios Incluidos en Promo</Label>
                       {promo.servicios.map((srv, sIdx) => (
                         <div key={sIdx} className="flex flex-col md:flex-row gap-2 items-center bg-white dark:bg-zinc-900 p-2 rounded-xl border">
@@ -385,11 +384,11 @@ export default function NuevaOfertaCompetencia() {
                           <Button variant="ghost" size="icon" onClick={() => removePromoServicio(idx, sIdx)} className="h-9 w-9 text-rose-400 shrink-0"><Trash2 size={14}/></Button>
                         </div>
                       ))}
-                      <Button variant="ghost" size="sm" onClick={() => addPromoServicio(idx)} className="h-8 text-xs text-amber-600 gap-1"><PlusCircle size={14}/> Añadir Servicio</Button>
+                      <Button variant="ghost" size="sm" onClick={() => addPromoServicio(idx)} className="h-8 text-xs gap-1"><PlusCircle size={14}/> Añadir Servicio</Button>
                     </div>
                   </div>
                 ))}
-                <Button variant="outline" onClick={addPromo} className="w-full border-dashed border-amber-300 text-amber-600 bg-amber-50 hover:bg-amber-100"><Plus size={16} className="mr-2" /> Añadir Promoción</Button>
+                <Button variant="outline" onClick={addPromo} className="w-full border-dashed"><Plus size={16} className="mr-2" /> Añadir Promoción</Button>
               </CardContent>
             </Card>
 
