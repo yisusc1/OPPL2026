@@ -50,18 +50,25 @@ export async function saveOferta(oferta: any) {
 }
 
 export async function saveOfertasBatch(ofertas: any[]) {
-  if (!ofertas || ofertas.length === 0) return [];
+  if (!ofertas || ofertas.length === 0) return { success: false, error: "No hay datos para guardar" };
   
   const supabase = await createClient();
+  
+  // Log para debug
+  console.log("[competencia] Insertando ofertas:", JSON.stringify(ofertas, null, 2));
+  
   const { data, error } = await supabase
     .from("ofertas_competencia")
     .insert(ofertas)
     .select();
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    console.error("[competencia] Error Supabase:", error.message, error.details, error.hint, error.code);
+    return { success: false, error: `${error.message}${error.details ? ` — ${error.details}` : ""}${error.hint ? ` (${error.hint})` : ""}` };
+  }
   
   revalidatePath("/ventas/competencia");
-  return data;
+  return { success: true, data };
 }
 
 /**

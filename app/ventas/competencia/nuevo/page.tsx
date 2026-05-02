@@ -278,11 +278,16 @@ export default function NuevaOfertaCompetencia() {
         });
       }
 
-      await saveOfertasBatch(ofertasToInsert);
+      const result = await saveOfertasBatch(ofertasToInsert);
+      if (!result.success) {
+        toast({ title: "Error al guardar", description: result.error, variant: "destructive" });
+        return;
+      }
       toast({ title: "Datos registrados exitosamente" });
       router.push("/ventas/competencia");
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error("Error en handleSubmit:", error);
+      toast({ title: "Error inesperado", description: error.message || "Error desconocido", variant: "destructive" });
     } finally {
       setSaving(false);
     }
