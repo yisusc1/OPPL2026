@@ -193,21 +193,30 @@ export default function NuevaSolicitudPage() {
         return `${dd}/${m}/${y}`;
       };
 
-      let waMsg = `Fecha de solicitud: ${todayStr}\n`;
+      // Get Activity Name
+      let activityName = "";
+      if (isFromActivity && urlFuenteActividad) {
+        activityName = decodeURIComponent(urlFuenteActividad);
+      } else if (actividadId) {
+        const linkedAct = actividadesDelDia.find(a => String(a.id) === actividadId);
+        if (linkedAct) activityName = linkedAct.tipo;
+      }
+
+      let waMsg = `*Nueva Solicitud de Servicio*\n\n`;
+      waMsg += `Fecha de solicitud: ${todayStr}\n`;
       waMsg += `Fecha de Disponibilidad: ${fechaDisp ? formatDate(fechaDisp) : ""}\n\n`;
-      waMsg += `Nombres: ${nombres} Apellidos: ${apellidos}\n`;
+      waMsg += `Nombres y Apellido: ${nombres} ${apellidos}\n`;
       waMsg += `Cédula/RIF: ${cedulaTipo}${cedulaNum}\n`;
-      waMsg += `Estado: ${estado}, Municipio: ${municipio}, Parroquia: ${parroquia}`;
-      if (sector) waMsg += `, Sector: ${sector}`;
-      waMsg += `, Calle / Casa / Apto: ${direccion}\n`;
-      waMsg += `Tipo de Servicio: ${tipoServicio}\n`;
-      waMsg += `Plan: ${plan}\n`;
-      waMsg += `Promotor/a: ${promotor}\n`;
       waMsg += `Teléfono principal: ${telefonoP}\n`;
       waMsg += `Teléfono secundario: ${telefonoS || telefonoP}\n`;
+      waMsg += `Ubicación: ${estado}, ${municipio}, ${parroquia}`;
+      if (sector) waMsg += `, ${sector}`;
+      waMsg += `, ${direccion}\n`;
+      waMsg += `Tipo de Servicio: ${plan} ${tipoServicio}\n`;
+      waMsg += `Promotor/a: ${promotor}\n`;
       waMsg += `Correo Electrónico: ${correo || ""}\n`;
-      waMsg += `${tvLabel}: ${incluyeTv ? "SI" : "NO"}\n`;
       waMsg += `Fuente: ${fuente}`;
+      if (activityName) waMsg += `\nActividad: ${activityName}`;
 
       window.open(`https://wa.me/?text=${encodeURIComponent(waMsg)}`, "_blank");
 
