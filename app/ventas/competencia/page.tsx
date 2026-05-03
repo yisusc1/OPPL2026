@@ -36,6 +36,10 @@ export default function CompetenciaDashboard() {
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  // Compare mode state
+  const [isCompareMode, setIsCompareMode] = useState(false);
+  const [selectedForCompare, setSelectedForCompare] = useState<number[]>([]);
+
   // Gestión de Operadoras
   const [operadores, setOperadores] = useState<any[]>([]);
   const [isOpModalOpen, setIsOpModalOpen] = useState(false);
@@ -171,14 +175,29 @@ export default function CompetenciaDashboard() {
       description="Consulta y actualiza las ofertas de la competencia en campo."
     >
       <div className="flex flex-col gap-4 mb-6">
-
-        <Button
-          variant="outline"
-          className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
-          onClick={() => { setEditingOpId(null); setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setIsOpModalOpen(true); }}
-        >
-          <Settings2 size={18} /> Registrar Nueva Operadora
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
+            onClick={() => { setEditingOpId(null); setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setIsOpModalOpen(true); }}
+          >
+            <Settings2 size={18} /> Registrar
+          </Button>
+          <Button
+            variant={isCompareMode ? "default" : "outline"}
+            className={`h-14 gap-2 rounded-2xl text-base px-4 w-full transition-colors ${
+              isCompareMode 
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white border-0 shadow-lg shadow-indigo-600/20" 
+                : "border-zinc-200 dark:border-zinc-700"
+            }`}
+            onClick={() => {
+              setIsCompareMode(!isCompareMode);
+              if (isCompareMode) setSelectedForCompare([]); // Clear on exit
+            }}
+          >
+            <Radar size={18} /> {isCompareMode ? "Cancelar" : "Comparar"}
+          </Button>
+        </div>
       </div>
 
       {!loadingOfertas && ofertas.length === 0 ? (
@@ -215,12 +234,35 @@ export default function CompetenciaDashboard() {
               }
             }
 
+            const isSelected = selectedForCompare.includes(oferta.operador_id);
+
             return (
               <div 
                 key={oferta.id} 
-                className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
-                onClick={() => oferta.isEmpty ? navigateToOperador(oferta) : openOperadorDetails(oferta)}
+                className={`bg-white dark:bg-zinc-900 rounded-2xl border shadow-sm overflow-hidden transition-all cursor-pointer group relative ${
+                  isSelected 
+                    ? "border-indigo-500 ring-2 ring-indigo-500/20 shadow-md" 
+                    : "border-zinc-200 dark:border-zinc-800 hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700"
+                }`}
+                onClick={() => {
+                  if (isCompareMode) {
+                    if (isSelected) {
+                      setSelectedForCompare(prev => prev.filter(id => id !== oferta.operador_id));
+                    } else {
+                      setSelectedForCompare(prev => [...prev, oferta.operador_id]);
+                    }
+                  } else {
+                    oferta.isEmpty ? navigateToOperador(oferta) : openOperadorDetails(oferta);
+                  }
+                }}
               >
+                {isCompareMode && (
+                  <div className={`absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors z-10 ${
+                    isSelected ? "bg-indigo-500 border-indigo-500 text-white" : "border-zinc-300 dark:border-zinc-600"
+                  }`}>
+                    {isSelected && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4"><polyline points="20 6 9 17 4 12" /></svg>}
+                  </div>
+                )}
                 {alertBadge}
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-4">
@@ -675,6 +717,21 @@ export default function CompetenciaDashboard() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating Action Bar for Compare Mode */}
+      {isCompareMode && selectedForCompare.length >= 2 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-10 fade-in duration-300">
+          <div className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-6 py-3 rounded-full shadow-2xl flex items-center gap-4">
+            <span className="font-medium">{selectedForCompare.length} seleccionadas</span>
+            <Button 
+              className="rounded-full bg-indigo-500 hover:bg-indigo-600 text-white border-0 px-6 h-10"
+              onClick={() => router.push(`/ventas/competencia/comparador?ops=${selectedForCompare.join(',')}`)}
+            >
+              <Radar className="mr-2 h-4 w-4" /> Analizar
+            </Button>
+          </div>
+        </div>
+      )}
     </PremiumPageLayout>
   );
 }
