@@ -27,10 +27,6 @@ export default function CompetenciaDashboard() {
   const [geoHierarchy, setGeoHierarchy] = useState<Record<string, Record<string, Record<string, string[]>>>>({});
   
   // Filtros
-  const [estado, setEstado] = useState("");
-  const [municipio, setMunicipio] = useState("");
-  const [parroquia, setParroquia] = useState("");
-  
   const [ofertas, setOfertas] = useState<any[]>([]);
   
   // Drawer state
@@ -63,18 +59,14 @@ export default function CompetenciaDashboard() {
       });
   }, []);
 
-  const estados = Object.keys(geoHierarchy).sort();
-  const municipios = estado ? Object.keys(geoHierarchy[estado] || {}).sort() : [];
-  const parroquias = estado && municipio ? Object.keys(geoHierarchy[estado]?.[municipio] || {}).sort() : [];
-
   useEffect(() => {
-    loadOfertas(estado, municipio, parroquia);
-  }, [estado, municipio, parroquia]);
+    loadOfertas();
+  }, []);
 
-  async function loadOfertas(e?: string, m?: string, p?: string) {
+  async function loadOfertas() {
     setLoadingOfertas(true);
     try {
-      const data = await getOfertasRecientes(e, m, p);
+      const data = await getOfertasRecientes();
       setOfertas(data);
     } catch (error) {
       console.error(error);
@@ -87,9 +79,6 @@ export default function CompetenciaDashboard() {
   function navigateToOperador(oferta: any) {
     const params = new URLSearchParams();
     params.set("operador", String(oferta.operador_id));
-    if (estado) params.set("estado", estado);
-    if (municipio) params.set("municipio", municipio);
-    if (parroquia) params.set("parroquia", parroquia);
     router.push(`/ventas/competencia/nuevo?${params.toString()}`);
   }
 
@@ -99,8 +88,8 @@ export default function CompetenciaDashboard() {
     setLoadingHistorial(true);
     try {
       const [histData, snapData] = await Promise.all([
-        getHistorialOperador(oferta.operador_id, oferta.estado, oferta.municipio, oferta.parroquia),
-        getSnapshotOperador(oferta.operador_id, oferta.estado, oferta.municipio, oferta.parroquia)
+        getHistorialOperador(oferta.operador_id),
+        getSnapshotOperador(oferta.operador_id)
       ]);
       setHistorial(histData);
       setSnapshot(snapData);
@@ -182,33 +171,7 @@ export default function CompetenciaDashboard() {
       description="Consulta y actualiza las ofertas de la competencia en campo."
     >
       <div className="flex flex-col gap-4 mb-6">
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-          <div className="px-4 py-3.5">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Estado</p>
-            <Select value={estado} onValueChange={(v) => { setEstado(v); setMunicipio(""); setParroquia(""); }}>
-              <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-              <SelectContent>{estados.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
-            </Select>
-          </div>
-          <div className="border-t border-zinc-100 dark:border-zinc-800 ml-4" />
-          <div className="flex">
-            <div className="flex-1 px-4 py-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Municipio</p>
-              <Select value={municipio} onValueChange={(v) => { setMunicipio(v); setParroquia(""); }} disabled={!estado}>
-                <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                <SelectContent>{municipios.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="w-px bg-zinc-100 dark:bg-zinc-800 my-3" />
-            <div className="flex-1 px-4 py-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-1">Parroquia</p>
-              <Select value={parroquia} onValueChange={setParroquia} disabled={!municipio}>
-                <SelectTrigger className="border-0 bg-transparent shadow-none h-auto p-0 text-base font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-300 dark:[&>svg]:text-zinc-600"><SelectValue placeholder="Seleccione..." /></SelectTrigger>
-                <SelectContent>{parroquias.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
+
         <Button
           variant="outline"
           className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
@@ -455,6 +418,11 @@ export default function CompetenciaDashboard() {
                                 )}
                               </div>
 
+                              <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium mb-3">
+                                <span>📍</span>
+                                <span>{promo.estado}, {promo.municipio}</span>
+                              </div>
+
                               {promo.servicios && promo.servicios.length > 0 && (
                                 <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
                                   <p className="text-[10px] font-bold text-zinc-400 uppercase">Servicios Incluidos:</p>
@@ -500,6 +468,11 @@ export default function CompetenciaDashboard() {
                                     {plan.tecnologia && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 font-medium px-1.5 py-0 h-5">{plan.tecnologia}</Badge>}
                                     {plan.es_simetrico && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium px-1.5 py-0 h-5">Simétrico</Badge>}
                                     {plan.incluye_iptv && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium px-1.5 py-0 h-5">IPTV</Badge>}
+                                  </div>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium mt-2">
+                                    <span>📍</span>
+                                    <span>{plan.estado}, {plan.municipio}</span>
                                   </div>
                                 </div>
                               </div>
@@ -597,6 +570,10 @@ export default function CompetenciaDashboard() {
                         
                         <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-sm">
                           <div>
+                            <p className="text-zinc-500 text-[10px] uppercase font-bold">Ubicación</p>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-1">📍 {hist.estado}, {hist.municipio}</p>
+                          </div>
+                          <div>
                             <p className="text-zinc-500 text-[10px] uppercase font-bold">Tipo</p>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">{hist.es_promocion ? "Promo Temporal" : "Plan Estándar"}</p>
                           </div>
@@ -604,7 +581,7 @@ export default function CompetenciaDashboard() {
                             <p className="text-zinc-500 text-[10px] uppercase font-bold">Plan Modificado</p>
                             <p className="font-bold text-zinc-900 dark:text-zinc-100">{hist.velocidad_mb} Mbps por ${hist.precio_mensual}</p>
                           </div>
-                          <div className="col-span-2">
+                          <div>
                             <p className="text-zinc-500 text-[10px] uppercase font-bold">Instalación</p>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">${hist.costo_instalacion}</p>
                           </div>

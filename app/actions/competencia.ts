@@ -168,9 +168,9 @@ export async function saveOfertasBatch(ofertas: any[]) {
 }
 
 /**
- * Obtiene la ÚLTIMA oferta registrada de cada operador para una zona específica.
+ * Obtiene la ÚLTIMA oferta registrada de cada operador.
  */
-export async function getOfertasRecientes(estado?: string, municipio?: string, parroquia?: string) {
+export async function getOfertasRecientes() {
   const supabase = await createClient();
   
   // 1. Obtener todos los operadores para rellenar si no hay filtros
@@ -192,10 +192,6 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
     .order("created_at", { ascending: false })
     .limit(500);
 
-  if (estado) query = query.eq("estado", estado);
-  if (municipio) query = query.eq("municipio", municipio);
-  if (parroquia) query = query.eq("parroquia", parroquia);
-
   const { data, error } = await query;
 
   if (error) {
@@ -214,12 +210,8 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
     }
   }
 
-  // Si no hay filtros de zona aplicados, mostramos todos los operadores,
-  // incluso los que no tienen NINGUNA oferta en el sistema
-  const isFilterActive = estado || municipio || parroquia;
-  
-  if (!isFilterActive) {
-    for (const op of operadores) {
+  // Rellenar operadores sin ofertas
+  for (const op of operadores) {
       if (!ultimasOfertasMap.has(op.id)) {
         ultimasOfertasMap.set(op.id, {
           id: `empty-${op.id}`,
@@ -229,24 +221,20 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
         });
       }
     }
-  }
 
   return Array.from(ultimasOfertasMap.values());
 }
 
 /**
- * Obtiene el historial completo de un operador en una zona.
+ * Obtiene el historial completo de un operador.
  */
-export async function getHistorialOperador(operador_id: number, estado: string, municipio: string, parroquia: string) {
+export async function getHistorialOperador(operador_id: number) {
   const supabase = await createClient();
   
   const { data, error } = await supabase
     .from("ofertas_competencia")
     .select("*")
     .eq("operador_id", operador_id)
-    .eq("estado", estado)
-    .eq("municipio", municipio)
-    .eq("parroquia", parroquia)
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -259,20 +247,31 @@ export async function getHistorialOperador(operador_id: number, estado: string, 
 }
 
 /**
- * Obtiene el último "Snapshot" completo de un operador en una zona.
+ * Obtiene el último "Snapshot" completo de un operador (todas sus zonas).
  */
-export async function getSnapshotOperador(operador_id: number, estado: string, municipio: string, parroquia: string) {
-  const historial = await getHistorialOperador(operador_id, estado, municipio, parroquia);
+export async function getSnapshotOperador(operador_id: number) {
+  const historial = await getHistorialOperador(operador_id);
   if (!historial || historial.length === 0) return null;
 
-  // Filtrar todos los registros que coincidan con la fecha_reporte más reciente
-  const latestDate = historial[0].fecha_reporte;
-  const snapshotPlans = historial.filter(h => h.fecha_reporte === latestDate);
+  // Encontrar la fecha más reciente PARA CADA zona (estado, municipio, parroquia)
+  const zoneDates = new Map<string, string>();
+  for (const h of historial) {
+    const key = `${h.estado}|${h.municipio}|${h.parroquia}`;
+    if (!zoneDates.has(key) || new Date(h.fecha_reporte) > new Date(zoneDates.get(key)!)) {
+      zoneDates.set(key, h.fecha_reporte);
+    }
+  }
+
+  // Filtrar los registros para quedarse solo con la última actualización de cada zona
+  const snapshotPlans = historial.filter(h => {
+    const key = `${h.estado}|${h.municipio}|${h.parroquia}`;
+    return h.fecha_reporte === zoneDates.get(key);
+  });
 
   const planesEstandar = snapshotPlans.filter(p => !p.es_promocion);
   const promociones = snapshotPlans.filter(p => p.es_promocion);
 
-  // Devolvemos el snapshot completo basado en el último reporte
+  // Devolvemos el snapshot consolidado
   return {
     planes_estandar: planesEstandar.map(p => ({
       nombre_plan: p.nombre_plan || "",
@@ -282,7 +281,10 @@ export async function getSnapshotOperador(operador_id: number, estado: string, m
       es_simetrico: p.es_simetrico,
       incluye_iptv: p.incluye_iptv,
       precio: String(p.precio_mensual),
-      servicios: p.servicios_adicionales || []
+      servicios: p.servicios_adicionales || [],
+      estado: p.estado,
+      municipio: p.municipio,
+      parroquia: p.parroquia
     })),
     promociones: promociones.map(p => ({
       nombre_plan: p.nombre_plan || "",
@@ -295,14 +297,18 @@ export async function getSnapshotOperador(operador_id: number, estado: string, m
       precio_regular: p.precio_regular ? String(p.precio_regular) : "",
       duracion_meses: p.duracion_promo_meses ? String(p.duracion_promo_meses) : "",
       fecha_fin: p.fecha_fin_promo || "",
-      servicios: p.servicios_adicionales || []
+      servicios: p.servicios_adicionales || [],
+      estado: p.estado,
+      municipio: p.municipio,
+      parroquia: p.parroquia
     })),
+    // Tomamos la información de instalación general del primer registro disponible
     instalacion: {
-      costo_base: snapshotPlans[0].costo_instalacion ? String(snapshotPlans[0].costo_instalacion) : "",
-      modalidad: snapshotPlans[0].modalidad_instalacion || "",
-      metraje: snapshotPlans[0].instalacion_metraje ? String(snapshotPlans[0].instalacion_metraje) : "",
-      opciones: snapshotPlans[0].instalacion_opciones || []
+      costo_base: snapshotPlans.length > 0 && snapshotPlans[0].costo_instalacion ? String(snapshotPlans[0].costo_instalacion) : "",
+      modalidad: snapshotPlans.length > 0 ? snapshotPlans[0].modalidad_instalacion || "" : "",
+      metraje: snapshotPlans.length > 0 && snapshotPlans[0].instalacion_metraje ? String(snapshotPlans[0].instalacion_metraje) : "",
+      opciones: snapshotPlans.length > 0 ? snapshotPlans[0].instalacion_opciones || [] : []
     },
-    notas_anteriores: snapshotPlans[0].notas || ""
+    notas_anteriores: snapshotPlans.length > 0 ? snapshotPlans[0].notas || "" : ""
   };
 }
