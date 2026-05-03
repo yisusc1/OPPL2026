@@ -480,47 +480,34 @@ export default function CompetenciaDashboard() {
 
                     {/* Planes Estándar Globales */}
                     {uniquePlanesEstandar.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                      <div className="space-y-2 mt-2">
+                        <h4 className="text-[12px] font-medium text-zinc-500 uppercase tracking-widest ml-1 mb-1">
                           Catálogo de Planes Base
                         </h4>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 overflow-hidden shadow-sm">
                           {uniquePlanesEstandar.map((plan: any, idx: number) => (
-                            <div key={idx} className="bg-white dark:bg-zinc-800/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <div key={idx} className={`p-4 flex flex-col md:flex-row justify-between md:items-center gap-4 ${idx !== uniquePlanesEstandar.length - 1 ? 'border-b border-zinc-100 dark:border-zinc-800/60' : ''}`}>
                               <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
-                                  <Zap className="text-zinc-400" />
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shrink-0 shadow-sm">
+                                  <Zap className="text-white" size={20} />
                                 </div>
                                 <div>
-                                  {plan.nombre_plan && <p className="text-[10px] font-bold text-primary uppercase">{plan.nombre_plan}</p>}
-                                  <div className="flex items-end gap-2">
-                                    <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{plan.velocidad} <span className="text-sm font-medium text-zinc-500">Mbps</span></p>
-                                    {plan.velocidad_subida && <p className="text-xs text-zinc-400 mb-1">({plan.velocidad_subida} Mbps Subida)</p>}
-                                  </div>
-                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                    <p className="text-lg font-bold text-primary">${plan.precio} <span className="text-sm font-medium text-zinc-500">/ mes</span></p>
-                                    {plan.tecnologia && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 font-medium px-1.5 py-0 h-5">{plan.tecnologia}</Badge>}
-                                    {plan.es_simetrico && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium px-1.5 py-0 h-5">Simétrico</Badge>}
-                                    {plan.incluye_iptv && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium px-1.5 py-0 h-5">IPTV</Badge>}
+                                  {plan.nombre_plan && <p className="text-[11px] font-semibold tracking-widest text-zinc-400 dark:text-zinc-500 uppercase mb-0.5">{plan.nombre_plan}</p>}
+                                  <div className="flex items-end gap-1.5">
+                                    <p className="text-[22px] font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-none">{plan.velocidad} <span className="text-[15px] font-medium text-zinc-500">Mbps</span></p>
+                                    {plan.velocidad_subida && <p className="text-[11px] font-medium text-zinc-400 mb-[2px]">({plan.velocidad_subida} Mbps subida)</p>}
                                   </div>
                                 </div>
                               </div>
                               
-                              {plan.servicios && plan.servicios.length > 0 && (
-                                <div className="bg-zinc-50 dark:bg-zinc-900 p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-800 text-sm md:min-w-[200px]">
-                                  <p className="text-[10px] font-bold text-zinc-400 uppercase mb-1">Incluye:</p>
-                                  <div className="space-y-1">
-                                    {plan.servicios.map((srv: any, sIdx: number) => (
-                                      <div key={sIdx} className="flex justify-between items-center gap-2">
-                                        <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[120px]">{srv.nombre}</span>
-                                        <span className="text-zinc-900 dark:text-zinc-100 font-semibold text-xs whitespace-nowrap">
-                                          {srv.condicion || (srv.costo === "0" || !srv.costo ? "Incluido" : `+$${srv.costo}`)}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
+                              <div className="flex flex-col md:items-end gap-2">
+                                <div className="flex items-center gap-2">
+                                  {plan.tecnologia && <Badge variant="outline" className="text-[10px] bg-zinc-50 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 font-medium px-2 py-0 h-5 rounded-md shadow-sm">{plan.tecnologia}</Badge>}
+                                  {plan.es_simetrico && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 font-medium px-2 py-0 h-5 rounded-md shadow-sm">Simétrico</Badge>}
+                                  {plan.incluye_iptv && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800 font-medium px-2 py-0 h-5 rounded-md shadow-sm">IPTV</Badge>}
                                 </div>
-                              )}
+                                <p className="text-[22px] font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-none">${plan.precio} <span className="text-[15px] font-medium text-zinc-500">/ mes</span></p>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -528,89 +515,80 @@ export default function CompetenciaDashboard() {
                     )}
 
                     {/* Zonas Activas (Promociones, Instalación, Notas) */}
-                    {Object.keys(groupedZones).length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                          <Radar size={16} /> Detalles por Zona
+                    {Object.keys(groupedZones).filter(zone => zone !== "Nacional - Todos").length > 0 && (
+                      <div className="space-y-2 mt-4">
+                        <h4 className="text-[12px] font-medium text-zinc-500 uppercase tracking-widest ml-1 mb-1">
+                          Detalles por Zona
                         </h4>
-                        <Accordion type="single" collapsible className="w-full space-y-2">
-                          {Object.entries(groupedZones).map(([zone, data]: [string, any], idx: number) => (
-                            <AccordionItem key={idx} value={`zone-${idx}`} className="bg-white dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl overflow-hidden px-1">
-                              <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors">
-                                <div className="flex items-center gap-2 text-left">
-                                  <span className="text-lg">📍</span>
-                                  <span className="font-bold text-zinc-900 dark:text-zinc-100">{zone}</span>
+                        <Accordion type="single" collapsible className="w-full bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 overflow-hidden shadow-sm">
+                          {Object.entries(groupedZones).filter(([zone]) => zone !== "Nacional - Todos").map(([zone, data]: [string, any], idx: number, arr) => (
+                            <AccordionItem key={idx} value={`zone-${idx}`} className={`border-b-0 ${idx !== arr.length - 1 ? 'border-b border-zinc-100 dark:border-zinc-800/60' : ''}`}>
+                              <AccordionTrigger className="px-5 py-4 hover:no-underline hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                                <div className="flex items-center gap-3 text-left">
+                                  <div className="w-8 h-8 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center shrink-0">
+                                    <span className="text-[16px]">📍</span>
+                                  </div>
+                                  <span className="font-semibold text-[15px] text-zinc-900 dark:text-zinc-100">{zone}</span>
                                   {data.promos.length > 0 && (
-                                    <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400">{data.promos.length} {data.promos.length === 1 ? 'Promo' : 'Promos'}</Badge>
+                                    <Badge variant="secondary" className="ml-1 bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 shadow-none font-medium text-[10px] rounded-md px-1.5 py-0 h-5">{data.promos.length} {data.promos.length === 1 ? 'Promo' : 'Promos'}</Badge>
                                   )}
                                 </div>
                               </AccordionTrigger>
-                              <AccordionContent className="px-4 pb-4 pt-1 space-y-6">
+                              <AccordionContent className="px-5 pb-5 pt-0 space-y-6">
                                 {/* Promociones */}
                                 {data.promos.length > 0 ? (
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                                     {data.promos.map((promo: any, pIdx: number) => (
-                                      <div key={pIdx} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden">
-                                        <div className="flex justify-between items-start relative z-10 mb-2">
+                                      <div key={pIdx} className="bg-zinc-50 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 relative overflow-hidden">
+                                        <div className="flex justify-between items-start relative z-10 mb-3">
                                           <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shrink-0 shadow-sm">
-                                              <Zap className="text-amber-500" size={20} />
+                                            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center shrink-0 shadow-sm border border-zinc-100 dark:border-zinc-700/50">
+                                              <Zap className="text-amber-500" size={18} />
                                             </div>
                                             <div>
-                                              {promo.nombre_plan && <p className="text-[10px] font-bold text-amber-500 uppercase">{promo.nombre_plan}</p>}
-                                              <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{promo.velocidad} <span className="text-sm">Mbps</span></span>
+                                              {promo.nombre_plan && <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">{promo.nombre_plan}</p>}
+                                              <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-none">{promo.velocidad} <span className="text-[13px] font-medium text-zinc-500">Mbps</span></p>
                                             </div>
                                           </div>
                                           <div className="text-right">
                                             {promo.precio_regular && (
-                                              <p className="text-xs text-zinc-400 line-through">Antes ${promo.precio_regular}</p>
+                                              <p className="text-[10px] text-zinc-400 line-through mb-0.5">Antes ${promo.precio_regular}</p>
                                             )}
-                                            <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">${promo.precio_promo}</p>
+                                            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight leading-none">${promo.precio_promo}</p>
                                           </div>
                                         </div>
                                         
-                                        <div className="flex flex-wrap gap-2 mb-4 mt-2">
+                                        <div className="flex flex-wrap gap-1.5 mb-4">
                                           {promo.duracion_meses && (
-                                            <Badge variant="outline" className="bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 font-bold">
+                                            <Badge variant="outline" className="text-[9px] bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 font-semibold px-1.5 py-0 h-4 rounded shadow-sm">
                                               Por {promo.duracion_meses} meses
                                             </Badge>
                                           )}
                                           {promo.fecha_fin && (
-                                            <Badge variant="outline" className="bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
-                                              Hasta {format(new Date(promo.fecha_fin), "dd/MMM/yy", { locale: es })}
+                                            <Badge variant="outline" className="text-[9px] bg-white dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 px-1.5 py-0 h-4 rounded shadow-sm">
+                                              Hasta {format(new Date(promo.fecha_fin), "dd/MMM", { locale: es })}
                                             </Badge>
                                           )}
                                           {promo.tecnologia && (
-                                            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 font-medium">
+                                            <Badge variant="outline" className="text-[9px] bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-400 dark:border-indigo-800 font-medium px-1.5 py-0 h-4 rounded shadow-sm">
                                               {promo.tecnologia}
                                             </Badge>
                                           )}
                                           {promo.es_simetrico && (
-                                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium">
+                                            <Badge variant="outline" className="text-[9px] bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800 font-medium px-1.5 py-0 h-4 rounded shadow-sm">
                                               Simétrico
                                             </Badge>
                                           )}
-                                          {promo.incluye_iptv && (
-                                            <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium">
-                                              IPTV Incluido
-                                            </Badge>
-                                          )}
-                                        </div>
-
-                                        <div className="flex items-center gap-1.5 text-xs text-indigo-500 dark:text-indigo-400 font-bold mb-3 uppercase tracking-wider">
-                                          <span>📍</span>
-                                          <span>Parroquia {promo.parroquia}</span>
                                         </div>
 
                                         {promo.servicios && promo.servicios.length > 0 && (
-                                          <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800 space-y-1">
-                                            <p className="text-[10px] font-bold text-zinc-400 uppercase">Servicios Incluidos:</p>
+                                          <div className="mt-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60 space-y-1.5">
                                             {promo.servicios.map((srv: any, sIdx: number) => (
-                                              <div key={sIdx} className="flex justify-between items-center text-sm">
-                                                <span className="font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
-                                                  <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" /> {srv.nombre}
+                                              <div key={sIdx} className="flex justify-between items-center text-[13px]">
+                                                <span className="font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5">
+                                                  <div className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-600" /> {srv.nombre}
                                                 </span>
-                                                <span className="text-zinc-900 dark:text-zinc-100 font-semibold text-xs">
+                                                <span className="text-zinc-900 dark:text-zinc-100 font-medium">
                                                   {srv.condicion || (srv.costo === "0" ? "Gratis" : `$${srv.costo}`)}
                                                 </span>
                                               </div>
@@ -621,42 +599,41 @@ export default function CompetenciaDashboard() {
                                     ))}
                                   </div>
                                 ) : (
-                                  <div className="text-sm text-zinc-500 italic px-2 pt-2">No hay promociones activas en esta zona.</div>
+                                  <div className="text-[13px] text-zinc-400 italic px-2 pt-2">No hay promociones activas en esta zona.</div>
                                 )}
 
                                 {/* Instalación de la Zona */}
                                 {data.instalacion && (
-                                  <div className="space-y-3">
-                                    <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                                      <ExternalLink size={14} /> Instalación y Equipos
+                                  <div className="space-y-2 mt-4">
+                                    <h4 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest ml-1">
+                                      Instalación y Equipos
                                     </h4>
-                                    <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 flex flex-col md:flex-row gap-4">
-                                      <div className="flex-1 space-y-3">
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-blue-900/80 dark:text-blue-200 text-sm font-medium">Modalidad Base</span>
-                                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">{data.instalacion.modalidad || "Venta"}</Badge>
-                                        </div>
-                                        <div className="flex justify-between items-center border-t border-blue-200/50 dark:border-blue-800/50 pt-2">
-                                          <span className="text-blue-900/80 dark:text-blue-200 text-sm font-medium">Costo de Instalación</span>
-                                          <span className="font-bold text-blue-700 dark:text-blue-400">${data.instalacion.costo_base || "0"}</span>
-                                        </div>
-                                        {data.instalacion.metraje && (
-                                          <div className="flex justify-between items-center border-t border-blue-200/50 dark:border-blue-800/50 pt-2">
-                                            <span className="text-blue-900/80 dark:text-blue-200 text-sm font-medium">Metraje Incluido</span>
-                                            <span className="font-medium text-blue-700 dark:text-blue-400">{data.instalacion.metraje}m</span>
-                                          </div>
-                                        )}
+                                    <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-xl overflow-hidden border border-zinc-200/60 dark:border-zinc-800/60">
+                                      <div className="flex justify-between items-center px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900/80">
+                                        <span className="text-[13px] text-zinc-500 font-medium">Modalidad Base</span>
+                                        <span className="text-[13px] text-zinc-900 dark:text-zinc-100 font-semibold">{data.instalacion.modalidad || "Venta de Equipo"}</span>
                                       </div>
-                                      
+                                      <div className="flex justify-between items-center px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900/80">
+                                        <span className="text-[13px] text-zinc-500 font-medium">Costo de Instalación</span>
+                                        <span className="text-[14px] text-indigo-600 dark:text-indigo-400 font-bold">${data.instalacion.costo_base || "0"}</span>
+                                      </div>
+                                      {data.instalacion.metraje && (
+                                        <div className="flex justify-between items-center px-4 py-3 border-b border-zinc-200/60 dark:border-zinc-800/60 bg-white dark:bg-zinc-900/80">
+                                          <span className="text-[13px] text-zinc-500 font-medium">Metraje Incluido</span>
+                                          <span className="text-[13px] text-zinc-900 dark:text-zinc-100 font-medium">{data.instalacion.metraje}m</span>
+                                        </div>
+                                      )}
                                       {data.instalacion.opciones && data.instalacion.opciones.length > 0 && (
-                                        <div className="flex-1 border-t md:border-t-0 md:border-l border-blue-200/50 dark:border-blue-800/50 pt-3 md:pt-0 md:pl-4 space-y-2">
-                                          <p className="text-[10px] font-bold text-blue-700/70 uppercase">Opciones Adicionales:</p>
-                                          {data.instalacion.opciones.map((op: any, i: number) => (
-                                            <div key={i} className="flex justify-between items-center text-sm bg-white dark:bg-blue-950/50 px-2 py-1.5 rounded border border-blue-100 dark:border-blue-900/50">
-                                              <span className="font-medium text-blue-900 dark:text-blue-100">{op.equipo}</span>
-                                              <span className="font-bold text-blue-700 dark:text-blue-400">${op.precio}</span>
-                                            </div>
-                                          ))}
+                                        <div className="px-4 py-3 bg-zinc-50/50 dark:bg-zinc-900/30">
+                                          <p className="text-[10px] font-bold text-zinc-400 uppercase mb-2">Opciones Adicionales</p>
+                                          <div className="space-y-1.5">
+                                            {data.instalacion.opciones.map((op: any, i: number) => (
+                                              <div key={i} className="flex justify-between items-center text-[13px]">
+                                                <span className="text-zinc-600 dark:text-zinc-400 font-medium">{op.equipo}</span>
+                                                <span className="text-zinc-900 dark:text-zinc-100 font-semibold">${op.precio}</span>
+                                              </div>
+                                            ))}
+                                          </div>
                                         </div>
                                       )}
                                     </div>
@@ -665,9 +642,9 @@ export default function CompetenciaDashboard() {
 
                                 {/* Notas de la Zona */}
                                 {data.notas && (
-                                  <div className="p-4 bg-zinc-50 dark:bg-zinc-900/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                                    <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1">Notas y Observaciones de la Zona</p>
-                                    <p className="text-sm text-zinc-700 dark:text-zinc-300 italic">"{data.notas}"</p>
+                                  <div className="mt-4 p-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                                    <p className="text-[10px] text-amber-600 dark:text-amber-500 font-bold uppercase tracking-widest mb-1">Notas / Observaciones</p>
+                                    <p className="text-[13px] text-amber-800 dark:text-amber-200/80 leading-relaxed">"{data.notas}"</p>
                                   </div>
                                 )}
                               </AccordionContent>

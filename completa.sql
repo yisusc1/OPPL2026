@@ -554,3 +554,12 @@ CREATE TABLE public.vehiculos (
 );
 -- Migrar planes estandar existentes a Nacional
 UPDATE ofertas_competencia SET estado = 'Nacional', municipio = 'Todos', parroquia = 'Todas' WHERE es_promocion = false;
+
+-- ==========================================
+-- SCRIPT PARA VACIAR DATOS DE PRUEBA
+-- ==========================================
+-- 1. Vaciar toda la información de planes y promociones (mantiene las operadoras)
+DELETE FROM ofertas_competencia;
+
+-- 2. (OPCIONAL) Si también quieres borrar los nombres y logos de las operadoras, ejecuta también esto:
+-- DELETE FROM operadores_competencia;
