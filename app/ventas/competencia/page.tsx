@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Plus, Zap, ExternalLink, Radar, Loader2, Settings2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function CompetenciaDashboard() {
+  const router = useRouter();
   const { toast } = useToast();
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [loadingOfertas, setLoadingOfertas] = useState(false);
@@ -82,16 +83,16 @@ export default function CompetenciaDashboard() {
     }
   }
 
+  function navigateToOperador(oferta: any) {
+    const params = new URLSearchParams();
+    params.set("operador", String(oferta.operador_id));
+    if (estado) params.set("estado", estado);
+    if (municipio) params.set("municipio", municipio);
+    if (parroquia) params.set("parroquia", parroquia);
+    router.push(`/ventas/competencia/nuevo?${params.toString()}`);
+  }
+
   async function openOperadorDetails(oferta: any) {
-    if (oferta.isEmpty) {
-      const params = new URLSearchParams();
-      params.set("operador", String(oferta.operador_id));
-      if (estado) params.set("estado", estado);
-      if (municipio) params.set("municipio", municipio);
-      if (parroquia) params.set("parroquia", parroquia);
-      window.location.href = `/ventas/competencia/nuevo?${params.toString()}`;
-      return;
-    }
     setSelectedOperador(oferta);
     setDrawerOpen(true);
     setLoadingHistorial(true);
@@ -176,34 +177,22 @@ export default function CompetenciaDashboard() {
             </div>
           </div>
         </div>
-        <div className="flex gap-3">
-          <Link href="/ventas/competencia/nuevo" className="flex-1">
-            <Button className="w-full h-14 gap-2 rounded-2xl text-base px-6">
-              <Plus size={18} /> Reportar Novedad
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700"
-            onClick={() => setIsOpModalOpen(true)}
-          >
-            <Settings2 size={18} /> Operadoras
-          </Button>
-        </div>
+        <Button
+          variant="outline"
+          className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
+          onClick={() => setIsOpModalOpen(true)}
+        >
+          <Settings2 size={18} /> Gestionar Operadoras
+        </Button>
       </div>
 
       {!loadingOfertas && ofertas.length === 0 ? (
         <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border-2 border-dashed border-emerald-200 dark:border-emerald-900/40 p-12 text-center">
           <Radar className="w-10 h-10 mx-auto text-emerald-400 dark:text-emerald-600 mb-3" />
           <h3 className="text-emerald-900 dark:text-emerald-100 font-medium mb-1">No hay datos</h3>
-          <p className="text-sm text-emerald-600 dark:text-emerald-400/70 mb-4">
-            Aún no se han reportado ofertas de la competencia aquí.
+          <p className="text-sm text-emerald-600 dark:text-emerald-400/70">
+            Selecciona una operadora para registrar su primera oferta.
           </p>
-          <Link href="/ventas/competencia/nuevo">
-            <Button variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-              Ser el primero en reportar
-            </Button>
-          </Link>
         </div>
       ) : loadingOfertas ? (
         <div className="flex items-center justify-center py-20">
@@ -235,7 +224,7 @@ export default function CompetenciaDashboard() {
               <div 
                 key={oferta.id} 
                 className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
-                onClick={() => openOperadorDetails(oferta)}
+                onClick={() => oferta.isEmpty ? navigateToOperador(oferta) : openOperadorDetails(oferta)}
               >
                 <div className="h-2 w-full" style={{ backgroundColor: opColor }} />
                 {alertBadge}
@@ -287,7 +276,7 @@ export default function CompetenciaDashboard() {
                   </div>
                   
                   <div className="w-full flex justify-center py-2 border-t border-zinc-100 dark:border-zinc-800 text-xs font-semibold text-zinc-400 group-hover:text-primary transition-colors">
-                    {oferta.isEmpty ? "Registrar nueva oferta" : "Ver catálogo completo de " + opName}
+                    {oferta.isEmpty ? "Registrar oferta de " + opName : "Ver catálogo de " + opName}
                   </div>
                 </div>
               </div>

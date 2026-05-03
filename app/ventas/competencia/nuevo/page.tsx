@@ -400,9 +400,22 @@ export default function NuevaOfertaCompetencia() {
               </div>
             </div>
             <div className={iosDivider} />
-            <div className="flex">
-              <div className="flex-1 px-4 py-3.5">
-                <p className={iosLabel}>Operador</p>
+            <div className="px-4 py-3.5">
+              <p className={iosLabel}>Operador</p>
+              {urlOperador ? (
+                <div className="flex items-center gap-2">
+                  {(() => {
+                    const op = operadores.find(o => String(o.id) === operadorId);
+                    if (!op) return <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Cargando...</span>;
+                    return (
+                      <>
+                        {op.logo_url ? <img src={op.logo_url} alt={op.nombre} className="w-5 h-5 object-contain rounded-sm" /> : <div className="w-3 h-3 rounded-full" style={{ backgroundColor: op.color_hex }} />}
+                        <span className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{op.nombre}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : (
                 <div className="flex items-center gap-2">
                   <Select value={operadorId} onValueChange={setOperadorId}>
                     <SelectTrigger className={`${iosSelect} flex-1`}><SelectValue placeholder="Operador..." /></SelectTrigger>
@@ -419,15 +432,15 @@ export default function NuevaOfertaCompetencia() {
                   </Select>
                   <button onClick={() => setIsOperadorModalOpen(true)} className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Plus size={14} className="text-zinc-500" /></button>
                 </div>
-              </div>
-              <div className={iosVDivider} />
-              <div className="flex-1 px-4 py-3.5">
-                <p className={iosLabel}>Tipo de Novedad</p>
-                <Select value={tipoNovedad} onValueChange={setTipoNovedad}>
-                  <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                  <SelectContent>{TIPOS_NOVEDAD.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              )}
+            </div>
+            <div className={iosDivider} />
+            <div className="px-4 py-3.5">
+              <p className={iosLabel}>Tipo de Novedad</p>
+              <Select value={tipoNovedad} onValueChange={setTipoNovedad}>
+                <SelectTrigger className={iosSelect}><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>{TIPOS_NOVEDAD.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
             </div>
             {loadingSnapshot && (<><div className={iosDivider} /><div className="flex items-center gap-2 px-4 py-3.5 text-zinc-400 text-sm animate-pulse"><Loader2 className="w-4 h-4 animate-spin" /> Cargando datos previos...</div></>)}
           </div>
