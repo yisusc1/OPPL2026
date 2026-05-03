@@ -21,8 +21,8 @@ export function PremiumPageLayout({
     title,
     description,
     showBack = true,
-    backUrl = "/",
-    backLabel = "Volver al inicio",
+    backUrl = "back",
+    backLabel = "Volver",
 }: PremiumPageLayoutProps) {
     const router = useRouter();
 
@@ -36,7 +36,13 @@ export function PremiumPageLayout({
                     {showBack && (
                         <Button
                             variant="ghost"
-                            onClick={() => router.push(backUrl)}
+                            onClick={() => {
+                                if (backUrl === "back") {
+                                    router.back();
+                                } else {
+                                    router.push(backUrl);
+                                }
+                            }}
                             className="flex items-center gap-2 h-9 px-3 rounded-full hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground"
                             aria-label={backLabel}
                         >
