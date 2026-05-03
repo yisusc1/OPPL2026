@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2, Trash2 } from "lucide-react";
+import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2, Trash2, Tv, Wrench } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -311,8 +311,24 @@ export default function CompetenciaDashboard() {
                             <Zap size={16} className="text-amber-500" />
                             <span className="font-medium text-zinc-900 dark:text-zinc-100">{best.velocidad} Mbps</span>
                           </div>
+                          {oferta.costo_instalacion !== undefined && (
+                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                              <Wrench size={16} className="text-zinc-400" />
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100 text-[13px]">
+                                Instalación: ${oferta.costo_instalacion}
+                              </span>
+                            </div>
+                          )}
+                          {oferta.incluye_tv && (
+                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                              <Tv size={16} className="text-indigo-400" />
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100 text-[13px]">
+                                Incluye IPTV
+                              </span>
+                            </div>
+                          )}
                           {best.es_promocion && (
-                            <div className="flex items-center gap-2 text-sm text-zinc-500">
+                            <div className="flex items-center gap-2 text-sm text-zinc-500 pt-1">
                               <Radar size={16} />
                               <span className="font-bold uppercase tracking-wider text-[10px]">En Promoción</span>
                             </div>
