@@ -274,11 +274,11 @@ export default function CompetenciaDashboard() {
         </div>
 
         {/* Filtros Geográficos */}
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 overflow-hidden shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-50/80 dark:bg-zinc-800/30 border-b border-zinc-100 dark:border-zinc-800/50">
             <div className="flex items-center gap-2">
-              <MapPin size={14} className="text-zinc-400" />
-              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Filtrar por zona</span>
+              <MapPin size={13} className="text-zinc-400" />
+              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Filtrar por zona</span>
             </div>
             {hasGeoFilter && (
               <button
@@ -289,31 +289,40 @@ export default function CompetenciaDashboard() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <Select value={filterEstado} onValueChange={(v) => { setFilterEstado(v); setFilterMunicipio(""); setFilterParroquia(""); loadOfertas(); }}>
-              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterEstados.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterMunicipio} onValueChange={(v) => { setFilterMunicipio(v); setFilterParroquia(""); }} disabled={!filterEstado}>
-              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
-                <SelectValue placeholder="Municipio" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterMunicipios.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterParroquia} onValueChange={(v) => setFilterParroquia(v)} disabled={!filterMunicipio}>
-              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
-                <SelectValue placeholder="Parroquia" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterParroquias.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+            <div className="flex items-center justify-between px-4 py-1.5">
+              <span className="text-xs text-zinc-400 font-medium shrink-0 w-20">Estado</span>
+              <Select value={filterEstado} onValueChange={(v) => { setFilterEstado(v); setFilterMunicipio(""); setFilterParroquia(""); }}>
+                <SelectTrigger className="h-9 text-xs border-0 bg-transparent shadow-none px-0 justify-end gap-1 font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-400">
+                  <SelectValue placeholder="Seleccionar..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterEstados.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between px-4 py-1.5">
+              <span className="text-xs text-zinc-400 font-medium shrink-0 w-20">Municipio</span>
+              <Select value={filterMunicipio} onValueChange={(v) => { setFilterMunicipio(v); setFilterParroquia(""); }} disabled={!filterEstado}>
+                <SelectTrigger className="h-9 text-xs border-0 bg-transparent shadow-none px-0 justify-end gap-1 font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-400 disabled:opacity-30">
+                  <SelectValue placeholder={filterEstado ? "Seleccionar..." : "—"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterMunicipios.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between px-4 py-1.5">
+              <span className="text-xs text-zinc-400 font-medium shrink-0 w-20">Parroquia</span>
+              <Select value={filterParroquia} onValueChange={(v) => setFilterParroquia(v)} disabled={!filterMunicipio}>
+                <SelectTrigger className="h-9 text-xs border-0 bg-transparent shadow-none px-0 justify-end gap-1 font-semibold text-zinc-900 dark:text-zinc-100 focus:ring-0 [&>svg]:text-zinc-400 disabled:opacity-30">
+                  <SelectValue placeholder={filterMunicipio ? "Seleccionar..." : "—"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterParroquias.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
