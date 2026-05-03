@@ -379,7 +379,12 @@ export default function NuevaOfertaCompetencia() {
 
   async function handleDeleteOperador() {
     if (!editingOpId) return;
-    if (!confirm(`¿Estás seguro de que deseas eliminar la operadora "${newOpName}"? Esta acción no se puede deshacer.`)) return;
+    
+    const confirmName = prompt(`Esta operadora contiene información registrada.\n¿Seguro que desea eliminarla?\n\nEscriba el nombre exacto "${newOpName}" para confirmar:`);
+    if (confirmName !== newOpName) {
+      if (confirmName !== null) toast({ title: "Nombre incorrecto", description: "La operadora no fue eliminada.", variant: "destructive" });
+      return;
+    }
     
     setSavingOp(true);
     try {
@@ -757,7 +762,7 @@ export default function NuevaOfertaCompetencia() {
       <Dialog open={isOperadorModalOpen} onOpenChange={setIsOperadorModalOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-0">
-            <DialogTitle className="text-lg font-bold">Nueva Operadora</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{editingOpId ? "Editar Operadora" : "Nueva Operadora"}</DialogTitle>
           </DialogHeader>
           <div className="px-5 py-4 space-y-4">
             <div className={iosCard}>

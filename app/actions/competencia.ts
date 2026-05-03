@@ -52,13 +52,20 @@ export async function updateOperador(id: number, nombre: string, color_hex: stri
 
 export async function deleteOperador(id: number) {
   const supabase = await createClient();
+  
+  // First, delete related ofertas to avoid FK constraint error
+  await supabase
+    .from("ofertas_competencia")
+    .delete()
+    .eq("operador_id", id);
+    
+  // Then delete the operator itself
   const { error } = await supabase
     .from("operadores_competencia")
     .delete()
     .eq("id", id);
 
   if (error) {
-    if (error.code === '23503') throw new Error("No se puede eliminar la operadora porque tiene ofertas u otros registros asociados.");
     throw new Error(error.message);
   }
   
@@ -176,6 +183,7 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
     .select(`
       *,
       operadores_competencia (
+        id,
         nombre,
         color_hex,
         logo_url

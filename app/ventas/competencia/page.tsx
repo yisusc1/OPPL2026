@@ -136,7 +136,12 @@ export default function CompetenciaDashboard() {
 
   async function handleDeleteOperador() {
     if (!editingOpId) return;
-    if (!confirm(`¿Estás seguro de que deseas eliminar la operadora "${newOpName}"? Esta acción no se puede deshacer.`)) return;
+    
+    const confirmName = prompt(`Esta operadora contiene información registrada.\n¿Seguro que desea eliminarla?\n\nEscriba el nombre exacto "${newOpName}" para confirmar:`);
+    if (confirmName !== newOpName) {
+      if (confirmName !== null) toast({ title: "Nombre incorrecto", description: "La operadora no fue eliminada.", variant: "destructive" });
+      return;
+    }
     
     setSavingOp(true);
     try {
