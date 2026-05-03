@@ -18,10 +18,14 @@ import { es } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useUser } from "@/components/providers/user-provider";
 
 export default function CompetenciaDashboard() {
   const router = useRouter();
   const { toast } = useToast();
+  const { profile, isAdmin } = useUser();
+  const isCoordinador = profile?.job_title?.toLowerCase().includes("coordinador") || false;
+  const canEditOperators = isAdmin || isCoordinador;
   const [loadingConfig, setLoadingConfig] = useState(true);
   const [loadingOfertas, setLoadingOfertas] = useState(false);
   const [geoHierarchy, setGeoHierarchy] = useState<Record<string, Record<string, Record<string, string[]>>>>({});
@@ -176,13 +180,17 @@ export default function CompetenciaDashboard() {
     >
       <div className="flex flex-col gap-4 mb-6">
         <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
-            onClick={() => { setEditingOpId(null); setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setIsOpModalOpen(true); }}
-          >
-            <Settings2 size={18} /> Registrar
-          </Button>
+          {canEditOperators && (
+            <Button className="h-14 px-4 rounded-xl shadow-sm text-sm" onClick={() => {
+              setEditingOpId(null);
+              setNewOpName("");
+              setNewOpColor("#3b82f6");
+              setNewOpLogo("");
+              setIsOpModalOpen(true);
+            }}>
+              <Plus className="mr-2 h-4 w-4" /> Registrar
+            </Button>
+          )}
           <Button
             variant={isCompareMode ? "default" : "outline"}
             className={`h-14 gap-2 rounded-2xl text-base px-4 w-full transition-colors ${
@@ -269,23 +277,25 @@ export default function CompetenciaDashboard() {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: opColor }} />
                       <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{opName}</h3>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          const op = oferta.operadores_competencia;
-                          if (op) {
-                            setEditingOpId(op.id);
-                            setNewOpName(op.nombre);
-                            setNewOpColor(op.color_hex || "#3b82f6");
-                            setNewOpLogo(op.logo_url || "");
-                            setIsOpModalOpen(true);
-                          }
-                        }} 
-                        className="ml-2 w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Editar Operadora"
-                      >
-                        <Edit2 size={12} className="text-zinc-500" />
-                      </button>
+                      {canEditOperators && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const op = oferta.operadores_competencia;
+                            if (op) {
+                              setEditingOpId(op.id);
+                              setNewOpName(op.nombre);
+                              setNewOpColor(op.color_hex || "#3b82f6");
+                              setNewOpLogo(op.logo_url || "");
+                              setIsOpModalOpen(true);
+                            }
+                          }} 
+                          className="ml-2 w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors opacity-0 group-hover:opacity-100"
+                          title="Editar Operadora"
+                        >
+                          <Edit2 size={12} className="text-zinc-500" />
+                        </button>
+                      )}
                     </div>
                     <Badge variant="outline" className="text-[10px] uppercase text-zinc-500">
                       {oferta.created_at ? format(new Date(oferta.created_at), "dd MMM", { locale: es }) : "N/A"}
@@ -370,7 +380,7 @@ export default function CompetenciaDashboard() {
                 )}
                 <div className="flex items-center gap-2">
                   {selectedOperador?.operadores_competencia?.nombre} a nivel nacional
-                  {selectedOperador?.operadores_competencia && (
+                  {canEditOperators && selectedOperador?.operadores_competencia && (
                     <button onClick={() => {
                       const op = selectedOperador.operadores_competencia;
                       setEditingOpId(op.id);
