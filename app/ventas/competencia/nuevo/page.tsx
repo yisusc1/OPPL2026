@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador } from "@/app/actions/competencia";
+import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador, updateOperador, deleteOperador } from "@/app/actions/competencia";
 import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2 } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
@@ -372,6 +372,27 @@ export default function NuevaOfertaCompetencia() {
       setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingOp(false);
+    }
+  }
+
+  async function handleDeleteOperador() {
+    if (!editingOpId) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar la operadora "${newOpName}"? Esta acción no se puede deshacer.`)) return;
+    
+    setSavingOp(true);
+    try {
+      await deleteOperador(editingOpId);
+      toast({ title: `Operadora eliminada exitosamente.` });
+      setOperadores(operadores.filter(o => o.id !== editingOpId));
+      if (operadorId === String(editingOpId)) {
+        setOperadorId("");
+      }
+      setIsOperadorModalOpen(false);
+      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
+    } catch (error: any) {
+      toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
     } finally {
       setSavingOp(false);
     }
@@ -765,11 +786,19 @@ export default function NuevaOfertaCompetencia() {
               </div>
             )}
           </div>
-          <DialogFooter className="px-5 pb-5 gap-2">
-            <Button variant="outline" onClick={() => setIsOperadorModalOpen(false)} className="rounded-xl">Cancelar</Button>
-            <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
-              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />} Crear Operadora
-            </Button>
+          <DialogFooter className="gap-2 sm:justify-between px-5 pb-5">
+            {editingOpId ? (
+              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2" onClick={handleDeleteOperador} disabled={savingOp}>
+                <Trash2 size={18} />
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsOperadorModalOpen(false)} className="rounded-xl">Cancelar</Button>
+              <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
+                {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingOpId ? <Edit2 size={16} /> : <Plus size={16} />)}
+                {editingOpId ? "Guardar Cambios" : "Crear Operadora"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

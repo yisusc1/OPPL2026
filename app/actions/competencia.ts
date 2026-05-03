@@ -50,6 +50,23 @@ export async function updateOperador(id: number, nombre: string, color_hex: stri
   return data;
 }
 
+export async function deleteOperador(id: number) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("operadores_competencia")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    if (error.code === '23503') throw new Error("No se puede eliminar la operadora porque tiene ofertas u otros registros asociados.");
+    throw new Error(error.message);
+  }
+  
+  revalidatePath("/ventas/competencia/nuevo");
+  revalidatePath("/ventas/competencia");
+  return true;
+}
+
 // ── Ofertas ────────────────────────────────────────────────────────
 
 export async function saveOferta(oferta: any) {

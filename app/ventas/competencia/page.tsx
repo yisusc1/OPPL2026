@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2 } from "lucide-react";
+import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2, Trash2 } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador, getOperadores, saveOperador, updateOperador } from "@/app/actions/competencia";
+import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador, getOperadores, saveOperador, updateOperador, deleteOperador } from "@/app/actions/competencia";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -129,6 +129,26 @@ export default function CompetenciaDashboard() {
       setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setSavingOp(false);
+    }
+  }
+
+  async function handleDeleteOperador() {
+    if (!editingOpId) return;
+    if (!confirm(`¿Estás seguro de que deseas eliminar la operadora "${newOpName}"? Esta acción no se puede deshacer.`)) return;
+    
+    setSavingOp(true);
+    try {
+      await deleteOperador(editingOpId);
+      toast({ title: `Operadora eliminada exitosamente.` });
+      setOperadores(prev => prev.filter(o => o.id !== editingOpId));
+      setIsOpModalOpen(false);
+      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
+      // Reload ofertas since the deleted operator might be selected or on the screen
+      loadOfertas();
+    } catch (error: any) {
+      toast({ title: "Error al eliminar", description: error.message, variant: "destructive" });
     } finally {
       setSavingOp(false);
     }
@@ -659,12 +679,19 @@ export default function CompetenciaDashboard() {
               </div>
             )}
           </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setIsOpModalOpen(false)} className="rounded-xl">Cancelar</Button>
-            <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
-              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingOpId ? <Edit2 size={16} /> : <Plus size={16} />)}
-              {editingOpId ? "Guardar Cambios" : "Crear Operadora"}
-            </Button>
+          <DialogFooter className="gap-2 sm:justify-between">
+            {editingOpId ? (
+              <Button variant="ghost" className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 px-2" onClick={handleDeleteOperador} disabled={savingOp}>
+                <Trash2 size={18} />
+              </Button>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsOpModalOpen(false)} className="rounded-xl">Cancelar</Button>
+              <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
+                {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingOpId ? <Edit2 size={16} /> : <Plus size={16} />)}
+                {editingOpId ? "Guardar Cambios" : "Crear Operadora"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
