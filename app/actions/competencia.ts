@@ -101,11 +101,27 @@ export async function saveOfertasBatch(ofertas: any[]) {
   // Fecha de reporte en zona Venezuela (UTC-4)
   const fechaReporte = new Date().toLocaleDateString("en-CA", { timeZone: "America/Caracas" });
 
+  // Extraer datos de contexto del primer registro ANTES de modificar (para saber qué zona local estamos guardando)
+  const zonaLocal = {
+    operador_id: ofertas[0].operador_id,
+    estado: ofertas[0].estado,
+    municipio: ofertas[0].municipio,
+    parroquia: ofertas[0].parroquia
+  };
+
   // Limpieza de seguridad: asegurar que no haya valores NaN o undefined que rompan Supabase
   const cleanOfertas = ofertas.map(o => {
     const clean = { ...o };
     // Inyectar fecha_reporte explícitamente
     if (!clean.fecha_reporte) clean.fecha_reporte = fechaReporte;
+    
+    // Forzar zona Nacional para planes estándar
+    if (!clean.es_promocion) {
+      clean.estado = "Nacional";
+      clean.municipio = "Todos";
+      clean.parroquia = "Todas";
+    }
+
     // Asegurar que los números sean números o null, nunca NaN
     if (typeof clean.velocidad_mb !== 'number' || isNaN(clean.velocidad_mb)) clean.velocidad_mb = 0;
     if (typeof clean.precio_mensual !== 'number' || isNaN(clean.precio_mensual)) clean.precio_mensual = 0;
@@ -124,22 +140,34 @@ export async function saveOfertasBatch(ofertas: any[]) {
 
   console.log(`[competencia] Intentando insertar ${cleanOfertas.length} registros...`);
   
-  // Extraer datos de contexto del primer registro para el delete
-  const { operador_id, estado, municipio, parroquia } = cleanOfertas[0];
-  
-  // Borrar registros anteriores del mismo operador/zona/fecha para evitar duplicados
-  // Esto convierte cada guardado en un "reemplazo del snapshot del día"
-  const { error: deleteError } = await supabase
+  // 1. Borrar promociones anteriores de la zona local para esa fecha
+  const { error: deletePromosError } = await supabase
     .from("ofertas_competencia")
     .delete()
-    .eq("operador_id", operador_id)
-    .eq("estado", estado)
-    .eq("municipio", municipio)
-    .eq("parroquia", parroquia)
+    .eq("operador_id", zonaLocal.operador_id)
+    .eq("estado", zonaLocal.estado)
+    .eq("municipio", zonaLocal.municipio)
+    .eq("parroquia", zonaLocal.parroquia)
+    .eq("es_promocion", true)
     .eq("fecha_reporte", fechaReporte);
 
-  if (deleteError) {
-    console.warn("[competencia] Error borrando snapshot anterior (no crítico):", deleteError.message);
+  if (deletePromosError) {
+    console.warn("[competencia] Error borrando promociones anteriores:", deletePromosError.message);
+  }
+
+  // 2. Borrar planes estándar nacionales para esa fecha
+  const { error: deletePlanesError } = await supabase
+    .from("ofertas_competencia")
+    .delete()
+    .eq("operador_id", zonaLocal.operador_id)
+    .eq("estado", "Nacional")
+    .eq("municipio", "Todos")
+    .eq("parroquia", "Todas")
+    .eq("es_promocion", false)
+    .eq("fecha_reporte", fechaReporte);
+
+  if (deletePlanesError) {
+    console.warn("[competencia] Error borrando planes estándar anteriores:", deletePlanesError.message);
   }
 
   const { data, error } = await supabase
@@ -266,7 +294,16 @@ export async function getSnapshotOperador(
   municipio?: string,
   parroquia?: string
 ) {
-  const historial = await getHistorialOperador(operador_id, estado, municipio, parroquia);
+  let historial = await getHistorialOperador(operador_id, estado, municipio, parroquia);
+  
+  // Si estamos consultando una zona local, agregamos los planes Nacionales
+  if (estado && estado !== "Nacional") {
+    const historialNacional = await getHistorialOperador(operador_id, "Nacional", "Todos", "Todas");
+    if (historialNacional && historialNacional.length > 0) {
+      historial = [...(historial || []), ...historialNacional];
+    }
+  }
+
   if (!historial || historial.length === 0) return null;
 
   // Encontrar la fecha más reciente PARA CADA zona (estado, municipio, parroquia)

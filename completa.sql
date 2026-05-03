@@ -552,3 +552,5 @@ CREATE TABLE public.vehiculos (
   CONSTRAINT vehiculos_pkey PRIMARY KEY (id),
   CONSTRAINT vehiculos_assigned_driver_id_fkey FOREIGN KEY (assigned_driver_id) REFERENCES public.profiles(id)
 );
+-- Migrar planes estandar existentes a Nacional
+UPDATE ofertas_competencia SET estado = 'Nacional', municipio = 'Todos', parroquia = 'Todas' WHERE es_promocion = false;

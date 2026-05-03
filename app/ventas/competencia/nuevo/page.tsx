@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
 import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador, updateOperador, deleteOperador } from "@/app/actions/competencia";
-import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2, Copy } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Actualización General",
@@ -111,6 +111,11 @@ export default function NuevaOfertaCompetencia() {
   const [newOpColor, setNewOpColor] = useState("#3b82f6");
   const [newOpLogo, setNewOpLogo] = useState("");
   const [savingOp, setSavingOp] = useState(false);
+
+  // Import Promo State
+  const [isImportPromoModalOpen, setIsImportPromoModalOpen] = useState(false);
+  const [nationalPromos, setNationalPromos] = useState<PromoActiva[]>([]);
+  const [loadingNationalPromos, setLoadingNationalPromos] = useState(false);
 
   useEffect(() => {
     Promise.all([getVentasConfig(), getOperadores()])
@@ -223,6 +228,43 @@ export default function NuevaOfertaCompetencia() {
     const arr = [...promos];
     arr[promoIdx].servicios = arr[promoIdx].servicios.filter((_, i) => i !== srvIdx);
     setPromos(arr);
+  };
+
+  const handleOpenImportPromoModal = async () => {
+    if (!operadorId) {
+      toast({ title: "Falta operador", description: "Selecciona un operador primero", variant: "destructive" });
+      return;
+    }
+    setIsImportPromoModalOpen(true);
+    setLoadingNationalPromos(true);
+    try {
+      const snap = await getSnapshotOperador(parseInt(operadorId));
+      if (snap && snap.promociones) {
+        // Extraer únicas
+        const unique = [];
+        const seen = new Set();
+        for (const p of snap.promociones) {
+          const key = `${p.nombre_plan}-${p.velocidad}-${p.precio_promo}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            unique.push(p);
+          }
+        }
+        setNationalPromos(unique);
+      } else {
+        setNationalPromos([]);
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message || "Error al cargar promociones", variant: "destructive" });
+    } finally {
+      setLoadingNationalPromos(false);
+    }
+  };
+
+  const handleImportPromo = (promo: PromoActiva) => {
+    setPromos([...promos, { ...promo }]);
+    setIsImportPromoModalOpen(false);
+    toast({ title: "Promoción Importada", description: `Se añadió: ${promo.nombre_plan || promo.velocidad+'Mbps'}` });
   };
 
   // INSTALACION OPCIONES HANDLERS
@@ -611,7 +653,10 @@ export default function NuevaOfertaCompetencia() {
                     <button onClick={() => addPromoServicio(idx)} className="w-full px-4 py-2.5 text-xs font-semibold text-primary hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors flex items-center justify-center gap-1.5"><PlusCircle size={14} /> Añadir Servicio</button>
                   </div>
                 ))}
-                <button onClick={addPromo} className="w-full py-3.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-500 transition-colors flex items-center justify-center gap-2"><Plus size={16} /> Añadir Promoción</button>
+                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                  <button onClick={addPromo} className="flex-1 py-3.5 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 text-sm font-semibold text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-500 transition-colors flex items-center justify-center gap-2"><Plus size={16} /> Añadir Nueva Promo</button>
+                  <button onClick={handleOpenImportPromoModal} className="flex-1 py-3.5 rounded-2xl border-2 border-dashed border-indigo-200 dark:border-indigo-900/30 text-sm font-semibold text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center justify-center gap-2"><Copy size={16} /> Importar Existente</button>
+                </div>
               </div>
             </section>
 
@@ -804,6 +849,48 @@ export default function NuevaOfertaCompetencia() {
                 {editingOpId ? "Guardar Cambios" : "Crear Operadora"}
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: Importar Promoción Existente */}
+      <Dialog open={isImportPromoModalOpen} onOpenChange={setIsImportPromoModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-0">
+            <DialogTitle className="text-lg font-bold">Importar Promoción Existente</DialogTitle>
+          </DialogHeader>
+          <div className="px-5 py-4 min-h-[200px] max-h-[400px] overflow-y-auto">
+            {loadingNationalPromos ? (
+              <div className="flex flex-col items-center justify-center py-10 text-zinc-400 gap-2">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span className="text-sm">Buscando promociones nacionales...</span>
+              </div>
+            ) : nationalPromos.length === 0 ? (
+              <div className="text-center py-10 text-zinc-500 text-sm">
+                No se encontraron promociones previas registradas para este operador.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {nationalPromos.map((p, idx) => (
+                  <div key={idx} onClick={() => handleImportPromo(p)} className="p-3 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 cursor-pointer transition-colors flex justify-between items-center group">
+                    <div>
+                      {p.nombre_plan && <p className="text-[10px] font-bold text-amber-500 uppercase">{p.nombre_plan}</p>}
+                      <div className="flex items-end gap-2">
+                        <span className="font-black text-zinc-900 dark:text-zinc-100">{p.velocidad} Mbps</span>
+                        <span className="text-xs text-zinc-500 font-medium mb-0.5">{p.tecnologia}</span>
+                      </div>
+                    </div>
+                    <div className="text-right flex flex-col items-end">
+                      <span className="font-black text-indigo-600 dark:text-indigo-400">${p.precio_promo}</span>
+                      <span className="text-[10px] text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"><Copy size={10} /> Copiar</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="px-5 pb-5">
+            <Button variant="outline" onClick={() => setIsImportPromoModalOpen(false)} className="rounded-xl w-full">Cerrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
