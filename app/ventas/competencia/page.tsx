@@ -253,7 +253,6 @@ export default function CompetenciaDashboard() {
                 className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
                 onClick={() => oferta.isEmpty ? navigateToOperador(oferta) : openOperadorDetails(oferta)}
               >
-                <div className="h-2 w-full" style={{ backgroundColor: opColor }} />
                 {alertBadge}
                 <div className="p-5">
                   <div className="flex justify-between items-start mb-4">
