@@ -171,7 +171,7 @@ export default function CompetenciaDashboard() {
 
   return (
     <PremiumPageLayout 
-      title="Inteligencia de Mercado" 
+      title="Estudio de Mercado" 
       description="Consulta y actualiza las ofertas de la competencia en campo."
     >
       <div className="flex flex-col gap-4 mb-6">

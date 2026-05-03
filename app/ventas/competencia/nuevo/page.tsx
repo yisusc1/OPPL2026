@@ -420,7 +420,7 @@ export default function NuevaOfertaCompetencia() {
   const iosSection = "text-[11px] font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 px-1 mb-2";
 
   return (
-    <PremiumPageLayout title="Inteligencia de Mercado" description="Actualiza o registra un nuevo Snapshot de la competencia.">
+    <PremiumPageLayout title="Estudio de Mercado" description="Actualiza o registra un nuevo Snapshot de la competencia.">
       <div className="max-w-2xl mx-auto space-y-8 pb-24">
 
         {/* ─── DATOS BASE ─── */}

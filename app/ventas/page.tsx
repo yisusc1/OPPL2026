@@ -36,7 +36,7 @@ export default function VentasPage() {
       accent: "violet",
     },
     {
-      title: "Inteligencia de Mercado",
+      title: "Estudio de Mercado",
       description: "Consulta y reporte de ofertas y planes de la competencia en campo.",
       icon: Radar,
       href: "/ventas/competencia",
