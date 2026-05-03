@@ -34,6 +34,22 @@ export async function saveOperador(nombre: string, color_hex: string, logo_url?:
   return data;
 }
 
+export async function updateOperador(id: number, nombre: string, color_hex: string, logo_url?: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("operadores_competencia")
+    .update({ nombre, color_hex, logo_url })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  
+  revalidatePath("/ventas/competencia/nuevo");
+  revalidatePath("/ventas/competencia");
+  return data;
+}
+
 // ── Ofertas ────────────────────────────────────────────────────────
 
 export async function saveOferta(oferta: any) {
@@ -234,12 +250,22 @@ export async function getSnapshotOperador(operador_id: number, estado: string, m
   // Devolvemos el snapshot completo basado en el último reporte
   return {
     planes_estandar: planesEstandar.map(p => ({
+      nombre_plan: p.nombre_plan || "",
       velocidad: String(p.velocidad_mb),
+      velocidad_subida: p.velocidad_subida ? String(p.velocidad_subida) : "",
+      tecnologia: p.tecnologia || "FTTH",
+      es_simetrico: p.es_simetrico,
+      incluye_iptv: p.incluye_iptv,
       precio: String(p.precio_mensual),
       servicios: p.servicios_adicionales || []
     })),
     promociones: promociones.map(p => ({
+      nombre_plan: p.nombre_plan || "",
       velocidad: String(p.velocidad_mb),
+      velocidad_subida: p.velocidad_subida ? String(p.velocidad_subida) : "",
+      tecnologia: p.tecnologia || "FTTH",
+      es_simetrico: p.es_simetrico,
+      incluye_iptv: p.incluye_iptv,
       precio_promo: String(p.precio_mensual),
       precio_regular: p.precio_regular ? String(p.precio_regular) : "",
       duracion_meses: p.duracion_promo_meses ? String(p.duracion_promo_meses) : "",

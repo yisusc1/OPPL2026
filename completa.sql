@@ -1,38 +1,11 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
-CREATE TABLE public.actividades (
-  id integer NOT NULL DEFAULT nextval('actividades_id_seq'::regclass),
-  fecha date NOT NULL,
-  hora time without time zone NOT NULL,
-  asesor text NOT NULL,
-  tipo text NOT NULL,
-  clientes_captados integer DEFAULT 0,
-  volantes integer DEFAULT 0,
-  llamadas_info integer DEFAULT 0,
-  llamadas_agenda integer DEFAULT 0,
-  estado text,
-  municipio text,
-  parroquia text,
-  sector text,
-  condominio text,
-  notas text,
-  reporte_wa text,
-  created_at timestamp with time zone DEFAULT now(),
-  uid text,
-  cerrada boolean DEFAULT false,
-  CONSTRAINT actividades_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.app_settings (
   key text NOT NULL,
   value boolean DEFAULT true,
   label text,
   CONSTRAINT app_settings_pkey PRIMARY KEY (key)
-);
-CREATE TABLE public.asesores_config (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  nombre text NOT NULL UNIQUE,
-  CONSTRAINT asesores_config_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.asignaciones (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -122,23 +95,6 @@ CREATE TABLE public.config_totales (
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT config_totales_pkey PRIMARY KEY (id)
 );
-CREATE TABLE public.equipo_miembros (
-  id integer NOT NULL DEFAULT nextval('equipo_miembros_id_seq'::regclass),
-  equipo_id integer NOT NULL,
-  user_id uuid NOT NULL,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT equipo_miembros_pkey PRIMARY KEY (id),
-  CONSTRAINT equipo_miembros_equipo_id_fkey FOREIGN KEY (equipo_id) REFERENCES public.equipos(id),
-  CONSTRAINT equipo_miembros_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
-);
-CREATE TABLE public.equipos (
-  id integer NOT NULL DEFAULT nextval('equipos_id_seq'::regclass),
-  nombre text NOT NULL,
-  zona_asignada text,
-  activo boolean DEFAULT true,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT equipos_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.fallas (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone NOT NULL DEFAULT now(),
@@ -181,14 +137,6 @@ CREATE TABLE public.fuel_logs (
   CONSTRAINT fuel_logs_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehiculos(id),
   CONSTRAINT fuel_logs_supervisor_id_profiles_fkey FOREIGN KEY (supervisor_id) REFERENCES public.profiles(id)
 );
-CREATE TABLE public.geodata_config (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  estado text,
-  municipio text,
-  parroquia text NOT NULL,
-  sector text,
-  CONSTRAINT geodata_config_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.historial_reportes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   fecha timestamp with time zone NOT NULL DEFAULT now(),
@@ -230,7 +178,7 @@ CREATE TABLE public.inventory_assignments (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   code text NOT NULL UNIQUE,
   assigned_to uuid,
-  status text DEFAULT 'ACTIVE'::text,
+  status USER-DEFINED DEFAULT 'ACTIVE'::assignment_status,
   created_at timestamp with time zone DEFAULT now(),
   closed_at timestamp with time zone,
   received_by text,
@@ -337,7 +285,7 @@ CREATE TABLE public.inventory_returns (
 CREATE TABLE public.inventory_serials (
   serial_number text NOT NULL,
   product_id uuid NOT NULL,
-  status text DEFAULT 'AVAILABLE'::text,
+  status USER-DEFINED DEFAULT 'AVAILABLE'::serial_status,
   location text,
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
@@ -349,7 +297,7 @@ CREATE TABLE public.inventory_serials (
 CREATE TABLE public.inventory_transactions (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   product_id uuid,
-  type text NOT NULL,
+  type USER-DEFINED NOT NULL,
   quantity integer NOT NULL,
   previous_stock integer NOT NULL,
   new_stock integer NOT NULL,
@@ -402,15 +350,6 @@ CREATE TABLE public.notifications (
   CONSTRAINT notifications_pkey PRIMARY KEY (id),
   CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
-CREATE TABLE public.planes_config (
-  id integer NOT NULL DEFAULT nextval('planes_config_id_seq'::regclass),
-  nombre text NOT NULL,
-  tipo text NOT NULL,
-  activo boolean DEFAULT true,
-  created_at timestamp with time zone DEFAULT now(),
-  has_tv boolean DEFAULT false,
-  CONSTRAINT planes_config_pkey PRIMARY KEY (id)
-);
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
   email text,
@@ -424,7 +363,6 @@ CREATE TABLE public.profiles (
   team_id uuid,
   phone text,
   updated_at timestamp with time zone DEFAULT now(),
-  no_emojis boolean DEFAULT false,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
   CONSTRAINT profiles_team_id_fkey FOREIGN KEY (team_id) REFERENCES public.teams(id)
@@ -470,7 +408,6 @@ CREATE TABLE public.reportes (
   luces_entrada boolean DEFAULT false,
   herramientas_entrada boolean DEFAULT false,
   user_id uuid,
-  checklist_data jsonb,
   CONSTRAINT reportes_pkey PRIMARY KEY (id),
   CONSTRAINT reportes_vehiculo_id_fkey FOREIGN KEY (vehiculo_id) REFERENCES public.vehiculos(id),
   CONSTRAINT reportes_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
@@ -500,38 +437,6 @@ CREATE TABLE public.revisiones (
   CONSTRAINT revisiones_pkey PRIMARY KEY (id),
   CONSTRAINT revisiones_cliente_id_fkey FOREIGN KEY (cliente_id) REFERENCES public.clientes(id),
   CONSTRAINT revisiones_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
-);
-CREATE TABLE public.solicitudes (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  fecha_solicitud timestamp with time zone DEFAULT now(),
-  fecha_disponibilidad date,
-  nombres text NOT NULL,
-  apellidos text NOT NULL,
-  cedula text NOT NULL,
-  genero text NOT NULL,
-  estado text NOT NULL,
-  municipio text NOT NULL,
-  parroquia text NOT NULL,
-  direccion text NOT NULL,
-  tipo_servicio text NOT NULL,
-  plan text NOT NULL,
-  promotor text NOT NULL,
-  telefono_principal text NOT NULL,
-  telefono_secundario text,
-  correo text,
-  power_go boolean DEFAULT false,
-  fecha_nacimiento date,
-  fuente text NOT NULL,
-  sector text,
-  actividad_id bigint,
-  fecha_instalacion date,
-  equipo_id integer,
-  estatus_planificacion text DEFAULT 'pendiente'::text CHECK (estatus_planificacion = ANY (ARRAY['pendiente'::text, 'agendado'::text, 'completado'::text, 'reprogramado'::text, 'error'::text])),
-  motivo_reprogramacion text,
-  notas_planificacion text,
-  CONSTRAINT solicitudes_pkey PRIMARY KEY (id),
-  CONSTRAINT solicitudes_actividad_id_fkey FOREIGN KEY (actividad_id) REFERENCES public.actividades(id),
-  CONSTRAINT solicitudes_equipo_id_fkey FOREIGN KEY (equipo_id) REFERENCES public.equipos(id)
 );
 CREATE TABLE public.soportes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -621,31 +526,6 @@ CREATE TABLE public.user_devices (
   created_at timestamp with time zone DEFAULT now(),
   CONSTRAINT user_devices_pkey PRIMARY KEY (id),
   CONSTRAINT user_devices_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
-);
-CREATE TABLE public.vehicle_checklist_items (
-  id uuid NOT NULL DEFAULT gen_random_uuid(),
-  vehicle_id uuid NOT NULL,
-  category text NOT NULL CHECK (category = ANY (ARRAY['TECNICO'::text, 'SEGURIDAD'::text, 'EQUIPOS'::text])),
-  label text NOT NULL,
-  key text NOT NULL,
-  is_default boolean DEFAULT true,
-  sort_order integer DEFAULT 0,
-  created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT vehicle_checklist_items_pkey PRIMARY KEY (id),
-  CONSTRAINT vehicle_checklist_items_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehiculos(id)
-);
-CREATE TABLE public.vehicle_maintenance_configs (
-  id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  vehicle_id uuid NOT NULL,
-  service_type character varying NOT NULL,
-  custom_name character varying,
-  interval_value integer NOT NULL,
-  is_time_based boolean DEFAULT false,
-  last_service_value numeric,
-  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
-  updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
-  CONSTRAINT vehicle_maintenance_configs_pkey PRIMARY KEY (id),
-  CONSTRAINT vehicle_maintenance_configs_vehicle_id_fkey FOREIGN KEY (vehicle_id) REFERENCES public.vehiculos(id)
 );
 CREATE TABLE public.vehiculos (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

@@ -352,7 +352,10 @@ export default function CompetenciaDashboard() {
                                   <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
                                     <Zap className="text-zinc-400" size={20} />
                                   </div>
-                                  <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{promo.velocidad} <span className="text-sm">Mbps</span></span>
+                                  <div>
+                                    {promo.nombre_plan && <p className="text-[10px] font-bold text-amber-500 uppercase">{promo.nombre_plan}</p>}
+                                    <span className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{promo.velocidad} <span className="text-sm">Mbps</span></span>
+                                  </div>
                                 </div>
                                 <div className="text-right">
                                   {promo.precio_regular && (
@@ -371,6 +374,21 @@ export default function CompetenciaDashboard() {
                                 {promo.fecha_fin && (
                                   <Badge variant="outline" className="bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700">
                                     Hasta {format(new Date(promo.fecha_fin), "dd/MMM/yy", { locale: es })}
+                                  </Badge>
+                                )}
+                                {promo.tecnologia && (
+                                  <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 font-medium">
+                                    {promo.tecnologia}
+                                  </Badge>
+                                )}
+                                {promo.es_simetrico && (
+                                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium">
+                                    Simétrico
+                                  </Badge>
+                                )}
+                                {promo.incluye_iptv && (
+                                  <Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium">
+                                    IPTV Incluido
                                   </Badge>
                                 )}
                               </div>
@@ -410,8 +428,17 @@ export default function CompetenciaDashboard() {
                                   <Zap className="text-zinc-400" />
                                 </div>
                                 <div>
-                                  <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{plan.velocidad} <span className="text-sm font-medium text-zinc-500">Mbps</span></p>
-                                  <p className="text-lg font-bold text-primary">${plan.precio} <span className="text-sm font-medium text-zinc-500">/ mes</span></p>
+                                  {plan.nombre_plan && <p className="text-[10px] font-bold text-primary uppercase">{plan.nombre_plan}</p>}
+                                  <div className="flex items-end gap-2">
+                                    <p className="text-xl font-black text-zinc-900 dark:text-zinc-100">{plan.velocidad} <span className="text-sm font-medium text-zinc-500">Mbps</span></p>
+                                    {plan.velocidad_subida && <p className="text-xs text-zinc-400 mb-1">({plan.velocidad_subida} Mbps Subida)</p>}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                                    <p className="text-lg font-bold text-primary">${plan.precio} <span className="text-sm font-medium text-zinc-500">/ mes</span></p>
+                                    {plan.tecnologia && <Badge variant="outline" className="text-[10px] bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 font-medium px-1.5 py-0 h-5">{plan.tecnologia}</Badge>}
+                                    {plan.es_simetrico && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium px-1.5 py-0 h-5">Simétrico</Badge>}
+                                    {plan.incluye_iptv && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium px-1.5 py-0 h-5">IPTV</Badge>}
+                                  </div>
                                 </div>
                               </div>
                               

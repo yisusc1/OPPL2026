@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
 import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador } from "@/app/actions/competencia";
-import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2 } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Actualización General",
@@ -39,17 +39,27 @@ interface ServicioAdicional {
 }
 
 interface PlanEstandar {
+  nombre_plan?: string;
   velocidad: string;
+  velocidad_subida?: string;
+  es_simetrico?: boolean;
+  tecnologia?: string;
   precio: string;
+  incluye_iptv?: boolean;
   servicios: ServicioAdicional[];
 }
 
 interface PromoActiva {
+  nombre_plan?: string;
   velocidad: string;
+  velocidad_subida?: string;
+  es_simetrico?: boolean;
+  tecnologia?: string;
   precio_promo: string;
   precio_regular: string;
   duracion_meses: string;
   fecha_fin: string;
+  incluye_iptv?: boolean;
   servicios: ServicioAdicional[];
 }
 
@@ -96,6 +106,7 @@ export default function NuevaOfertaCompetencia() {
 
   // New Operator State
   const [isOperadorModalOpen, setIsOperadorModalOpen] = useState(false);
+  const [editingOpId, setEditingOpId] = useState<number | null>(null);
   const [newOpName, setNewOpName] = useState("");
   const [newOpColor, setNewOpColor] = useState("#3b82f6");
   const [newOpLogo, setNewOpLogo] = useState("");
@@ -155,7 +166,7 @@ export default function NuevaOfertaCompetencia() {
     if (tipoNovedad !== "Expansión (Llegó a esta zona)") {
       fetchSnapshot();
     } else {
-      setPlanes([{ velocidad: "", precio: "", servicios: [] }]);
+      setPlanes([{ nombre_plan: "", velocidad: "", velocidad_subida: "", es_simetrico: true, tecnologia: "FTTH", precio: "", incluye_iptv: false, servicios: [] }]);
       setPromos([]);
       setCostoBaseInstalacion("");
       setModalidad("");
@@ -165,7 +176,7 @@ export default function NuevaOfertaCompetencia() {
   }, [estado, municipio, parroquia, operadorId, tipoNovedad]);
 
   // PLANES HANDLERS
-  const addPlan = () => setPlanes([...planes, { velocidad: "", precio: "", servicios: [] }]);
+  const addPlan = () => setPlanes([...planes, { nombre_plan: "", velocidad: "", velocidad_subida: "", es_simetrico: true, tecnologia: "FTTH", precio: "", incluye_iptv: false, servicios: [] }]);
   const updatePlan = (idx: number, field: keyof PlanEstandar, val: string) => {
     const arr = [...planes];
     arr[idx] = { ...arr[idx], [field]: val };
@@ -190,7 +201,7 @@ export default function NuevaOfertaCompetencia() {
   };
 
   // PROMOS HANDLERS
-  const addPromo = () => setPromos([...promos, { velocidad: "", precio_promo: "", precio_regular: "", duracion_meses: "", fecha_fin: "", servicios: [] }]);
+  const addPromo = () => setPromos([...promos, { nombre_plan: "", velocidad: "", velocidad_subida: "", es_simetrico: true, tecnologia: "FTTH", precio_promo: "", precio_regular: "", duracion_meses: "", fecha_fin: "", incluye_iptv: false, servicios: [] }]);
   const updatePromo = (idx: number, field: keyof PromoActiva, val: string) => {
     const arr = [...promos];
     arr[idx] = { ...arr[idx], [field]: val };
@@ -252,6 +263,11 @@ export default function NuevaOfertaCompetencia() {
             estado, municipio, parroquia,
             tipo_novedad: tipoNovedad,
             velocidad_mb: parseInt(vel) || 0,
+            velocidad_subida: p.velocidad_subida ? parseInt(p.velocidad_subida) : null,
+            nombre_plan: p.nombre_plan || null,
+            tecnologia: p.tecnologia || "FTTH",
+            es_simetrico: p.es_simetrico !== undefined ? p.es_simetrico : true,
+            incluye_iptv: p.incluye_iptv || false,
             precio_mensual: parseFloat(pre) || 0,
             es_promocion: false,
             servicios_adicionales: p.servicios.filter(s => s.nombre?.trim()),
@@ -275,6 +291,11 @@ export default function NuevaOfertaCompetencia() {
             estado, municipio, parroquia,
             tipo_novedad: tipoNovedad,
             velocidad_mb: parseInt(vel) || 0,
+            velocidad_subida: p.velocidad_subida ? parseInt(p.velocidad_subida) : null,
+            nombre_plan: p.nombre_plan || null,
+            tecnologia: p.tecnologia || "FTTH",
+            es_simetrico: p.es_simetrico !== undefined ? p.es_simetrico : true,
+            incluye_iptv: p.incluye_iptv || false,
             precio_mensual: parseFloat(pre) || 0,
             precio_regular: p.precio_regular ? parseFloat(p.precio_regular) : null,
             duracion_promo_meses: p.duracion_meses ? parseInt(p.duracion_meses) : null,
@@ -337,12 +358,18 @@ export default function NuevaOfertaCompetencia() {
     if (!newOpName) return toast({ title: "Nombre requerido", variant: "destructive" });
     setSavingOp(true);
     try {
-      const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
-      toast({ title: "Operador registrado" });
-      setOperadores([...operadores, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
-      setOperadorId(String(data.id));
+      if (editingOpId) {
+        const data = await updateOperador(editingOpId, newOpName, newOpColor, newOpLogo || undefined);
+        toast({ title: "Operador actualizado" });
+        setOperadores(operadores.map(o => o.id === editingOpId ? data : o).sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      } else {
+        const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
+        toast({ title: "Operador registrado" });
+        setOperadores([...operadores, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+        setOperadorId(String(data.id));
+      }
       setIsOperadorModalOpen(false);
-      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo("");
+      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -414,6 +441,12 @@ export default function NuevaOfertaCompetencia() {
                       </>
                     );
                   })()}
+                  <button onClick={() => {
+                    const op = operadores.find(o => String(o.id) === operadorId);
+                    if (op) {
+                      setEditingOpId(op.id); setNewOpName(op.nombre); setNewOpColor(op.color_hex); setNewOpLogo(op.logo_url || ""); setIsOperadorModalOpen(true);
+                    }
+                  }} className="ml-auto w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Edit2 size={14} className="text-zinc-500" /></button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
@@ -430,7 +463,15 @@ export default function NuevaOfertaCompetencia() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <button onClick={() => setIsOperadorModalOpen(true)} className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Plus size={14} className="text-zinc-500" /></button>
+                  <button onClick={() => { setEditingOpId(null); setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setIsOperadorModalOpen(true); }} className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Plus size={14} className="text-zinc-500" /></button>
+                  {operadorId && (
+                    <button onClick={() => {
+                      const op = operadores.find(o => String(o.id) === operadorId);
+                      if (op) {
+                        setEditingOpId(op.id); setNewOpName(op.nombre); setNewOpColor(op.color_hex); setNewOpLogo(op.logo_url || ""); setIsOperadorModalOpen(true);
+                      }
+                    }} className="w-7 h-7 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"><Edit2 size={14} className="text-zinc-500" /></button>
+                  )}
                 </div>
               )}
             </div>
@@ -456,8 +497,48 @@ export default function NuevaOfertaCompetencia() {
                     <button onClick={() => removePromo(idx)} className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} className="text-rose-500" /></button>
                     <div className="flex">
                       <div className="flex-1 px-4 py-3.5">
-                        <p className={iosLabel}>Velocidad (Mbps)</p>
+                        <p className={iosLabel}>Nombre del Plan</p>
+                        <Input value={promo.nombre_plan || ""} onChange={(e) => updatePromo(idx, "nombre_plan", e.target.value)} className={iosInput} placeholder="Ej. ThunderLIFE" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Tecnología</p>
+                        <Select value={promo.tecnologia || "FTTH"} onValueChange={(v) => updatePromo(idx, "tecnologia", v)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {["FTTH", "FTTH GPON", "XGS-PON", "Fibra Óptica", "Fibra / HFC", "HFC", "Microondas", "ADSL"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className={iosDivider} />
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad Bajada</p>
                         <Input type="number" value={promo.velocidad} onChange={(e) => updatePromo(idx, "velocidad", e.target.value)} className={iosInput} placeholder="Ej. 100" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad Subida</p>
+                        <Input type="number" value={promo.velocidad_subida || ""} onChange={(e) => updatePromo(idx, "velocidad_subida", e.target.value)} className={iosInput} placeholder="Ej. 50" />
+                      </div>
+                    </div>
+                    <div className={iosDivider} />
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Simétrico?</p>
+                        <Select value={promo.es_simetrico ? "si" : "no"} onValueChange={(v) => updatePromo(idx, "es_simetrico", v === "si" ? true : false as any)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="si">Sí</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Incluye IPTV?</p>
+                        <Select value={promo.incluye_iptv ? "si" : "no"} onValueChange={(v) => updatePromo(idx, "incluye_iptv", v === "si" ? true : false as any)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="si">Sí</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                        </Select>
                       </div>
                       <div className={iosVDivider} />
                       <div className="flex-1 px-4 py-3.5">
@@ -516,8 +597,48 @@ export default function NuevaOfertaCompetencia() {
                     <button onClick={() => removePlan(idx)} className="absolute top-3 right-3 z-10 w-7 h-7 rounded-full bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={14} className="text-rose-500" /></button>
                     <div className="flex">
                       <div className="flex-1 px-4 py-3.5">
-                        <p className={iosLabel}>Velocidad (Mbps)</p>
+                        <p className={iosLabel}>Nombre del Plan</p>
+                        <Input value={plan.nombre_plan || ""} onChange={(e) => updatePlan(idx, "nombre_plan", e.target.value)} className={iosInput} placeholder="Ej. NetUno 400" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Tecnología</p>
+                        <Select value={plan.tecnologia || "FTTH"} onValueChange={(v) => updatePlan(idx, "tecnologia", v)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {["FTTH", "FTTH GPON", "XGS-PON", "Fibra Óptica", "Fibra / HFC", "HFC", "Microondas", "ADSL"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className={iosDivider} />
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad Bajada</p>
                         <Input type="number" value={plan.velocidad} onChange={(e) => updatePlan(idx, "velocidad", e.target.value)} className={iosInput} placeholder="Ej. 100" />
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Velocidad Subida</p>
+                        <Input type="number" value={plan.velocidad_subida || ""} onChange={(e) => updatePlan(idx, "velocidad_subida", e.target.value)} className={iosInput} placeholder="Ej. 50" />
+                      </div>
+                    </div>
+                    <div className={iosDivider} />
+                    <div className="flex">
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Simétrico?</p>
+                        <Select value={plan.es_simetrico ? "si" : "no"} onValueChange={(v) => updatePlan(idx, "es_simetrico", v === "si" ? true : false as any)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="si">Sí</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                        </Select>
+                      </div>
+                      <div className={iosVDivider} />
+                      <div className="flex-1 px-4 py-3.5">
+                        <p className={iosLabel}>Incluye IPTV?</p>
+                        <Select value={plan.incluye_iptv ? "si" : "no"} onValueChange={(v) => updatePlan(idx, "incluye_iptv", v === "si" ? true : false as any)}>
+                          <SelectTrigger className={iosSelect}><SelectValue /></SelectTrigger>
+                          <SelectContent><SelectItem value="si">Sí</SelectItem><SelectItem value="no">No</SelectItem></SelectContent>
+                        </Select>
                       </div>
                       <div className={iosVDivider} />
                       <div className="flex-1 px-4 py-3.5">
