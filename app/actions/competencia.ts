@@ -228,15 +228,26 @@ export async function getOfertasRecientes() {
 /**
  * Obtiene el historial completo de un operador.
  */
-export async function getHistorialOperador(operador_id: number) {
+export async function getHistorialOperador(
+  operador_id: number,
+  estado?: string,
+  municipio?: string,
+  parroquia?: string
+) {
   const supabase = await createClient();
   
-  const { data, error } = await supabase
+  let query = supabase
     .from("ofertas_competencia")
     .select("*")
     .eq("operador_id", operador_id)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .limit(200);
+
+  if (estado) query = query.eq("estado", estado);
+  if (municipio) query = query.eq("municipio", municipio);
+  if (parroquia) query = query.eq("parroquia", parroquia);
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching historial operador:", error);
@@ -247,10 +258,15 @@ export async function getHistorialOperador(operador_id: number) {
 }
 
 /**
- * Obtiene el último "Snapshot" completo de un operador (todas sus zonas).
+ * Obtiene el último "Snapshot" completo de un operador (todas sus zonas, o filtrado).
  */
-export async function getSnapshotOperador(operador_id: number) {
-  const historial = await getHistorialOperador(operador_id);
+export async function getSnapshotOperador(
+  operador_id: number,
+  estado?: string,
+  municipio?: string,
+  parroquia?: string
+) {
+  const historial = await getHistorialOperador(operador_id, estado, municipio, parroquia);
   if (!historial || historial.length === 0) return null;
 
   // Encontrar la fecha más reciente PARA CADA zona (estado, municipio, parroquia)
