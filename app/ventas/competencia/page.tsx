@@ -159,18 +159,12 @@ export default function CompetenciaDashboard() {
 
   // Pre-calcular el plan más barato y la mejor promo para la tarjeta
   const getBestPrices = (oferta: any) => {
-    let bestPlan = null;
-    let bestPromo = null;
-    
-    // Asumimos que getOfertasRecientes devuelve la fila más barata. 
-    // Pero si hay promo, tomaremos los datos. 
-    // Debido a que getOfertasRecientes agrupa por operador, puede devolver un solo plan. 
-    // Para simplificar, usamos lo que devuelve la oferta base:
     return {
-      precio: oferta.precio_mensual,
-      velocidad: oferta.velocidad_mb,
+      precio: oferta.min_precio || oferta.precio_mensual || 0,
+      velocidad: oferta.max_velocidad || oferta.velocidad_mb || 0,
       es_promocion: oferta.es_promocion,
-      fecha_fin: oferta.fecha_fin_promo
+      fecha_fin: oferta.fecha_fin_promo,
+      todas_inst: oferta.todas_inst || []
     };
   };
 
@@ -368,6 +362,7 @@ export default function CompetenciaDashboard() {
                           <span className="text-xl font-semibold text-zinc-400 dark:text-zinc-500 py-1">Sin planes reportados</span>
                         ) : (
                           <>
+                            <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5 mr-1">Desde</span>
                             <span className="text-3xl font-black text-zinc-900 dark:text-zinc-100">${best.precio}</span>
                             <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 mb-1">/ mes</span>
                           </>
@@ -378,13 +373,13 @@ export default function CompetenciaDashboard() {
                         <div className="space-y-2 mb-4">
                           <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                             <Zap size={16} className="text-amber-500" />
-                            <span className="font-medium text-zinc-900 dark:text-zinc-100">{best.velocidad} Mbps</span>
+                            <span className="font-medium text-zinc-900 dark:text-zinc-100">Hasta {best.velocidad} Mbps</span>
                           </div>
-                          {oferta.costo_instalacion !== undefined && (
+                          {best.todas_inst.length > 0 && (
                             <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                               <Wrench size={16} className="text-zinc-400" />
                               <span className="font-medium text-zinc-900 dark:text-zinc-100 text-[13px]">
-                                Instalación: ${oferta.costo_instalacion}
+                                Instalación: {best.todas_inst.length > 1 ? "Varía por zona" : `$${best.todas_inst[0]}`}
                               </span>
                             </div>
                           )}

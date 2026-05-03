@@ -227,14 +227,33 @@ export async function getOfertasRecientes() {
     return [];
   }
 
-  // Agrupar por operador_id y quedarnos con la primera (la más reciente)
+  // Agrupar por operador_id y agregar resumen global (min precio, max velocidad, costos de instalación únicos)
   const ultimasOfertasMap = new Map<number, any>();
   
   if (data) {
     for (const oferta of data) {
       if (!ultimasOfertasMap.has(oferta.operador_id)) {
-        ultimasOfertasMap.set(oferta.operador_id, oferta);
+        ultimasOfertasMap.set(oferta.operador_id, {
+          ...oferta,
+          min_precio: typeof oferta.precio_mensual === 'number' ? oferta.precio_mensual : Infinity,
+          max_velocidad: typeof oferta.velocidad_mb === 'number' ? oferta.velocidad_mb : 0,
+          todas_inst: (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') ? [oferta.costo_instalacion] : []
+        });
+      } else {
+        const ag = ultimasOfertasMap.get(oferta.operador_id);
+        if (typeof oferta.precio_mensual === 'number' && oferta.precio_mensual < ag.min_precio) ag.min_precio = oferta.precio_mensual;
+        if (typeof oferta.velocidad_mb === 'number' && oferta.velocidad_mb > ag.max_velocidad) ag.max_velocidad = oferta.velocidad_mb;
+        if (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') {
+           if (!ag.todas_inst.includes(oferta.costo_instalacion)) {
+              ag.todas_inst.push(oferta.costo_instalacion);
+           }
+        }
       }
+    }
+    
+    // Normalizar Infinity a 0 si no había precios
+    for (const [id, ag] of ultimasOfertasMap.entries()) {
+      if (ag.min_precio === Infinity) ag.min_precio = 0;
     }
   }
 
