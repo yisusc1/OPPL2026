@@ -13,8 +13,8 @@ export async function getOperadores() {
     .order("nombre", { ascending: true });
 
   if (error) {
-    console.error("Error fetching operadores:", error);
-    throw new Error(`No se pudieron cargar las operadoras: ${error.message}`);
+    console.error("Error fetching operadores:", error.message);
+    return [];
   }
   return data || [];
 }
