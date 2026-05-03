@@ -535,7 +535,7 @@ export default function MapPage() {
 
             {/* Competition Overlay Panel */}
             {showCompetencia && competenciaData.length > 0 && (
-                <div className="absolute bottom-4 right-4 z-10 w-[300px] max-h-[50vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl">
+                <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-[320px] z-10 max-h-[40vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl">
                     <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl px-4 py-3 border-b border-border/50">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
