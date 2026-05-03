@@ -138,10 +138,26 @@ export default function NuevaOfertaCompetencia() {
   // Snapshot Loading Effect
   useEffect(() => {
     async function fetchSnapshot() {
-      if (!estado || !municipio || !parroquia || !operadorId) return;
+      if (!operadorId) return;
       
       setLoadingSnapshot(true);
       try {
+        if (!estado || !municipio || !parroquia) {
+          const snapNacional = await getSnapshotOperador(parseInt(operadorId), "Nacional", "Todos", "Todas");
+          if (snapNacional) {
+             setPlanes(snapNacional.planes_estandar || []);
+          } else {
+             setPlanes([]);
+          }
+          setPromos([]);
+          setCostoBaseInstalacion("");
+          setModalidad("");
+          setMetraje("");
+          setOpcionesInstalacion([]);
+          setLoadingSnapshot(false);
+          return;
+        }
+
         const snap = await getSnapshotOperador(parseInt(operadorId), estado, municipio, parroquia);
         if (snap) {
           setPlanes(snap.planes_estandar || []);
