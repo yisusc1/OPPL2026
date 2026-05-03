@@ -526,6 +526,16 @@ export default function CompetenciaDashboard() {
                 )}
               </TabsContent>
             </Tabs>
+
+            {/* Botón Actualizar */}
+            <div className="pt-6 pb-2">
+              <Button 
+                className="w-full h-14 rounded-2xl text-base font-bold gap-2"
+                onClick={() => { setDrawerOpen(false); navigateToOperador(selectedOperador); }}
+              >
+                <ExternalLink size={18} /> Actualizar Información
+              </Button>
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
