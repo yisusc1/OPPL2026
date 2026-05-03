@@ -320,9 +320,7 @@ export default function CompetenciaDashboard() {
                     <Radar className="w-8 h-8 mx-auto text-zinc-400 mb-2" />
                     <h3 className="text-zinc-900 dark:text-zinc-100 font-medium mb-1">Sin datos de oferta</h3>
                     <p className="text-sm text-zinc-500 mb-4">No se han registrado planes completos para esta operadora.</p>
-                    <Link href="/ventas/competencia/nuevo">
-                      <Button variant="outline" className="w-full text-zinc-700 dark:text-zinc-300">Registrar primera oferta</Button>
-                    </Link>
+                    <Button variant="outline" className="w-full text-zinc-700 dark:text-zinc-300" onClick={() => { setDrawerOpen(false); navigateToOperador(selectedOperador); }}>Registrar primera oferta</Button>
                   </div>
                 ) : (
                   <div className="space-y-6">
