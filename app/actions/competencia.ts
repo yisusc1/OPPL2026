@@ -300,7 +300,14 @@ export async function getSnapshotOperador(
       servicios: p.servicios_adicionales || [],
       estado: p.estado,
       municipio: p.municipio,
-      parroquia: p.parroquia
+      parroquia: p.parroquia,
+      instalacion: {
+        costo_base: p.costo_instalacion ? String(p.costo_instalacion) : "",
+        modalidad: p.modalidad_instalacion || "",
+        metraje: p.instalacion_metraje ? String(p.instalacion_metraje) : "",
+        opciones: p.instalacion_opciones || []
+      },
+      notas_anteriores: p.notas || ""
     })),
     promociones: promociones.map(p => ({
       nombre_plan: p.nombre_plan || "",
@@ -316,7 +323,14 @@ export async function getSnapshotOperador(
       servicios: p.servicios_adicionales || [],
       estado: p.estado,
       municipio: p.municipio,
-      parroquia: p.parroquia
+      parroquia: p.parroquia,
+      instalacion: {
+        costo_base: p.costo_instalacion ? String(p.costo_instalacion) : "",
+        modalidad: p.modalidad_instalacion || "",
+        metraje: p.instalacion_metraje ? String(p.instalacion_metraje) : "",
+        opciones: p.instalacion_opciones || []
+      },
+      notas_anteriores: p.notas || ""
     })),
     // Tomamos la información de instalación general del primer registro disponible
     instalacion: {
