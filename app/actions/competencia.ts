@@ -84,6 +84,24 @@ export async function saveOfertasBatch(ofertas: any[]) {
 
   console.log(`[competencia] Intentando insertar ${cleanOfertas.length} registros...`);
   
+  // Extraer datos de contexto del primer registro para el delete
+  const { operador_id, estado, municipio, parroquia } = cleanOfertas[0];
+  
+  // Borrar registros anteriores del mismo operador/zona/fecha para evitar duplicados
+  // Esto convierte cada guardado en un "reemplazo del snapshot del día"
+  const { error: deleteError } = await supabase
+    .from("ofertas_competencia")
+    .delete()
+    .eq("operador_id", operador_id)
+    .eq("estado", estado)
+    .eq("municipio", municipio)
+    .eq("parroquia", parroquia)
+    .eq("fecha_reporte", fechaReporte);
+
+  if (deleteError) {
+    console.warn("[competencia] Error borrando snapshot anterior (no crítico):", deleteError.message);
+  }
+
   const { data, error } = await supabase
     .from("ofertas_competencia")
     .insert(cleanOfertas)
