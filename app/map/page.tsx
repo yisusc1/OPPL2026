@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Layers, Loader2, MapPin, Search, Navigation, MousePointerClick, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Layers, Loader2, MapPin, Search, Navigation, MousePointerClick, ChevronDown, ChevronUp, Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Map, MapPopup, useMap } from "@/components/ui/map";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { fetchNetworkNodes, type NetworkNode } from "@/lib/dashboard-data";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/components/providers/user-provider";
+import { getCompetenciaHeatmapData } from "@/app/actions/competencia";
 
 const mapStyles = {
     dark: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
@@ -236,6 +238,11 @@ export default function MapPage() {
     // UI State
     const [isCollapsed, setIsCollapsed] = useState(false);
 
+    // Competition Layer State
+    const [showCompetencia, setShowCompetencia] = useState(false);
+    const [competenciaData, setCompetenciaData] = useState<any[]>([]);
+    const [loadingCompetencia, setLoadingCompetencia] = useState(false);
+
     const { profile, isAdmin } = useUser();
 
     const isRestrictedView = useMemo(() => {
@@ -268,6 +275,25 @@ export default function MapPage() {
         }
         load();
     }, []);
+
+    const toggleCompetencia = useCallback(async () => {
+        if (showCompetencia) {
+            setShowCompetencia(false);
+            return;
+        }
+        setShowCompetencia(true);
+        if (competenciaData.length === 0) {
+            setLoadingCompetencia(true);
+            try {
+                const data = await getCompetenciaHeatmapData();
+                setCompetenciaData(data);
+            } catch (e) {
+                console.error("Error loading competition data:", e);
+            } finally {
+                setLoadingCompetencia(false);
+            }
+        }
+    }, [showCompetencia, competenciaData]);
 
     const performFeasibilityCheck = (lat: number, lng: number) => {
         setUserLocation({ lat, lng });
@@ -361,6 +387,20 @@ export default function MapPage() {
                         {loading && <Loader2 className="w-3 h-3 animate-spin ml-2 text-muted-foreground" />}
                         {!loading && !isRestrictedView && <span className="text-xs text-muted-foreground ml-2">({nodes.length})</span>}
                     </div>
+                    {!isRestrictedView && (
+                        <button
+                            onClick={toggleCompetencia}
+                            className={cn(
+                                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
+                                showCompetencia
+                                    ? "bg-rose-500 text-white shadow-md shadow-rose-500/30"
+                                    : "bg-background/80 backdrop-blur-md border border-border text-muted-foreground hover:text-foreground"
+                            )}
+                        >
+                            <Radar className="w-3 h-3" />
+                            {loadingCompetencia ? "Cargando..." : "Competencia"}
+                        </button>
+                    )}
                 </div>
 
                 {/* Coverage Checker UI - Collapsible & Responsive */}
@@ -492,6 +532,53 @@ export default function MapPage() {
                     </MapPopup>
                 )}
             </Map>
+
+            {/* Competition Overlay Panel */}
+            {showCompetencia && competenciaData.length > 0 && (
+                <div className="absolute bottom-4 right-4 z-10 w-[300px] max-h-[50vh] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border rounded-2xl shadow-2xl">
+                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl px-4 py-3 border-b border-border/50">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Radar className="w-4 h-4 text-rose-500" />
+                                <span className="text-xs font-bold uppercase tracking-wider">Presencia Competencia</span>
+                            </div>
+                            <Badge variant="secondary" className="text-[10px] bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">
+                                {competenciaData.length} zonas
+                            </Badge>
+                        </div>
+                    </div>
+                    <div className="divide-y divide-border/50">
+                        {competenciaData.sort((a: any, b: any) => b.num_operadores - a.num_operadores).map((zone: any, idx: number) => (
+                            <div key={idx} className="px-4 py-3 hover:bg-muted/30 transition-colors">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-sm font-semibold text-foreground">{zone.municipio}</span>
+                                    <Badge variant="outline" className={cn(
+                                        "text-[9px] font-bold px-1.5 py-0 h-4 rounded",
+                                        zone.num_operadores >= 3 ? "bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-900/20 dark:text-rose-400 dark:border-rose-800" :
+                                        zone.num_operadores === 2 ? "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800" :
+                                        "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800"
+                                    )}>
+                                        {zone.num_operadores} {zone.num_operadores === 1 ? 'Competidor' : 'Competidores'}
+                                    </Badge>
+                                </div>
+                                <span className="text-[10px] text-muted-foreground font-medium">{zone.estado}</span>
+                                <div className="flex gap-1.5 mt-2 flex-wrap">
+                                    {zone.operadores.map((op: any, oi: number) => (
+                                        <div key={oi} className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-muted/50 border border-border/50">
+                                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: op.color_hex || '#888' }} />
+                                            <span className="text-[10px] font-medium text-foreground/80">{op.nombre}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                                    <span>Desde <span className="font-bold text-foreground">${zone.min_precio}</span>/mes</span>
+                                    <span>Hasta <span className="font-bold text-foreground">{zone.max_velocidad} Mbps</span></span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
             <style jsx global>{`
                 .maplibregl-popup-content {
                     background: transparent !important;

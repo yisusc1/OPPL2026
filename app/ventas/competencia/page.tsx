@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2, Trash2, Tv, Wrench } from "lucide-react";
+import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2, Trash2, Tv, Wrench, MapPin, X } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,16 @@ export default function CompetenciaDashboard() {
   const [loadingOfertas, setLoadingOfertas] = useState(false);
   const [geoHierarchy, setGeoHierarchy] = useState<Record<string, Record<string, Record<string, string[]>>>>({});
   
-  // Filtros
+  // Filtros Geográficos
+  const [filterEstado, setFilterEstado] = useState("");
+  const [filterMunicipio, setFilterMunicipio] = useState("");
+  const [filterParroquia, setFilterParroquia] = useState("");
+  const filterEstados = Object.keys(geoHierarchy).sort();
+  const filterMunicipios = filterEstado ? Object.keys(geoHierarchy[filterEstado] || {}).sort() : [];
+  const filterParroquias = filterEstado && filterMunicipio ? Object.keys(geoHierarchy[filterEstado]?.[filterMunicipio] || {}).sort() : [];
+  const hasGeoFilter = !!(filterEstado || filterMunicipio || filterParroquia);
+
+  // Ofertas
   const [ofertas, setOfertas] = useState<any[]>([]);
   
   // Drawer state
@@ -70,12 +79,16 @@ export default function CompetenciaDashboard() {
 
   useEffect(() => {
     loadOfertas();
-  }, []);
+  }, [filterEstado, filterMunicipio, filterParroquia]);
 
   async function loadOfertas() {
     setLoadingOfertas(true);
     try {
-      const data = await getOfertasRecientes();
+      const data = await getOfertasRecientes(
+        filterEstado || undefined,
+        filterMunicipio || undefined,
+        filterParroquia || undefined
+      );
       setOfertas(data);
     } catch (error) {
       console.error(error);
@@ -259,15 +272,71 @@ export default function CompetenciaDashboard() {
             <Radar size={18} /> {isCompareMode ? "Cancelar" : "Comparar"}
           </Button>
         </div>
+
+        {/* Filtros Geográficos */}
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200/60 dark:border-zinc-800/60 p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <MapPin size={14} className="text-zinc-400" />
+              <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest">Filtrar por zona</span>
+            </div>
+            {hasGeoFilter && (
+              <button
+                onClick={() => { setFilterEstado(""); setFilterMunicipio(""); setFilterParroquia(""); }}
+                className="flex items-center gap-1 text-[11px] text-rose-500 hover:text-rose-600 font-medium transition-colors"
+              >
+                <X size={12} /> Limpiar
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Select value={filterEstado} onValueChange={(v) => { setFilterEstado(v); setFilterMunicipio(""); setFilterParroquia(""); loadOfertas(); }}>
+              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                {filterEstados.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterMunicipio} onValueChange={(v) => { setFilterMunicipio(v); setFilterParroquia(""); }} disabled={!filterEstado}>
+              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
+                <SelectValue placeholder="Municipio" />
+              </SelectTrigger>
+              <SelectContent>
+                {filterMunicipios.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterParroquia} onValueChange={(v) => setFilterParroquia(v)} disabled={!filterMunicipio}>
+              <SelectTrigger className="h-10 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
+                <SelectValue placeholder="Parroquia" />
+              </SelectTrigger>
+              <SelectContent>
+                {filterParroquias.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {!loadingOfertas && ofertas.length === 0 ? (
-        <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-2xl border-2 border-dashed border-emerald-200 dark:border-emerald-900/40 p-12 text-center">
-          <Radar className="w-10 h-10 mx-auto text-emerald-400 dark:text-emerald-600 mb-3" />
-          <h3 className="text-emerald-900 dark:text-emerald-100 font-medium mb-1">No hay datos</h3>
-          <p className="text-sm text-emerald-600 dark:text-emerald-400/70">
-            Selecciona una operadora para registrar su primera oferta.
-          </p>
+        <div className="bg-zinc-50/50 dark:bg-zinc-900/30 rounded-2xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-12 text-center">
+          {hasGeoFilter ? (
+            <>
+              <MapPin className="w-10 h-10 mx-auto text-zinc-400 dark:text-zinc-600 mb-3" />
+              <h3 className="text-zinc-700 dark:text-zinc-300 font-medium mb-1">Sin presencia en esta zona</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400/70">
+                Ninguna operadora tiene registros en la ubicación seleccionada.
+              </p>
+            </>
+          ) : (
+            <>
+              <Radar className="w-10 h-10 mx-auto text-emerald-400 dark:text-emerald-600 mb-3" />
+              <h3 className="text-emerald-900 dark:text-emerald-100 font-medium mb-1">No hay datos</h3>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400/70">
+                Selecciona una operadora para registrar su primera oferta.
+              </p>
+            </>
+          )}
         </div>
       ) : loadingOfertas ? (
         <div className="flex items-center justify-center py-20">

@@ -196,16 +196,14 @@ export async function saveOfertasBatch(ofertas: any[]) {
 }
 
 /**
- * Obtiene la ÚLTIMA oferta registrada de cada operador.
+ * Obtiene la ÚLTIMA oferta registrada de cada operador, con filtros geográficos opcionales.
  */
-export async function getOfertasRecientes() {
+export async function getOfertasRecientes(estado?: string, municipio?: string, parroquia?: string) {
   const supabase = await createClient();
   
-  // 1. Obtener todos los operadores para rellenar si no hay filtros
   const { data: ops } = await supabase.from("operadores_competencia").select("*");
   const operadores = ops || [];
 
-  // 2. Construir query dinámica
   let query = supabase
     .from("ofertas_competencia")
     .select(`
@@ -218,7 +216,7 @@ export async function getOfertasRecientes() {
       )
     `)
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(1000);
 
   const { data, error } = await query;
 
@@ -227,49 +225,210 @@ export async function getOfertasRecientes() {
     return [];
   }
 
-  // Agrupar por operador_id y agregar resumen global (min precio, max velocidad, costos de instalación únicos)
-  const ultimasOfertasMap = new Map<number, any>();
-  
-  if (data) {
-    for (const oferta of data) {
-      if (!ultimasOfertasMap.has(oferta.operador_id)) {
-        ultimasOfertasMap.set(oferta.operador_id, {
-          ...oferta,
-          min_precio: typeof oferta.precio_mensual === 'number' ? oferta.precio_mensual : Infinity,
-          max_velocidad: typeof oferta.velocidad_mb === 'number' ? oferta.velocidad_mb : 0,
-          todas_inst: (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') ? [oferta.costo_instalacion] : []
-        });
-      } else {
-        const ag = ultimasOfertasMap.get(oferta.operador_id);
-        if (typeof oferta.precio_mensual === 'number' && oferta.precio_mensual < ag.min_precio) ag.min_precio = oferta.precio_mensual;
-        if (typeof oferta.velocidad_mb === 'number' && oferta.velocidad_mb > ag.max_velocidad) ag.max_velocidad = oferta.velocidad_mb;
-        if (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') {
-           if (!ag.todas_inst.includes(oferta.costo_instalacion)) {
-              ag.todas_inst.push(oferta.costo_instalacion);
-           }
-        }
+  // Filtrar por zona si se especificó
+  const hasGeoFilter = !!(estado || municipio || parroquia);
+  let filteredData = data || [];
+
+  if (hasGeoFilter) {
+    // Encontrar qué operadores tienen presencia en la zona filtrada
+    const opsInZone = new Set<number>();
+    for (const row of filteredData) {
+      const matchEstado = !estado || row.estado === estado || row.estado === 'Nacional';
+      const matchMunicipio = !municipio || row.municipio === municipio || row.municipio === 'Todos';
+      const matchParroquia = !parroquia || row.parroquia === parroquia || row.parroquia === 'Todas';
+      if (matchEstado && matchMunicipio && matchParroquia) {
+        opsInZone.add(row.operador_id);
       }
     }
-    
-    // Normalizar Infinity a 0 si no había precios
-    for (const [id, ag] of ultimasOfertasMap.entries()) {
-      if (ag.min_precio === Infinity) ag.min_precio = 0;
-    }
+    // Solo mantener registros de operadores con presencia local + sus datos nacionales
+    filteredData = filteredData.filter(row => {
+      if (!opsInZone.has(row.operador_id)) return false;
+      const isNacional = row.estado === 'Nacional';
+      if (isNacional) return true;
+      const matchEstado = !estado || row.estado === estado;
+      const matchMunicipio = !municipio || row.municipio === municipio;
+      const matchParroquia = !parroquia || row.parroquia === parroquia;
+      return matchEstado && matchMunicipio && matchParroquia;
+    });
   }
 
-  // Rellenar operadores sin ofertas
-  for (const op of operadores) {
+  // Agrupar por operador_id y agregar resumen global
+  const ultimasOfertasMap = new Map<number, any>();
+  
+  for (const oferta of filteredData) {
+    if (!ultimasOfertasMap.has(oferta.operador_id)) {
+      ultimasOfertasMap.set(oferta.operador_id, {
+        ...oferta,
+        min_precio: typeof oferta.precio_mensual === 'number' ? oferta.precio_mensual : Infinity,
+        max_velocidad: typeof oferta.velocidad_mb === 'number' ? oferta.velocidad_mb : 0,
+        todas_inst: (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') ? [oferta.costo_instalacion] : []
+      });
+    } else {
+      const ag = ultimasOfertasMap.get(oferta.operador_id);
+      if (typeof oferta.precio_mensual === 'number' && oferta.precio_mensual < ag.min_precio) ag.min_precio = oferta.precio_mensual;
+      if (typeof oferta.velocidad_mb === 'number' && oferta.velocidad_mb > ag.max_velocidad) ag.max_velocidad = oferta.velocidad_mb;
+      if (oferta.costo_instalacion !== null && typeof oferta.costo_instalacion !== 'undefined') {
+         if (!ag.todas_inst.includes(oferta.costo_instalacion)) {
+            ag.todas_inst.push(oferta.costo_instalacion);
+         }
+      }
+    }
+  }
+  
+  for (const [, ag] of ultimasOfertasMap.entries()) {
+    if (ag.min_precio === Infinity) ag.min_precio = 0;
+  }
+
+  // Rellenar operadores sin ofertas (solo si NO hay filtro geo activo)
+  if (!hasGeoFilter) {
+    for (const op of operadores) {
       if (!ultimasOfertasMap.has(op.id)) {
         ultimasOfertasMap.set(op.id, {
           id: `empty-${op.id}`,
           operador_id: op.id,
           operadores_competencia: { nombre: op.nombre, color_hex: op.color_hex, logo_url: op.logo_url },
-          isEmpty: true // Marcador para la UI
+          isEmpty: true
         });
       }
     }
+  }
 
   return Array.from(ultimasOfertasMap.values());
+}
+
+/**
+ * Obtiene nombres únicos de servicios adicionales para autocompletado.
+ */
+export async function getUniqueServiceNames() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ofertas_competencia")
+    .select("servicios_adicionales")
+    .not("servicios_adicionales", "is", null);
+
+  if (error) {
+    console.error("Error fetching service names:", error);
+    return [];
+  }
+
+  const namesSet = new Set<string>();
+  for (const row of (data || [])) {
+    if (Array.isArray(row.servicios_adicionales)) {
+      for (const srv of row.servicios_adicionales) {
+        if (srv.nombre && srv.nombre.trim()) {
+          namesSet.add(srv.nombre.trim());
+        }
+      }
+    }
+  }
+  return Array.from(namesSet).sort();
+}
+
+/**
+ * Elimina toda la presencia de un operador en una zona geográfica específica.
+ */
+export async function deleteOfertaZona(
+  operador_id: number,
+  estado: string,
+  municipio: string,
+  parroquia: string
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("ofertas_competencia")
+    .delete()
+    .eq("operador_id", operador_id)
+    .eq("estado", estado)
+    .eq("municipio", municipio)
+    .eq("parroquia", parroquia);
+
+  if (error) {
+    console.error("Error eliminando zona:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/ventas/competencia");
+  revalidatePath("/ventas/competencia/nuevo");
+  return { success: true };
+}
+
+/**
+ * Obtiene data agregada de competencia por municipio para el mapa de calor.
+ * Devuelve un array con { estado, municipio, num_operadores, min_precio, max_velocidad }.
+ */
+export async function getCompetenciaHeatmapData() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ofertas_competencia")
+    .select(`
+      estado,
+      municipio,
+      parroquia,
+      operador_id,
+      precio_mensual,
+      velocidad_mb,
+      es_promocion,
+      operadores_competencia (
+        nombre,
+        color_hex
+      )
+    `)
+    .neq("estado", "Nacional")
+    .order("created_at", { ascending: false })
+    .limit(2000);
+
+  if (error) {
+    console.error("Error fetching heatmap data:", error);
+    return [];
+  }
+
+  // Agrupar por estado-municipio
+  const zoneMap = new Map<string, {
+    estado: string;
+    municipio: string;
+    operadores: Set<number>;
+    operadoresInfo: Map<number, { nombre: string; color_hex: string }>;
+    min_precio: number;
+    max_velocidad: number;
+    total_ofertas: number;
+  }>();
+
+  for (const row of (data || [])) {
+    const key = `${row.estado}|${row.municipio}`;
+    if (!zoneMap.has(key)) {
+      zoneMap.set(key, {
+        estado: row.estado,
+        municipio: row.municipio,
+        operadores: new Set(),
+        operadoresInfo: new Map(),
+        min_precio: Infinity,
+        max_velocidad: 0,
+        total_ofertas: 0
+      });
+    }
+    const zone = zoneMap.get(key)!;
+    zone.operadores.add(row.operador_id);
+    if (row.operadores_competencia) {
+      zone.operadoresInfo.set(row.operador_id, {
+        nombre: (row.operadores_competencia as any).nombre,
+        color_hex: (row.operadores_competencia as any).color_hex
+      });
+    }
+    if (typeof row.precio_mensual === 'number' && row.precio_mensual < zone.min_precio) zone.min_precio = row.precio_mensual;
+    if (typeof row.velocidad_mb === 'number' && row.velocidad_mb > zone.max_velocidad) zone.max_velocidad = row.velocidad_mb;
+    zone.total_ofertas++;
+  }
+
+  return Array.from(zoneMap.values()).map(z => ({
+    estado: z.estado,
+    municipio: z.municipio,
+    num_operadores: z.operadores.size,
+    operadores: Array.from(z.operadoresInfo.entries()).map(([id, info]) => ({ id, ...info })),
+    min_precio: z.min_precio === Infinity ? 0 : z.min_precio,
+    max_velocidad: z.max_velocidad,
+    total_ofertas: z.total_ofertas
+  }));
 }
 
 /**

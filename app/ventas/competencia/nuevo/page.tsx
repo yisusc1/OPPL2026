@@ -14,8 +14,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { useToast } from "@/components/ui/use-toast";
 import { useUser } from "@/components/providers/user-provider";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador, updateOperador, deleteOperador } from "@/app/actions/competencia";
-import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2, Copy } from "lucide-react";
+import { getOperadores, saveOfertasBatch, saveOperador, getSnapshotOperador, updateOperador, deleteOperador, deleteOfertaZona, getUniqueServiceNames } from "@/app/actions/competencia";
+import { Loader2, Plus, Trash2, Info, PlusCircle, CheckCircle2, Edit2, Copy, AlertTriangle } from "lucide-react";
 
 const TIPOS_NOVEDAD = [
   "Actualización General",
@@ -117,11 +117,17 @@ export default function NuevaOfertaCompetencia() {
   const [nationalPromos, setNationalPromos] = useState<PromoActiva[]>([]);
   const [loadingNationalPromos, setLoadingNationalPromos] = useState(false);
 
+  // Autocomplete & Zone Delete
+  const [serviceNameSuggestions, setServiceNameSuggestions] = useState<string[]>([]);
+  const [deletingZone, setDeletingZone] = useState(false);
+  const hasExistingData = planes.length > 0 || promos.length > 0;
+
   useEffect(() => {
-    Promise.all([getVentasConfig(), getOperadores()])
-      .then(([config, ops]) => {
+    Promise.all([getVentasConfig(), getOperadores(), getUniqueServiceNames()])
+      .then(([config, ops, srvNames]) => {
         setGeoHierarchy(config.geoHierarchy);
         setOperadores(ops);
+        setServiceNameSuggestions(srvNames);
         setLoading(false);
       })
       .catch((e) => {
@@ -656,7 +662,7 @@ export default function NuevaOfertaCompetencia() {
                           <div key={sIdx}>
                             {sIdx > 0 && <div className={iosDivider} />}
                             <div className="flex items-center px-4 py-2.5 gap-3">
-                              <Input placeholder="Ej. Salud Integral" value={srv.nombre} onChange={(e) => updatePromoServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
+                              <Input list="srv-names-list" placeholder="Ej. Salud Integral" value={srv.nombre} onChange={(e) => updatePromoServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
                               <Input placeholder="$0" value={srv.costo} onChange={(e) => updatePromoServicio(idx, sIdx, "costo", e.target.value)} className={`${iosInput} text-sm w-14 text-right`} />
                               <Input placeholder="Detalle" value={srv.condicion} onChange={(e) => updatePromoServicio(idx, sIdx, "condicion", e.target.value)} className={`${iosInput} text-sm w-20 text-zinc-500`} />
                               <button onClick={() => removePromoServicio(idx, sIdx)} className="shrink-0 text-rose-400 hover:text-rose-600"><Trash2 size={14} /></button>
@@ -741,7 +747,7 @@ export default function NuevaOfertaCompetencia() {
                           <div key={sIdx}>
                             {sIdx > 0 && <div className={iosDivider} />}
                             <div className="flex items-center px-4 py-2.5 gap-3">
-                              <Input placeholder="Ej. NetUno Go" value={srv.nombre} onChange={(e) => updatePlanServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
+                              <Input list="srv-names-list" placeholder="Ej. NetUno Go" value={srv.nombre} onChange={(e) => updatePlanServicio(idx, sIdx, "nombre", e.target.value)} className={`${iosInput} text-sm flex-1`} />
                               <Input placeholder="$0" value={srv.costo} onChange={(e) => updatePlanServicio(idx, sIdx, "costo", e.target.value)} className={`${iosInput} text-sm w-14 text-right`} />
                               <Input placeholder="Detalle" value={srv.condicion} onChange={(e) => updatePlanServicio(idx, sIdx, "condicion", e.target.value)} className={`${iosInput} text-sm w-20 text-zinc-500`} />
                               <button onClick={() => removePlanServicio(idx, sIdx)} className="shrink-0 text-rose-400 hover:text-rose-600"><Trash2 size={14} /></button>
@@ -812,7 +818,33 @@ export default function NuevaOfertaCompetencia() {
           </div>
         </section>
 
-        <div className="sticky bottom-6 z-10 pt-4">
+        <div className="sticky bottom-6 z-10 pt-4 space-y-2">
+          {hasExistingData && estado && municipio && parroquia && (
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!operadorId || !estado || !municipio || !parroquia) return;
+                const opName = operadores.find((o: any) => o.id === parseInt(operadorId))?.nombre || "esta operadora";
+                const confirm = window.confirm(`¿Eliminar toda la presencia de ${opName} en ${parroquia}, ${municipio}?\n\nEsto borrará todas las promociones, instalación y notas de esta zona específica. Los planes estándar nacionales NO se verán afectados.`);
+                if (!confirm) return;
+                setDeletingZone(true);
+                try {
+                  await deleteOfertaZona(parseInt(operadorId), estado, municipio, parroquia);
+                  toast({ title: "Zona eliminada", description: `Se eliminó la presencia en ${parroquia}, ${municipio}.` });
+                  router.push("/ventas/competencia");
+                } catch (error: any) {
+                  toast({ title: "Error", description: error.message, variant: "destructive" });
+                } finally {
+                  setDeletingZone(false);
+                }
+              }}
+              disabled={deletingZone || saving}
+              className="w-full h-12 rounded-2xl text-sm font-semibold border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 gap-2"
+            >
+              {deletingZone ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4" />}
+              Eliminar Presencia en esta Zona
+            </Button>
+          )}
           <Button onClick={handleSubmit} disabled={saving} className="w-full h-14 rounded-2xl text-base font-bold shadow-lg shadow-primary/20 gap-2">
             {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />} Guardar
           </Button>
@@ -910,6 +942,13 @@ export default function NuevaOfertaCompetencia() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Datalist para Autocompletado de Servicios */}
+      <datalist id="srv-names-list">
+        {serviceNameSuggestions.map((name, i) => (
+          <option key={i} value={name} />
+        ))}
+      </datalist>
     </PremiumPageLayout>
   );
 }
