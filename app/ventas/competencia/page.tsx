@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus } from "lucide-react";
+import { Zap, ExternalLink, Radar, Loader2, Settings2, Plus, Edit2 } from "lucide-react";
 import { PremiumPageLayout } from "@/components/ui/premium-page-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +12,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, Dr
 import { useToast } from "@/components/ui/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getVentasConfig } from "@/app/actions/ventas";
-import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador, getOperadores, saveOperador } from "@/app/actions/competencia";
+import { getOfertasRecientes, getHistorialOperador, getSnapshotOperador, getOperadores, saveOperador, updateOperador } from "@/app/actions/competencia";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -43,6 +43,7 @@ export default function CompetenciaDashboard() {
   // Gestión de Operadoras
   const [operadores, setOperadores] = useState<any[]>([]);
   const [isOpModalOpen, setIsOpModalOpen] = useState(false);
+  const [editingOpId, setEditingOpId] = useState<number | null>(null);
   const [newOpName, setNewOpName] = useState("");
   const [newOpColor, setNewOpColor] = useState("#3b82f6");
   const [newOpLogo, setNewOpLogo] = useState("");
@@ -115,11 +116,17 @@ export default function CompetenciaDashboard() {
     if (!newOpName) return toast({ title: "Nombre requerido", variant: "destructive" });
     setSavingOp(true);
     try {
-      const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
-      toast({ title: `Operadora "${data.nombre}" creada` });
-      setOperadores(prev => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      if (editingOpId) {
+        const data = await updateOperador(editingOpId, newOpName, newOpColor, newOpLogo || undefined);
+        toast({ title: `Operadora "${data.nombre}" actualizada` });
+        setOperadores(prev => prev.map(o => o.id === editingOpId ? data : o).sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      } else {
+        const data = await saveOperador(newOpName, newOpColor, newOpLogo || undefined);
+        toast({ title: `Operadora "${data.nombre}" creada` });
+        setOperadores(prev => [...prev, data].sort((a, b) => a.nombre.localeCompare(b.nombre)));
+      }
       setIsOpModalOpen(false);
-      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo("");
+      setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setEditingOpId(null);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -180,9 +187,9 @@ export default function CompetenciaDashboard() {
         <Button
           variant="outline"
           className="h-14 gap-2 rounded-2xl text-base px-4 border-zinc-200 dark:border-zinc-700 w-full"
-          onClick={() => setIsOpModalOpen(true)}
+          onClick={() => { setEditingOpId(null); setNewOpName(""); setNewOpColor("#3b82f6"); setNewOpLogo(""); setIsOpModalOpen(true); }}
         >
-          <Settings2 size={18} /> Gestionar Operadoras
+          <Settings2 size={18} /> Registrar Nueva Operadora
         </Button>
       </div>
 
@@ -233,6 +240,23 @@ export default function CompetenciaDashboard() {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: opColor }} />
                       <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{opName}</h3>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const op = oferta.operadores_competencia;
+                          if (op) {
+                            setEditingOpId(op.id);
+                            setNewOpName(op.nombre);
+                            setNewOpColor(op.color_hex || "#3b82f6");
+                            setNewOpLogo(op.logo_url || "");
+                            setIsOpModalOpen(true);
+                          }
+                        }} 
+                        className="ml-2 w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Editar Operadora"
+                      >
+                        <Edit2 size={12} className="text-zinc-500" />
+                      </button>
                     </div>
                     <Badge variant="outline" className="text-[10px] uppercase text-zinc-500">
                       {oferta.created_at ? format(new Date(oferta.created_at), "dd MMM", { locale: es }) : "N/A"}
@@ -299,7 +323,21 @@ export default function CompetenciaDashboard() {
                     style={{ backgroundColor: selectedOperador?.operadores_competencia?.color_hex || '#ccc' }}
                   />
                 )}
-                {selectedOperador?.operadores_competencia?.nombre} en {parroquia || "el país"}
+                <div className="flex items-center gap-2">
+                  {selectedOperador?.operadores_competencia?.nombre} en {parroquia || "el país"}
+                  {selectedOperador?.operadores_competencia && (
+                    <button onClick={() => {
+                      const op = selectedOperador.operadores_competencia;
+                      setEditingOpId(op.id);
+                      setNewOpName(op.nombre);
+                      setNewOpColor(op.color_hex || "#3b82f6");
+                      setNewOpLogo(op.logo_url || "");
+                      setIsOpModalOpen(true);
+                    }} className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors ml-2">
+                      <Edit2 size={16} className="text-zinc-500" />
+                    </button>
+                  )}
+                </div>
               </DrawerTitle>
               <DrawerDescription>
                 Información detallada de la oferta comercial de esta operadora.
@@ -567,11 +605,11 @@ export default function CompetenciaDashboard() {
         </DrawerContent>
       </Drawer>
 
-      {/* Dialog: Nueva Operadora */}
+      {/* Dialog: Nueva Operadora / Editar Operadora */}
       <Dialog open={isOpModalOpen} onOpenChange={setIsOpModalOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Registrar Nueva Operadora</DialogTitle>
+            <DialogTitle className="text-lg font-bold">{editingOpId ? "Editar Operadora" : "Registrar Nueva Operadora"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1">
@@ -624,8 +662,8 @@ export default function CompetenciaDashboard() {
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setIsOpModalOpen(false)} className="rounded-xl">Cancelar</Button>
             <Button onClick={handleSaveOperador} disabled={savingOp || !newOpName} className="rounded-xl gap-2">
-              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus size={16} />}
-              Crear Operadora
+              {savingOp ? <Loader2 className="h-4 w-4 animate-spin" /> : (editingOpId ? <Edit2 size={16} /> : <Plus size={16} />)}
+              {editingOpId ? "Guardar Cambios" : "Crear Operadora"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -50,6 +50,7 @@ ON CONFLICT (nombre) DO UPDATE SET
   cobertura_estados = EXCLUDED.cobertura_estados,
   logo_url = EXCLUDED.logo_url;
 
+DELETE FROM ofertas_competencia WHERE fuente = 'scraping_web';
 -- 3. Insertar Ofertas (con asesor_nombre = 'Sistema (Scraping)')
 
 -- ============ NETUNO ============
