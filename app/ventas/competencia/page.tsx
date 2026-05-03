@@ -353,7 +353,7 @@ export default function CompetenciaDashboard() {
                   />
                 )}
                 <div className="flex items-center gap-2">
-                  {selectedOperador?.operadores_competencia?.nombre} en {parroquia || "el país"}
+                  {selectedOperador?.operadores_competencia?.nombre} a nivel nacional
                   {selectedOperador?.operadores_competencia && (
                     <button onClick={() => {
                       const op = selectedOperador.operadores_competencia;
