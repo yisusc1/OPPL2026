@@ -195,7 +195,19 @@ export default function CompetenciaDashboard() {
     if (snapshot.promociones) {
       snapshot.promociones.forEach((promo: any) => {
         const key = initZone(promo);
-        zones[key].promos.push(promo);
+        
+        const promoKey = `${promo.nombre_plan}-${promo.velocidad}-${promo.precio_promo}`;
+        const existing = zones[key].promos.find((p: any) => `${p.nombre_plan}-${p.velocidad}-${p.precio_promo}` === promoKey);
+        
+        if (existing) {
+          if (!existing.parroquias) existing.parroquias = [existing.parroquia];
+          if (!existing.parroquias.includes(promo.parroquia)) {
+            existing.parroquias.push(promo.parroquia);
+          }
+        } else {
+          promo.parroquias = [promo.parroquia];
+          zones[key].promos.push(promo);
+        }
       });
     }
 
@@ -580,6 +592,13 @@ export default function CompetenciaDashboard() {
                                             </Badge>
                                           )}
                                         </div>
+
+                                        {promo.parroquias && promo.parroquias.length > 0 && (
+                                          <div className="flex items-start gap-1.5 text-[11px] text-zinc-500 dark:text-zinc-400 mb-3 leading-tight">
+                                            <span className="shrink-0 mt-[2px]">📍</span>
+                                            <span><span className="font-semibold text-zinc-600 dark:text-zinc-300">Aplica en:</span> {promo.parroquias.join(", ")}</span>
+                                          </div>
+                                        )}
 
                                         {promo.servicios && promo.servicios.length > 0 && (
                                           <div className="mt-3 pt-3 border-t border-zinc-200/60 dark:border-zinc-800/60 space-y-1.5">
