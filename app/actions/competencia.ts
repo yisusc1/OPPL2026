@@ -230,12 +230,14 @@ export async function getOfertasRecientes(estado?: string, municipio?: string, p
   let filteredData = data || [];
 
   if (hasGeoFilter) {
-    // Encontrar qué operadores tienen presencia en la zona filtrada
+    // Encontrar qué operadores tienen presencia LOCAL real en la zona filtrada
+    // (excluimos registros Nacionales de la detección de presencia)
     const opsInZone = new Set<number>();
     for (const row of filteredData) {
-      const matchEstado = !estado || row.estado === estado || row.estado === 'Nacional';
-      const matchMunicipio = !municipio || row.municipio === municipio || row.municipio === 'Todos';
-      const matchParroquia = !parroquia || row.parroquia === parroquia || row.parroquia === 'Todas';
+      if (row.estado === 'Nacional') continue; // No cuenta como presencia local
+      const matchEstado = !estado || row.estado === estado;
+      const matchMunicipio = !municipio || row.municipio === municipio;
+      const matchParroquia = !parroquia || row.parroquia === parroquia;
       if (matchEstado && matchMunicipio && matchParroquia) {
         opsInZone.add(row.operador_id);
       }
