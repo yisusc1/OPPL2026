@@ -469,7 +469,6 @@ export default function CompetenciaDashboard() {
                                     {plan.es_simetrico && <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800 font-medium px-1.5 py-0 h-5">Simétrico</Badge>}
                                     {plan.incluye_iptv && <Badge variant="outline" className="text-[10px] bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800 font-medium px-1.5 py-0 h-5">IPTV</Badge>}
                                   </div>
-                                  </div>
                                   <div className="flex items-center gap-1.5 text-xs text-zinc-500 font-medium mt-2">
                                     <span>📍</span>
                                     <span>{plan.estado}, {plan.municipio}</span>
